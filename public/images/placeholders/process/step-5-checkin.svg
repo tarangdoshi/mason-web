@@ -1,0 +1,17 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six-month check-in placeholder">
+  <defs>
+    <linearGradient id="g5" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC" />
+      <stop offset="1" stop-color="#FFF7ED" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#g5)" />
+  <rect x="88" y="64" width="280" height="232" rx="18" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="3" />
+  <rect x="104" y="98" width="248" height="28" rx="8" fill="#E2E8F0" />
+  <rect x="104" y="144" width="248" height="22" rx="8" fill="#E2E8F0" />
+  <rect x="104" y="180" width="248" height="22" rx="8" fill="#E2E8F0" />
+  <rect x="104" y="216" width="248" height="22" rx="8" fill="#E2E8F0" />
+  <circle cx="476" cy="178" r="92" fill="#1D4ED8" />
+  <path d="M476 118V178L516 198" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="108" y="284" fill="#334155" font-size="24" font-family="Arial, sans-serif" font-weight="700">6-Month Effectiveness Check-in</text>
+</svg>

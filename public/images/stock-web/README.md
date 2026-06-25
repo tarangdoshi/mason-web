@@ -1,0 +1,50 @@
+# Stock Web Sources
+
+- `process/process-book-consultation.jpg`
+  - source: https://www.flickr.com/photos/131469746@N06/24456135006
+  - license: cc0
+  - size: 1024x684
+- `process/process-doctor-video-review.jpg`
+  - source: https://unsplash.com/photos/doctor-consulting-patient-via-video-call-on-laptop-JyPAY9-WNE8
+  - license: Unsplash free
+  - size: 1800x1013
+- `process/process-onsite-inspection.jpg`
+  - source: https://www.rawpixel.com/image/5904346/photo-image-public-domain-kitchen-free
+  - license: cc0
+  - size: 1024x683
+- `process/process-installation-day.jpg`
+  - source: https://www.flickr.com/photos/80223459@N05/48877712171
+  - license: public domain
+  - size: 1024x786
+- `process/process-family-walkthrough.jpg`
+  - source: https://www.flickr.com/photos/131469746@N06/24456138166
+  - license: cc0
+  - size: 1024x684
+- `risk/risk-wet-floor.jpg`
+  - source: https://unsplash.com/photos/a-bathroom-with-a-shower-and-a-towel-on-the-floor-X-TxwCVtgxo
+  - license: Unsplash free
+  - size: 1350x1800
+- `risk/risk-tight-turning.jpg`
+  - source: https://www.flickr.com/photos/71401718@N00/31095282102
+  - license: cc0
+  - size: 768x1024
+- `risk/risk-no-support.jpg`
+  - source: https://unsplash.com/photos/a-white-tiled-bathroom-with-a-shower-and-sink-vLrJsvmHstA
+  - license: Unsplash free
+  - size: 1800x1200
+- `upgrades/upgrade-grab-support.jpg`
+  - source: https://www.flickr.com/photos/62518311@N00/95565646
+  - license: cc0
+  - size: 1024x768
+- `upgrades/upgrade-anti-slip-floor.jpg`
+  - source: https://www.flickr.com/photos/37996646802@N01/3237849929
+  - license: cc0
+  - size: 768x1024
+- `upgrades/upgrade-toilet-support.jpg`
+  - source: https://www.flickr.com/photos/62518311@N00/73383495
+  - license: cc0
+  - size: 1024x768
+- `upgrades/upgrade-shower-support.jpg`
+  - source: https://www.flickr.com/photos/80223459@N05/48877712171
+  - license: public domain
+  - size: 1024x786

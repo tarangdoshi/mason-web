@@ -1,0 +1,1392 @@
+.page {
+  max-width: 100vw;
+  overflow-x: clip;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.previewBanner {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.previewBannerDraft {
+  background: var(--cta-subtle);
+  color: var(--ink);
+}
+
+.previewBannerWarning {
+  background: color-mix(in srgb, var(--cta) 18%, var(--surface-paper));
+  color: var(--ink);
+}
+
+.previewBannerInner {
+  width: min(1200px, calc(100% - 2rem));
+  min-height: 2.75rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.topNav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  overflow: clip;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  border-bottom: 1px solid rgba(33, 31, 27, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.topNav::after,
+.heroSection::after,
+.transformationSection::after,
+.doctorSection::after,
+.finalCtaSection::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: max(0px, calc((100% - 1200px) / 2));
+  pointer-events: none;
+}
+
+.topNav::after {
+  background: var(--surface);
+}
+
+.navInner {
+  position: relative;
+  z-index: 2;
+  width: min(1200px, calc(100% - 2rem));
+  min-height: 5rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.brandLockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.brandMark {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--cta);
+  color: var(--primary-contrast);
+  font-family: var(--font-display), serif;
+  font-weight: 700;
+}
+
+.brandText {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.brandText strong {
+  color: var(--ink);
+  font-size: 0.76rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brandText span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.1;
+}
+
+.navCluster,
+.navLinks,
+.heroButtons,
+.heroChips,
+.assessmentTrust,
+.processHighlights,
+.transformationTags,
+.packageActions {
+  display: flex;
+  align-items: center;
+}
+
+.navCluster {
+  justify-content: flex-end;
+  gap: clamp(1.5rem, 5vw, 4.75rem);
+}
+
+.navLinks {
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.navLinks a {
+  color: rgba(33, 31, 27, 0.72);
+  text-decoration: none;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 650;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.navLinks a:hover {
+  color: var(--cta);
+}
+
+.navCta,
+.primaryButton,
+.secondaryButtonDark,
+.packageCheckout,
+.packageCheckoutFeatured,
+.packageDetailLink,
+.packageAssessmentNote a {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.78rem 1.25rem;
+  border-radius: 0.38rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.92rem;
+  line-height: 1;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.navCta,
+.primaryButton,
+.packageCheckoutFeatured,
+.packageAssessmentNote a {
+  border: 1px solid var(--cta);
+  background: var(--cta);
+  color: var(--cta-text);
+}
+
+.secondaryButtonDark {
+  border: 1px solid rgba(255, 250, 243, 0.22);
+  background: rgba(255, 250, 243, 0.06);
+  color: var(--surface-paper);
+}
+
+.packageCheckout,
+.packageDetailLink {
+  border: 1px solid color-mix(in srgb, var(--cta) 28%, transparent);
+  background: var(--surface-container-lowest);
+  color: var(--cta-strong);
+}
+
+.navCta:hover,
+.primaryButton:hover,
+.secondaryButtonDark:hover,
+.packageCheckout:hover,
+.packageCheckoutFeatured:hover,
+.packageDetailLink:hover,
+.packageAssessmentNote a:hover {
+  transform: translateY(-1px);
+}
+
+.navCta:hover,
+.primaryButton:hover,
+.packageCheckoutFeatured:hover,
+.packageAssessmentNote a:hover {
+  background: var(--cta-strong);
+  border-color: var(--cta-strong);
+  color: var(--cta-strong-text);
+}
+
+.brandLockup:focus-visible,
+.navLinks a:focus-visible,
+.navCta:focus-visible,
+.primaryButton:focus-visible,
+.secondaryButtonDark:focus-visible,
+.packageCheckout:focus-visible,
+.packageCheckoutFeatured:focus-visible,
+.packageDetailLink:focus-visible,
+.packageAssessmentNote a:focus-visible,
+.assessmentFormCard :is(input, select, textarea, button):focus-visible,
+.faqItem summary:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cta) 38%, transparent);
+  outline-offset: 3px;
+}
+
+.heroSection {
+  position: relative;
+  overflow: clip;
+  background: var(--brand-dark);
+  color: var(--surface-paper);
+}
+
+.heroSection::after,
+.transformationSection::after,
+.doctorSection::after,
+.finalCtaSection::after {
+  background: var(--brand-dark);
+}
+
+.heroInner {
+  position: relative;
+  z-index: 2;
+  width: min(1200px, calc(100% - 2rem));
+  min-height: 666px;
+  margin: 0 auto;
+  padding: 5rem 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 520px;
+  gap: clamp(3rem, 9vw, 7.5rem);
+  align-items: center;
+}
+
+.heroContent {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 560px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--cta);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  margin: 0;
+  color: var(--surface-paper);
+  font-family: var(--font-display), serif;
+  font-size: clamp(3.4rem, 7vw, 5.3rem);
+  line-height: 0.94;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.heroSubtitle {
+  max-width: 32rem;
+  margin: 0;
+  color: rgba(255, 250, 243, 0.78);
+  font-size: 1.22rem;
+  line-height: 1.45;
+}
+
+.heroButtons {
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.heroChips {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.heroChips span,
+.assessmentTrust span,
+.transformationTags span,
+.processHighlights span {
+  min-height: 2.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.44rem 0.72rem;
+  font-size: 0.78rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.heroChips span {
+  background: rgba(255, 250, 243, 0.08);
+  color: rgba(255, 250, 243, 0.8);
+}
+
+.heroVisual {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 520 / 440;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 34px 80px rgba(0, 0, 0, 0.32);
+}
+
+.heroVisual :global(.beforeAfterSlider) {
+  min-height: 100%;
+}
+
+.heroVisualCaption {
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.4rem;
+  margin: 0;
+  color: var(--surface-container-lowest);
+  font-family: var(--font-display), serif;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.54);
+  pointer-events: none;
+}
+
+.assessmentSection {
+  width: min(1200px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 4rem 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 0.72fr);
+  gap: 2rem;
+  align-items: center;
+  scroll-margin-top: 6rem;
+}
+
+.assessmentCopy,
+.assessmentFormCard {
+  border-radius: 1.25rem;
+  background: var(--surface-container-lowest);
+  box-shadow: 0 18px 50px rgba(48, 35, 27, 0.08);
+}
+
+.assessmentCopy {
+  min-height: 100%;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+}
+
+.assessmentCopy h2,
+.sectionHeader h2,
+.transformationCopy h2,
+.doctorIntro h2,
+.faqHeader h2,
+.finalCtaSection h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display), serif;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.assessmentCopy h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+}
+
+.assessmentCopy p,
+.sectionHeader p,
+.transformationCopy p,
+.doctorIntro p,
+.faqHeader p,
+.finalCtaSection p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.58;
+}
+
+.assessmentTrust {
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.assessmentTrust span {
+  background: var(--surface);
+  color: var(--brand-brown);
+}
+
+.assessmentFormCard {
+  padding: 1rem;
+}
+
+.evidenceSection,
+.whySection,
+.packageSection,
+.processSection,
+.faqSection {
+  width: min(1200px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.evidenceSection {
+  padding: 4rem 0 5.25rem;
+}
+
+.evidenceGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.evidenceCard,
+.whyCard,
+.packageCard {
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(33, 31, 27, 0.06);
+  border-radius: 0.75rem;
+  box-shadow: 0 18px 50px rgba(48, 35, 27, 0.05);
+}
+
+.evidenceCard {
+  min-height: 13.6rem;
+  padding: 1.55rem 1.25rem 1.4rem;
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.statValue {
+  margin: 0;
+  color: var(--primary);
+  font-family: var(--font-display), serif;
+  font-size: 2.05rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.evidenceCard h2 {
+  margin: 0;
+  min-height: 2.5rem;
+  color: var(--ink);
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.evidenceCard p:not(.statValue) {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.whySection {
+  padding: 0 0 5rem;
+}
+
+.sectionHeader,
+.faqHeader {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.sectionHeader {
+  max-width: 760px;
+}
+
+.sectionHeader h2,
+.transformationCopy h2,
+.doctorIntro h2,
+.faqHeader h2 {
+  font-size: clamp(2.25rem, 5vw, 3.4rem);
+  line-height: 1.03;
+}
+
+.whyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.whyCard {
+  min-height: 16.8rem;
+  padding: 1.25rem;
+  display: grid;
+  align-content: start;
+  gap: 1.3rem;
+}
+
+.illustration {
+  position: relative;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 0.55rem;
+  background: linear-gradient(135deg, var(--primary-subtle) 0%, var(--surface-paper) 100%);
+  border: 1px solid color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.illustrationSvg,
+.packageDiagramSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.illustrationSvg {
+  padding: 0.35rem 0.55rem;
+}
+
+.illustrationSvg text,
+.packageDiagramSvg text {
+  fill: color-mix(in srgb, var(--brand-brown) 62%, transparent);
+  font-family: var(--font-body), sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.illustrationSurface {
+  fill: none;
+  stroke: color-mix(in srgb, var(--brand-brown) 16%, transparent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.illustrationLine,
+.illustrationAccentLine {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.illustrationLine {
+  stroke: color-mix(in srgb, var(--primary) 34%, transparent);
+  stroke-width: 4;
+}
+
+.illustrationAccentLine {
+  stroke: var(--primary);
+  stroke-width: 5;
+}
+
+.illustrationObject {
+  fill: color-mix(in srgb, var(--surface-container-lowest) 78%, var(--primary-subtle));
+  stroke: color-mix(in srgb, var(--primary) 22%, transparent);
+  stroke-width: 3;
+}
+
+.illustrationAccent {
+  fill: color-mix(in srgb, var(--primary) 86%, var(--surface-paper));
+  stroke: color-mix(in srgb, var(--primary) 20%, var(--brand-brown));
+  stroke-width: 2;
+}
+
+.whyCard h3,
+.packageCard h3,
+.processStep h3,
+.doctorCard h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.25rem;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.whyCard p,
+.packageBestFor,
+.processStep p,
+.doctorSpecialty,
+.doctorCard blockquote,
+.doctorDisclaimer,
+.packageAssessmentNote p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.transformationSection {
+  position: relative;
+  overflow: clip;
+  background: var(--brand-dark);
+  color: var(--surface-paper);
+  padding: 5rem max(1rem, calc((100vw - 1200px) / 2));
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.36fr) minmax(0, 0.82fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+
+.transformationGallery {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.transformationFeatured,
+.transformationMiniCard {
+  border: 1px solid rgba(255, 250, 243, 0.08);
+  background: rgba(255, 250, 243, 0.05);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.2);
+}
+
+.transformationFeatured {
+  overflow: hidden;
+  border-radius: 0.65rem;
+}
+
+.transformationFeaturedSlider {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  min-height: 24rem;
+}
+
+.transformationFeaturedSlider :global(.beforeAfterSlider) {
+  height: 100%;
+}
+
+.transformationImage,
+.packageImage,
+.transformationMiniImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.transformationImage {
+  aspect-ratio: 4 / 3;
+}
+
+.transformationPlaceholder {
+  min-height: 24rem;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 250, 243, 0.72);
+  border-radius: 0.65rem;
+  background: rgba(255, 250, 243, 0.06);
+}
+
+.transformationFeaturedCopy {
+  padding: 1.1rem 1.25rem 1.25rem;
+  display: grid;
+  gap: 0.45rem;
+  background: color-mix(in srgb, var(--brand-dark-soft) 82%, transparent);
+}
+
+.transformationFeaturedCopy h3,
+.transformationMiniCopy h3 {
+  margin: 0;
+  color: var(--surface-paper);
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.transformationFeaturedCopy p,
+.transformationMiniCopy p {
+  margin: 0;
+  color: rgba(255, 250, 243, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.transformationCopy {
+  position: sticky;
+  top: 7rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.transformationCopy h2,
+.doctorIntro h2,
+.doctorCard h3 {
+  color: var(--surface-paper);
+}
+
+.transformationCopy p,
+.doctorIntro p,
+.doctorCard blockquote,
+.doctorSpecialty,
+.doctorDisclaimer {
+  color: rgba(255, 250, 243, 0.72);
+}
+
+.transformationTags {
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.transformationTags span {
+  background: rgba(255, 250, 243, 0.1);
+  color: var(--surface-paper);
+}
+
+.transformationMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.transformationMiniCard {
+  overflow: hidden;
+  border-radius: 0.65rem;
+}
+
+.transformationMiniVisual {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--brand-dark-soft);
+}
+
+.transformationMiniImageWrap {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.transformationMiniImageWrap:first-child {
+  border-right: 1px solid rgba(255, 250, 243, 0.16);
+}
+
+.transformationMiniImageWrap span {
+  position: absolute;
+  left: 0.65rem;
+  top: 0.65rem;
+  border-radius: 999px;
+  padding: 0.32rem 0.52rem;
+  background: rgba(28, 28, 25, 0.68);
+  color: var(--surface-paper);
+  font-size: 0.62rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.transformationMiniImageWrap:last-child span {
+  background: rgba(255, 250, 243, 0.92);
+  color: var(--primary-strong);
+}
+
+.transformationMiniCopy {
+  padding: 1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.transformationMiniTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.transformationMiniTags span {
+  border-radius: 999px;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 250, 243, 0.08);
+  color: rgba(255, 250, 243, 0.72);
+  font-size: 0.68rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.packageSection {
+  padding: 5rem 0;
+}
+
+.packageGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.packageCard {
+  padding: 1.55rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.packageCardFeatured {
+  background: var(--brand-dark);
+  color: var(--surface-paper);
+}
+
+.packageCardFeatured h3,
+.packageCardFeatured .packageBestFor {
+  color: var(--surface-paper);
+}
+
+.packageCardFeatured .packageBestFor,
+.packageCardFeatured .packageFeatures li {
+  color: rgba(255, 250, 243, 0.72);
+}
+
+.packageCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.packageCardHeader span,
+.packageCardHeader b {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.8rem;
+  padding: 0.35rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.packageCardHeader span {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.packageCardHeader b {
+  background: var(--primary);
+  color: var(--cta-text);
+}
+
+.packageVisual {
+  overflow: hidden;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, var(--primary-subtle) 0%, var(--surface-paper) 100%);
+  aspect-ratio: 16 / 10;
+  border: 1px solid color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.packageCardFeatured .packageVisual {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-dark-soft) 88%, var(--surface-paper)) 0%, var(--brand-dark) 100%);
+  border-color: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.packageDiagramSvg {
+  padding: 0.75rem;
+}
+
+.diagramRoom {
+  fill: color-mix(in srgb, var(--surface-container-lowest) 72%, transparent);
+  stroke: color-mix(in srgb, var(--primary) 15%, transparent);
+  stroke-width: 2;
+}
+
+.packageCardFeatured .diagramRoom {
+  fill: color-mix(in srgb, var(--brand-dark-soft) 72%, transparent);
+  stroke: color-mix(in srgb, var(--primary) 26%, transparent);
+}
+
+.diagramTile,
+.diagramAccentLine {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.diagramTile {
+  stroke: color-mix(in srgb, var(--brand-brown) 12%, transparent);
+  stroke-width: 2;
+}
+
+.packageCardFeatured .diagramTile {
+  stroke: color-mix(in srgb, var(--surface-paper) 10%, transparent);
+}
+
+.diagramFixture {
+  fill: color-mix(in srgb, var(--surface-container-lowest) 74%, var(--primary-subtle));
+  stroke: color-mix(in srgb, var(--brand-brown) 18%, transparent);
+  stroke-width: 3;
+}
+
+.packageCardFeatured .diagramFixture {
+  fill: color-mix(in srgb, var(--surface-paper) 12%, transparent);
+  stroke: color-mix(in srgb, var(--surface-paper) 18%, transparent);
+}
+
+.diagramAccentLine {
+  stroke: var(--primary);
+  stroke-width: 7;
+}
+
+.diagramPin,
+.diagramPremium {
+  fill: var(--primary);
+  stroke: color-mix(in srgb, var(--surface-paper) 80%, transparent);
+  stroke-width: 3;
+}
+
+.diagramLegend circle {
+  fill: var(--primary);
+}
+
+.diagramLegend text,
+.diagramLabel {
+  fill: var(--primary-strong);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.packageCardFeatured .diagramLegend text,
+.packageCardFeatured .diagramLabel {
+  fill: color-mix(in srgb, var(--primary) 88%, var(--surface-paper));
+}
+
+.packageFeatures {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.packageFeatures li {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.62rem;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--brand-brown);
+  font-size: 0.76rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.packageActions {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.packageAssessmentNote {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  border-radius: 0.75rem;
+  background: var(--surface-container-lowest);
+}
+
+.processSection {
+  padding: 5rem 0;
+  border-top: 1px solid rgba(33, 31, 27, 0.08);
+}
+
+.processTimeline {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.processStep {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+}
+
+.processStep::before {
+  content: "";
+  position: absolute;
+  left: 2.5rem;
+  top: 1.25rem;
+  width: calc(100% + 1.5rem);
+  height: 1px;
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.processStep:last-child::before {
+  display: none;
+}
+
+.processStep span {
+  position: relative;
+  z-index: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--cta-text);
+  font-weight: 800;
+}
+
+.processHighlights {
+  margin-top: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.processHighlights span {
+  background: var(--surface-container-lowest);
+  color: var(--brand-brown);
+}
+
+.doctorSection {
+  position: relative;
+  overflow: clip;
+  padding: 5rem max(1rem, calc((100vw - 1200px) / 2));
+  background: var(--brand-dark);
+  color: var(--surface-paper);
+}
+
+.doctorIntro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(18rem, 0.75fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.doctorIntro .eyebrow {
+  grid-column: 1 / -1;
+}
+
+.doctorNotice {
+  margin-top: 2.5rem;
+  padding: 0.95rem 1rem;
+  border-radius: 0.35rem;
+  background: rgba(255, 250, 243, 0.06);
+  color: rgba(255, 250, 243, 0.78);
+  font-size: 0.92rem;
+}
+
+.doctorGrid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.doctorCard {
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  border-radius: 0.75rem;
+  background: var(--brand-dark-soft);
+  border: 1px solid rgba(255, 250, 243, 0.08);
+}
+
+.doctorMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.doctorAvatar {
+  width: 4rem;
+  height: 4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--primary);
+  font-family: var(--font-display), serif;
+  font-weight: 700;
+}
+
+.doctorMeta span {
+  max-width: 12rem;
+  border-radius: 999px;
+  padding: 0.4rem 0.65rem;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-align: right;
+}
+
+.doctorCard blockquote {
+  margin: 0;
+}
+
+.doctorDisclaimer {
+  margin-top: 1.5rem;
+  font-size: 0.82rem;
+}
+
+.faqSection {
+  padding: 5rem 0;
+}
+
+.faqHeader {
+  max-width: 640px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.faqList {
+  width: min(792px, 100%);
+  margin: 0 auto;
+  border-top: 1px solid rgba(33, 31, 27, 0.12);
+}
+
+.faqItem {
+  border-bottom: 1px solid rgba(33, 31, 27, 0.12);
+}
+
+.faqItem summary {
+  min-height: 4.4rem;
+  padding: 1.25rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  color: var(--ink);
+  font-size: 1.02rem;
+  line-height: 1.3;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem p {
+  margin: 0;
+  padding: 0 3rem 1.25rem 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.faqIcon {
+  flex: 0 0 auto;
+  color: var(--primary);
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.faqItem[open] .faqIcon {
+  transform: rotate(45deg);
+}
+
+.finalCtaSection {
+  position: relative;
+  overflow: clip;
+  min-height: 18.5rem;
+  padding: 4rem max(1rem, calc((100vw - 1200px) / 2));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 2rem;
+  align-items: center;
+  background: var(--brand-dark);
+  color: var(--surface-paper);
+}
+
+.finalCtaSection h2 {
+  color: var(--surface-paper);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.05;
+}
+
+.finalCtaSection p {
+  max-width: 42rem;
+  margin-top: 0.75rem;
+  color: rgba(255, 250, 243, 0.72);
+}
+
+.finalCtaSection > span {
+  color: rgba(255, 250, 243, 0.55);
+  font-family: var(--font-brand), var(--font-display), serif;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .navInner,
+  .heroInner,
+  .assessmentSection,
+  .evidenceSection,
+  .whySection,
+  .packageSection,
+  .processSection,
+  .faqSection {
+    width: min(100% - 2rem, 760px);
+  }
+
+  .navInner {
+    min-height: auto;
+    padding: 1rem 0;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .navCluster {
+    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .heroInner,
+  .assessmentSection,
+  .transformationSection,
+  .doctorIntro,
+  .finalCtaSection {
+    grid-template-columns: 1fr;
+  }
+
+  .transformationCopy {
+    position: static;
+    max-width: 760px;
+  }
+
+  .heroInner {
+    min-height: auto;
+  }
+
+  .evidenceGrid,
+  .whyGrid,
+  .packageGrid,
+  .doctorGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .processTimeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transformationMiniGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .processStep::before {
+    display: none;
+  }
+
+  .finalCtaSection {
+    justify-items: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .previewBannerInner,
+  .navInner,
+  .heroInner,
+  .assessmentSection,
+  .evidenceSection,
+  .whySection,
+  .packageSection,
+  .processSection,
+  .faqSection {
+    width: calc(100% - 1.5rem);
+  }
+
+  .navCluster,
+  .navLinks,
+  .heroButtons,
+  .heroChips,
+  .assessmentTrust,
+  .packageActions,
+  .packageAssessmentNote {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .navLinks {
+    gap: 0.75rem;
+  }
+
+  .navCta,
+  .primaryButton,
+  .secondaryButtonDark,
+  .packageCheckout,
+  .packageCheckoutFeatured,
+  .packageDetailLink,
+  .packageAssessmentNote a {
+    width: 100%;
+  }
+
+  .heroInner {
+    padding: 3rem 0;
+  }
+
+  .heroTitle {
+    font-size: clamp(3rem, 14vw, 4.4rem);
+  }
+
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+
+  .heroVisualCaption {
+    position: static;
+    padding: 1rem;
+    color: var(--surface-paper);
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  .assessmentSection,
+  .evidenceSection,
+  .whySection,
+  .packageSection,
+  .processSection,
+  .faqSection {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .evidenceGrid,
+  .whyGrid,
+  .packageGrid,
+  .doctorGrid,
+  .processTimeline,
+  .transformationMiniGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .transformationFeaturedSlider {
+    min-height: 0;
+  }
+
+  .transformationSection,
+  .doctorSection,
+  .finalCtaSection {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .doctorMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .doctorMeta span {
+    max-width: none;
+    text-align: left;
+  }
+
+  .faqHeader {
+    text-align: left;
+  }
+
+  .faqItem p {
+    padding-right: 0;
+  }
+}

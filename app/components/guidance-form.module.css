@@ -1,0 +1,98 @@
+.form {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--brand-brown) 12%, transparent);
+  background: color-mix(in srgb, var(--surface-container-lowest) 94%, transparent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.form label {
+  display: grid;
+  gap: 0.38rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.form input,
+.form select,
+.form textarea {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-paper);
+  padding: 0.78rem 0.88rem;
+  font: inherit;
+}
+
+.form textarea {
+  min-height: 98px;
+  resize: vertical;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.actions button {
+  min-height: 44px;
+  padding: 0.72rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--cta);
+  color: var(--cta-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.privacyNotice,
+.successMessage,
+.errorMessage {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.privacyNotice {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.privacyNotice a {
+  color: var(--primary);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
+.successMessage {
+  color: var(--safe);
+}
+
+.errorMessage {
+  color: var(--risk);
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

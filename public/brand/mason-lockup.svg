@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="96" viewBox="0 0 460 96" fill="none">
+  <rect width="460" height="96" rx="24" fill="#FFF8F1"/>
+  <path d="M48 15c11 8 23 13 35 15v21c0 21-13 35-35 44C26 86 13 72 13 51V30c12-2 24-7 35-15Z" fill="#123057"/>
+  <path d="M29 68 43 37l7 15 7-11 14 27h-9l-5-10-5 7-5-9-5 12h-9Z" fill="#FF7A2F"/>
+  <text x="108" y="40" fill="#123057" font-family="Avenir Next, Inter, Arial, sans-serif" font-size="33" font-weight="700" letter-spacing="0.35">Mason Company</text>
+  <text x="110" y="62" fill="#8D5D37" font-family="Avenir Next, Inter, Arial, sans-serif" font-size="12.8" font-weight="600" letter-spacing="2.2">HOME HEALTH INSTALLATIONS</text>
+  <text x="110" y="78" fill="#5F687A" font-family="Avenir Next, Inter, Arial, sans-serif" font-size="10.8" font-weight="500">Protection-forward. Reliable. Warmly premium.</text>
+</svg>

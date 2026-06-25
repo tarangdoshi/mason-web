@@ -1,0 +1,16 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Book your Mason Company specialist placeholder">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5F7FF" />
+      <stop offset="1" stop-color="#EAF0FF" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#g1)" />
+  <rect x="64" y="56" width="512" height="248" rx="20" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="3" />
+  <rect x="104" y="102" width="188" height="36" rx="10" fill="#E2E8F0" />
+  <rect x="104" y="156" width="300" height="24" rx="8" fill="#E2E8F0" />
+  <rect x="104" y="194" width="240" height="24" rx="8" fill="#E2E8F0" />
+  <rect x="408" y="156" width="128" height="88" rx="12" fill="#1D4ED8" />
+  <path d="M444 200L466 218L500 182" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="104" y="270" fill="#334155" font-size="24" font-family="Arial, sans-serif" font-weight="700">Book Mason Company Visit</text>
+</svg>

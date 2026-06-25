@@ -1,0 +1,559 @@
+.page {
+  --compare-surface: var(--surface);
+  --compare-surface-low: var(--surface-container-low);
+  --compare-surface-high: var(--surface-container-high);
+  --compare-primary-container: var(--primary-strong);
+  --outline-ghost: color-mix(in srgb, var(--line) 38%, transparent);
+  --shadow-ambient: 0 24px 44px -34px rgba(28, 28, 25, 0.18);
+  background: var(--compare-surface);
+  color: var(--ink);
+}
+
+.previewBanner {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  box-shadow: 0 18px 36px rgba(28, 28, 25, 0.08);
+}
+
+.previewBannerDraft {
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-strong) 100%);
+  color: var(--primary-contrast);
+}
+
+.previewBannerLive {
+  background: linear-gradient(90deg, var(--surface-container) 0%, var(--surface) 100%);
+  color: var(--brand-brown);
+  border-bottom: 1px solid color-mix(in srgb, var(--brand-brown) 12%, transparent);
+}
+
+.previewBannerWarning {
+  background: linear-gradient(90deg, #f2b94b 0%, #e38b2c 100%);
+  color: var(--ink);
+}
+
+.previewBannerInner {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+  min-height: 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.previewBannerInner strong {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.page :global(*) {
+  box-sizing: border-box;
+}
+
+.heroSection,
+.section,
+.ctaSection {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.heroSection {
+  padding: calc(var(--sticky-nav-offset) + 2rem) 0 3rem;
+}
+
+.heroShell,
+.sectionHead,
+.quizSectionGrid,
+.supportGrid,
+.ctaPanel {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.heroShell,
+.quizSectionGrid,
+.supportGrid,
+.ctaPanel {
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.88fr);
+  align-items: start;
+}
+
+.eyebrow,
+.cardEyebrow,
+.planName,
+.bandLabel {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.76rem;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.heroCopy,
+.heroSummaryCard,
+.quizIntroCard,
+.planCard,
+.processCard,
+.addOnCard,
+.paymentCard,
+.ctaPanel {
+  background: var(--surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
+}
+
+.heroCopy,
+.heroSummaryCard,
+.quizIntroCard,
+.addOnCard,
+.paymentCard,
+.ctaPanel {
+  border-radius: 1.7rem;
+  padding: 1.6rem;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 1rem;
+}
+
+.heroCopy h1,
+.heroSummaryCard h2,
+.sectionHead h2,
+.planBody h3,
+.processCard h3,
+.addOnCard h3,
+.paymentCard h3,
+.ctaCopy h2 {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  color: var(--ink);
+}
+
+.heroCopy h1 {
+  font-size: clamp(2.7rem, 5vw, 4.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.heroCopy p,
+.heroSummaryCard p,
+.sectionHead p,
+.planBody p,
+.processCard p,
+.addOnCard p,
+.paymentCard li,
+.bandCard p,
+.quizAssessmentNote,
+.assessmentCallout p,
+.ctaCopy p,
+.matrix td span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.heroActions,
+.heroChips,
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.heroChips span,
+.planBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.34rem 0.72rem;
+  border-radius: 999px;
+  background: var(--compare-surface-low);
+  color: var(--primary);
+  font-size: 0.74rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.9rem;
+  padding: 0.92rem 1.35rem;
+  font-size: 0.95rem;
+  line-height: 1;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.primaryButton {
+  background: var(--cta);
+  color: var(--cta-text);
+}
+
+.primaryButton:hover {
+  background: var(--cta-strong);
+  color: var(--cta-strong-text);
+  transform: translateY(-1px);
+}
+
+.secondaryButton {
+  background: var(--compare-surface-low);
+  color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--outline-ghost);
+}
+
+.secondaryButton:hover {
+  background: var(--compare-surface-high);
+  transform: translateY(-1px);
+}
+
+.heroSummaryCard,
+.quizIntroCard,
+.addOnCard,
+.paymentCard {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.heroSummaryCard ul,
+.addOnCard ul,
+.paymentCard ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+  color: var(--muted);
+}
+
+.section {
+  padding: 3.25rem 0;
+}
+
+.sectionMuted {
+  width: 100%;
+  background: var(--compare-surface-low);
+  padding: 3.25rem calc((100vw - min(1160px, calc(100% - 2rem))) / 2);
+}
+
+@supports not (width: min(1px, 1px)) {
+  .sectionMuted {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+.sectionHead {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 30rem);
+  align-items: end;
+  margin-bottom: 1.5rem;
+}
+
+.sectionHead h2 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.bandList,
+.processGrid,
+.planGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.quizAssessmentNote {
+  padding: 0.85rem;
+  border-radius: 1rem;
+  background: var(--compare-surface-low);
+}
+
+.bandCard,
+.processCard,
+.planCard {
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.bandList {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bandCard {
+  background: var(--compare-surface-low);
+  padding: 1rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.quizCardWrap {
+  position: sticky;
+  top: calc(var(--sticky-nav-offset) + 0.8rem);
+}
+
+.planGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 1.2rem;
+}
+
+.assessmentCallout {
+  margin-bottom: 1.2rem;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: 1.5rem;
+  background: var(--surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
+}
+
+.assessmentCallout div {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.assessmentCallout h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.planCard {
+  background: var(--surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  border: 1px solid transparent;
+}
+
+.planCard:hover {
+  transform: translateY(-2px);
+}
+
+.planCard[data-recommended="true"] {
+  border-color: color-mix(in srgb, var(--primary) 42%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent), var(--shadow-ambient);
+}
+
+.planVisualWrap {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  background: var(--compare-surface-high);
+}
+
+.planVisual {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.planBadge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+.planBody {
+  padding: 1.4rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.planPrice {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.planFeatureList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.planFeatureList li {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.planFeatureList li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+}
+
+.matrixWrap {
+  overflow-x: auto;
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-ambient);
+}
+
+.matrix {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: var(--surface-container-lowest);
+}
+
+.matrix th,
+.matrix td {
+  padding: 1rem 1.1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--outline-ghost);
+  vertical-align: top;
+}
+
+.matrix th {
+  color: var(--ink);
+  font-size: 0.84rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--surface);
+}
+
+.matrix td {
+  color: var(--muted);
+  font-size: 0.93rem;
+  line-height: 1.5;
+}
+
+.matrix td strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.processGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.processCard {
+  background: var(--compare-surface-low);
+  padding: 1.3rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.processNumber {
+  color: var(--primary);
+  font-size: 0.76rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.sidePanel {
+  display: grid;
+  gap: 1rem;
+}
+
+.ctaSection {
+  padding: 0 0 4rem;
+}
+
+.ctaPanel {
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.72fr);
+  align-items: center;
+}
+
+.ctaCopy,
+.ctaActions {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+  .heroShell,
+  .quizSectionGrid,
+  .supportGrid,
+  .sectionHead,
+  .ctaPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .bandList,
+  .planGrid,
+  .processGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .assessmentCallout {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quizCardWrap {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .previewBannerInner {
+    width: calc(100% - 1.5rem);
+    padding: 0.8rem 0;
+  }
+
+  .heroSection,
+  .section,
+  .ctaSection,
+  .sectionMuted {
+    width: calc(100% - 1.5rem);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .heroSection {
+    padding-top: calc(var(--sticky-nav-offset) + 1.4rem);
+  }
+
+  .heroActions,
+  .ctaActions {
+    display: grid;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+
+  .heroCopy,
+  .heroSummaryCard,
+  .quizIntroCard,
+  .planBody,
+  .processCard,
+  .addOnCard,
+  .paymentCard,
+  .ctaPanel {
+    padding: 1.2rem;
+  }
+}

@@ -1,0 +1,20 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bathroom transformation placeholder">
+  <defs>
+    <linearGradient id="g4" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC" />
+      <stop offset="1" stop-color="#ECFDF3" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#g4)" />
+  <rect x="70" y="72" width="220" height="216" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="3" />
+  <rect x="350" y="72" width="220" height="216" rx="16" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="3" />
+  <rect x="102" y="114" width="156" height="18" rx="8" fill="#CBD5E1" />
+  <rect x="102" y="146" width="120" height="18" rx="8" fill="#CBD5E1" />
+  <rect x="102" y="178" width="136" height="18" rx="8" fill="#CBD5E1" />
+  <rect x="382" y="114" width="156" height="18" rx="8" fill="#86EFAC" />
+  <rect x="382" y="146" width="120" height="18" rx="8" fill="#86EFAC" />
+  <rect x="382" y="178" width="136" height="18" rx="8" fill="#86EFAC" />
+  <path d="M290 180L350 180" stroke="#1D4ED8" stroke-width="10" stroke-linecap="round" />
+  <path d="M336 160L356 180L336 200" stroke="#1D4ED8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="96" y="320" fill="#334155" font-size="24" font-family="Arial, sans-serif" font-weight="700">Trademarked Bathroom Transformation</text>
+</svg>

@@ -1,0 +1,6 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="760" fill="#F6F7FB"/>
+  <rect x="80" y="88" width="1040" height="584" rx="28" fill="#EAEFF7" stroke="#CBD5E1" stroke-width="4"/>
+  <text x="120" y="180" fill="#334155" font-family="Arial, sans-serif" font-size="54" font-weight="700">Before (Placeholder)</text>
+  <text x="120" y="250" fill="#64748B" font-family="Arial, sans-serif" font-size="34">Current condition image will be uploaded here.</text>
+</svg>

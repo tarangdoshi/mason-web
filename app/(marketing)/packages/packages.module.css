@@ -1,0 +1,250 @@
+.page {
+  background: var(--surface-container-lowest);
+  color: var(--ink);
+}
+
+.container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--primary);
+}
+.breadcrumb a {
+  color: var(--primary);
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+.breadcrumb span[aria-current] {
+  color: var(--muted);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px 0 24px;
+}
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.badge {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--brand-brown-soft);
+  color: var(--brand-brown);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.title {
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 34px;
+  line-height: 1.12;
+}
+.descriptor {
+  margin: 0;
+  font-size: 18px;
+  color: var(--muted);
+}
+.bestFor {
+  margin: 0;
+  font-size: 16px;
+  color: var(--muted);
+}
+.price {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+.primaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 22px;
+  border-radius: 8px;
+  background: var(--cta);
+  color: var(--cta-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.secondaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 22px;
+  border-radius: 8px;
+  background: var(--surface-container-lowest);
+  color: var(--primary);
+  border: 1px solid var(--line-warm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.assessmentNote {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.heroVisual {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.heroVisual :global(img) {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.section {
+  padding: 24px 0;
+  border-top: 1px solid var(--surface-container);
+}
+.sectionTitle {
+  margin: 0 0 12px;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 26px;
+}
+.lead {
+  margin: 0;
+  font-size: 17px;
+  color: var(--muted);
+}
+.muted {
+  font-size: 14px;
+  color: var(--muted);
+}
+.muted a {
+  color: var(--primary);
+}
+
+.featureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.featureItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface-container-low);
+}
+.featureLabel {
+  font-weight: 700;
+  color: var(--ink);
+}
+.featureDesc {
+  font-size: 15px;
+  color: var(--muted);
+}
+.benefitList {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.highlights,
+.trustStrip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.highlights li,
+.trustStrip li {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.process {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.assessmentSection {
+  padding: 28px 0;
+  border-top: 1px solid var(--surface-container);
+}
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.crossLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--surface-container);
+}
+.crossLinks a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+.crossLinks a:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 860px) {
+  .hero {
+    flex-direction: row;
+    align-items: center;
+  }
+  .heroCopy {
+    flex: 1;
+  }
+  .heroVisual {
+    flex: 1;
+    max-width: 540px;
+  }
+  .title {
+    font-size: 40px;
+  }
+  .featureList {
+    grid-template-columns: 1fr 1fr;
+  }
+}

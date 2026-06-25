@@ -1,0 +1,223 @@
+.card {
+  border: 1px solid color-mix(in srgb, var(--line) 36%, transparent);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 24px 40px -34px rgba(28, 28, 25, 0.16);
+  padding: 1.15rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.header {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.72rem;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.header h3,
+.flow h4 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display), serif;
+  font-size: 1.4rem;
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.header p,
+.summary,
+.recommendation,
+.resultNote,
+.helperText {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.48;
+}
+
+.resultNote {
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: var(--primary-subtle);
+}
+
+.intro {
+  display: grid;
+}
+
+.progress {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.74rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.flow,
+.result {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.options {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.option {
+  min-height: 2.9rem;
+  border: 1px solid color-mix(in srgb, var(--line) 38%, transparent);
+  border-radius: 16px;
+  background: var(--surface-paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  font-weight: 600;
+  padding: 0.8rem 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.option:hover {
+  border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+  background: var(--primary-subtle);
+}
+
+.optionSelected {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.helperText {
+  font-size: 0.8rem;
+}
+
+.option:focus-visible,
+.button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  min-height: 2.9rem;
+  border-radius: 999px;
+  padding: 0.8rem 1.15rem;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.buttonPrimary {
+  background: var(--cta);
+  color: var(--cta-text);
+}
+
+.buttonPrimary:hover {
+  background: var(--cta-strong);
+  color: var(--cta-strong-text);
+}
+
+.buttonSecondary {
+  background: var(--surface-container-lowest);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--line) 36%, transparent);
+}
+
+.buttonSecondary:hover {
+  background: var(--surface-container-low);
+}
+
+.button[disabled],
+.button[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.badge {
+  width: fit-content;
+  margin: 0;
+  padding: 0.32rem 0.56rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.badgeLow {
+  background: #f1efe8;
+  color: #6a5d3a;
+}
+
+.badgeModerate {
+  background: #fbefe5;
+  color: #9c5b24;
+}
+
+.badgeHigh {
+  background: #f7e7e4;
+  color: #9d3a2f;
+}
+
+.score {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display), serif;
+  font-size: 2.1rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 1.35rem;
+  }
+
+  .options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .header h3,
+  .flow h4 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@aegis/web",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "dev": "pnpm run dev:localclean",
+    "dev:localclean": "rm -rf .next-localclean && AEGIS_DIST_DIR=.next-localclean next dev -p 3000",
+    "build": "rm -rf ${AEGIS_DIST_DIR:-.next} && next build",
+    "build:localclean": "rm -rf .next-localclean && AEGIS_DIST_DIR=.next-localclean next build",
+    "start": "next start -p 3000",
+    "sanity:seed": "tsx scripts/seed-sanity.ts",
+    "verify:homepage-nav": "node --import tsx scripts/verify-homepage-nav.ts",
+    "compare:trust": "AEGIS_HOMEPAGE_VARIANT=trust AEGIS_DIST_DIR=.next-trust next dev -p 3000",
+    "compare:hybrid": "AEGIS_HOMEPAGE_VARIANT=hybrid AEGIS_DIST_DIR=.next-hybrid next dev -p 3001",
+    "build:trust": "AEGIS_HOMEPAGE_VARIANT=trust AEGIS_DIST_DIR=.next-trust next build",
+    "build:hybrid": "AEGIS_HOMEPAGE_VARIANT=hybrid AEGIS_DIST_DIR=.next-hybrid next build"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.6.1",
+    "@ant-design/nextjs-registry": "^1.3.0",
+    "@portabletext/sanity-bridge": "^1.2.14",
+    "@sanity/client": "^7.22.1",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/preview-url-secret": "^4.0.7",
+    "antd": "^5.29.3",
+    "dayjs": "^1.11.20",
+    "next": "15.5.12",
+    "next-sanity": "^11.6.8",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "sanity": "^4.22.0",
+    "styled-components": "^6.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.2"
+  }
+}
