@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
 import { createSubmissionGate, submitGuidanceLead } from "../../lib/lead-submission";
+import { EMAIL_ERROR, toCanonicalEmail } from "../../lib/email";
 import { INDIAN_MOBILE_ERROR, isValidNationalMobile, toE164 } from "../../lib/phone";
 import styles from "./guidance-form.module.css";
 import LeadPrivacyNotice from "./lead-privacy-notice";
@@ -30,11 +31,24 @@ export default function AssessmentLeadForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [assessmentType, setAssessmentType] = useState<AssessmentType | "">("");
   const [phoneDigits, setPhoneDigits] = useState("");
+  const [email, setEmail] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const hasTrackedFormStartRef = useRef(false);
   const gateRef = useRef(createSubmissionGate());
   const phoneInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
+
+  function clearFieldError(field: string) {
+    setFieldErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
 
   function trackFormStart() {
     if (hasTrackedFormStartRef.current) {
@@ -54,18 +68,21 @@ export default function AssessmentLeadForm() {
 
   function handlePhoneChange(nationalDigits: string) {
     setPhoneDigits(nationalDigits);
-    if (fieldErrors.phone) {
-      setFieldErrors((current) => {
-        const next = { ...current };
-        delete next.phone;
-        return next;
-      });
-    }
+    clearFieldError("phone");
+  }
+
+  function handleEmailChange(value: string) {
+    setEmail(value);
+    clearFieldError("email");
+  }
+
+  function focusField(ref: React.RefObject<HTMLInputElement | null>) {
+    ref.current?.focus();
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function focusPhone() {
-    phoneInputRef.current?.focus();
-    phoneInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    focusField(phoneInputRef);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -85,6 +102,16 @@ export default function AssessmentLeadForm() {
       setSubmissionState("error");
       setErrorMessage(null);
       focusPhone();
+      return;
+    }
+
+    // Checked in field order, so the first invalid field is the one focused.
+    const canonicalEmail = toCanonicalEmail(email);
+    if (!canonicalEmail) {
+      setFieldErrors((current) => ({ ...current, email: EMAIL_ERROR }));
+      setSubmissionState("error");
+      setErrorMessage(null);
+      focusField(emailInputRef);
       return;
     }
 
@@ -116,6 +143,7 @@ export default function AssessmentLeadForm() {
     const payload = {
       customerName: String(formData.get("customerName") || ""),
       phone: phoneE164,
+      email: canonicalEmail,
       locationText,
       enquiryTopic: `Free Safety Assessment - ${assessmentTypeLabel}`,
       notes: String(formData.get("notes") || "") || undefined,
@@ -142,6 +170,7 @@ export default function AssessmentLeadForm() {
       gateRef.current.complete();
       form.reset();
       setPhoneDigits("");
+      setEmail("");
       setAssessmentType("");
       setLocationMeta(null);
       trackAnalyticsEvent("assessment_lead_submit_success", {
@@ -197,6 +226,30 @@ export default function AssessmentLeadForm() {
           error={fieldErrors.phone}
           describedById="assessment-phone"
         />
+        <label>
+          <span>
+            Email <span className={styles.requiredMark}>*</span>
+          </span>
+          <input
+            ref={emailInputRef}
+            type="email"
+            name="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            aria-invalid={fieldErrors.email ? "true" : undefined}
+            aria-describedby={fieldErrors.email ? "assessment-email-error" : undefined}
+            required
+            disabled={isLocked}
+            value={email}
+            onChange={(event) => handleEmailChange(event.target.value)}
+          />
+          {fieldErrors.email ? (
+            <span id="assessment-email-error" className={styles.fieldError} role="alert">
+              {fieldErrors.email}
+            </span>
+          ) : null}
+        </label>
         <LocationAutocompleteField disabled={isLocked} formSource="assessment_form" onMeta={handleLocationMeta} />
         <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
         <label className={styles.fullWidth}>

@@ -82,6 +82,10 @@
   font-size: 0.85rem;
 }
 
+.requiredMark {
+  color: var(--risk);
+}
+
 .fullWidth {
   grid-column: 1 / -1;
 }
