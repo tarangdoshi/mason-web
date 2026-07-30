@@ -57,11 +57,25 @@ export type AnalyticsEventMap = {
     cta_location: string;
     section: string;
   };
+  location_picker_success: {
+    market: "GOA" | "BANGALORE" | "OTHER" | "UNKNOWN";
+    form_source: string;
+  };
+  location_picker_fallback: {
+    market: "UNKNOWN";
+    form_source: string;
+  };
+  lead_location_market: {
+    market: "GOA" | "BANGALORE" | "OTHER" | "UNKNOWN";
+    form_source: string;
+  };
 };
 
 export type AnalyticsEventName = keyof AnalyticsEventMap;
 
-type AnalyticsPayload = Partial<Record<"page" | "package" | "cta_location" | "section", string>>;
+type AnalyticsPayload = Partial<
+  Record<"page" | "package" | "cta_location" | "section" | "market" | "form_source", string>
+>;
 
 declare global {
   interface Window {
@@ -81,10 +95,13 @@ const allowedEventNames = new Set<AnalyticsEventName>([
   "checkout_start",
   "checkout_lead_submit_success",
   "phone_click",
-  "whatsapp_click"
+  "whatsapp_click",
+  "location_picker_success",
+  "location_picker_fallback",
+  "lead_location_market"
 ]);
 
-const allowedPayloadKeys = ["page", "package", "cta_location", "section"] as const;
+const allowedPayloadKeys = ["page", "package", "cta_location", "section", "market", "form_source"] as const;
 
 export function getAnalyticsMeasurementId() {
   return process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "";

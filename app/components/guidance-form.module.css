@@ -91,6 +91,12 @@
   color: var(--risk);
 }
 
+.availabilityInfo {
+  margin: -0.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 760px) {
   .grid {
     grid-template-columns: 1fr;

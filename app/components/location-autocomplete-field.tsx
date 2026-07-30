@@ -2,20 +2,23 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
-  cityFromServiceArea,
-  detectServiceArea,
   getCurrentPosition,
   getGoogleMapsApiKey,
+  isSelectedLocationStale,
   loadGooglePlaces,
+  manualLocationMeta,
+  resolveSelectedGooglePlace,
   reverseGeocode,
   type LocationMeta
 } from "../../lib/location";
+import { trackAnalyticsEvent } from "../../lib/analytics";
 import styles from "./guidance-form.module.css";
 
 type GeoState = "idle" | "locating" | "located" | "denied" | "error";
 
 interface Props {
   disabled?: boolean;
+  formSource?: string;
   onMeta?: (meta: LocationMeta) => void;
 }
 
@@ -54,22 +57,20 @@ function ensurePacStyle() {
   document.head.appendChild(style);
 }
 
-export default function LocationAutocompleteField({ disabled, onMeta }: Props) {
+export default function LocationAutocompleteField({ disabled, formSource = "assessment_form", onMeta }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const lastEnrichedRef = useRef<string>("");
+  const onMetaRef = useRef(onMeta);
   const [value, setValue] = useState("");
   const [geoState, setGeoState] = useState<GeoState>("idle");
   const [hint, setHint] = useState<string | null>(null);
 
+  useEffect(() => {
+    onMetaRef.current = onMeta;
+  }, [onMeta]);
+
   function emitManual(text: string) {
-    const area = detectServiceArea(text);
-    onMeta?.({
-      source: "manual",
-      formattedAddress: text,
-      serviceArea: area,
-      serviceCity: cityFromServiceArea(area),
-      serviceable: area !== null
-    });
+    onMetaRef.current?.(manualLocationMeta(text));
   }
 
   // Progressive enhancement: attach Google Places autocomplete when a key is set.
@@ -88,31 +89,19 @@ export default function LocationAutocompleteField({ disabled, onMeta }: Props) {
       }
       try {
         autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-          fields: ["formatted_address", "geometry", "place_id", "address_components", "name"],
-          componentRestrictions: { country: "in" }
+          fields: ["formatted_address", "geometry", "place_id", "address_components", "name"]
         });
-        listener = autocomplete.addListener("place_changed", () => {
+        listener = autocomplete.addListener("place_changed", async () => {
           const place = autocomplete.getPlace();
-          const formatted: string = place.formatted_address || place.name || inputRef.current?.value || "";
-          const components: any[] = place.address_components || [];
-          const localityComponent =
-            components.find((c) => c.types?.includes("locality")) ||
-            components.find((c) => c.types?.includes("administrative_area_level_2"));
-          const detectedCity: string = localityComponent?.long_name || "";
-          const area = detectServiceArea([formatted, detectedCity, ...components.map((c) => c.long_name)].join(" "));
-
+          const resolved = await resolveSelectedGooglePlace(place);
+          const formatted = resolved.formattedAddress || inputRef.current?.value || "";
           setValue(formatted);
           lastEnrichedRef.current = formatted;
-          onMeta?.({
-            source: "google_places",
-            formattedAddress: formatted,
-            placeId: place.place_id,
-            lat: place.geometry?.location?.lat?.(),
-            lng: place.geometry?.location?.lng?.(),
-            detectedCity,
-            serviceArea: area,
-            serviceCity: cityFromServiceArea(area),
-            serviceable: area !== null
+          setHint("Address selected. You can continue with the form.");
+          onMetaRef.current?.(resolved);
+          trackAnalyticsEvent("location_picker_success", {
+            market: resolved.serviceability.locationMarket,
+            form_source: formSource
           });
         });
       } catch {
@@ -129,7 +118,7 @@ export default function LocationAutocompleteField({ disabled, onMeta }: Props) {
         /* noop */
       }
     };
-  }, [onMeta]);
+  }, [formSource]);
 
   async function useMyLocation() {
     if (disabled || geoState === "locating") {
@@ -140,23 +129,15 @@ export default function LocationAutocompleteField({ disabled, onMeta }: Props) {
     try {
       const position = await getCurrentPosition();
       const result = await reverseGeocode(position.coords.latitude, position.coords.longitude);
-      setValue(result.label);
-      lastEnrichedRef.current = result.label;
+      const label = result.formattedAddress || "Detected location";
+      setValue(label);
+      lastEnrichedRef.current = label;
       setGeoState("located");
-      setHint(
-        result.serviceArea
-          ? `Detected: ${result.label}`
-          : `Detected: ${result.label} — we'll confirm serviceability when we call.`
-      );
-      onMeta?.({
-        source: "geolocation",
-        formattedAddress: result.label,
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        detectedCity: result.detectedCity,
-        serviceArea: result.serviceArea,
-        serviceCity: cityFromServiceArea(result.serviceArea),
-        serviceable: result.serviceArea !== null
+      setHint("Location added. You can continue with the form.");
+      onMetaRef.current?.(result);
+      trackAnalyticsEvent("location_picker_success", {
+        market: result.serviceability.locationMarket,
+        form_source: formSource
       });
     } catch (error) {
       const denied = typeof error === "object" && error !== null && (error as { code?: number }).code === 1;
@@ -178,14 +159,16 @@ export default function LocationAutocompleteField({ disabled, onMeta }: Props) {
         name="locationText"
         inputMode="text"
         autoComplete="off"
-        placeholder="Andheri West, Panaji, or your area"
+        placeholder="Start typing your full address"
         required
         disabled={disabled}
         value={value}
         onChange={(event) => {
           const next = event.target.value;
           setValue(next);
-          if (next !== lastEnrichedRef.current) {
+          if (isSelectedLocationStale(lastEnrichedRef.current, next) || !lastEnrichedRef.current) {
+            lastEnrichedRef.current = "";
+            setHint(null);
             emitManual(next);
           }
         }}

@@ -6,7 +6,8 @@ import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-contex
 import styles from "./guidance-form.module.css";
 import LeadPrivacyNotice from "./lead-privacy-notice";
 import LocationAutocompleteField from "./location-autocomplete-field";
-import type { LocationMeta } from "../../lib/location";
+import { manualLocationMeta, type LocationMeta } from "../../lib/location";
+import { ASSESSMENT_AVAILABILITY_COPY, type LocationMarket } from "../../lib/serviceability";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 
@@ -51,6 +52,8 @@ export default function AssessmentLeadForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     const assessmentTypeValue = String(formData.get("assessmentType") || "");
+    const locationText = String(formData.get("locationText") || "");
+    const resolvedLocationMeta = locationMetaRef.current ?? manualLocationMeta(locationText);
 
     if (!isAssessmentType(assessmentTypeValue)) {
       setSubmissionState("error");
@@ -60,6 +63,13 @@ export default function AssessmentLeadForm() {
 
     const assessmentTypeLabel = assessmentTypeLabels[assessmentTypeValue];
 
+    if (resolvedLocationMeta.source === "manual") {
+      trackAnalyticsEvent("location_picker_fallback", {
+        market: "UNKNOWN",
+        form_source: "assessment_form"
+      });
+    }
+
     isSubmittingRef.current = true;
     setSubmissionState("submitting");
     setErrorMessage(null);
@@ -67,7 +77,7 @@ export default function AssessmentLeadForm() {
     const payload = {
       customerName: String(formData.get("customerName") || ""),
       phone: String(formData.get("phone") || ""),
-      locationText: String(formData.get("locationText") || ""),
+      locationText,
       enquiryTopic: `Free Safety Assessment - ${assessmentTypeLabel}`,
       notes: String(formData.get("notes") || "") || undefined,
       metadata: {
@@ -75,7 +85,9 @@ export default function AssessmentLeadForm() {
         intentCategory: "assessment",
         assessmentType: assessmentTypeValue,
         assessmentTypeLabel,
-        location: locationMetaRef.current ?? undefined,
+        locationMarket: resolvedLocationMeta.serviceability.locationMarket,
+        serviceability: resolvedLocationMeta.serviceability,
+        location: resolvedLocationMeta,
         attribution: getLeadAttributionContext({
           entryPoint: "assessment-form",
           pageSection: "free-assessment",
@@ -100,12 +112,16 @@ export default function AssessmentLeadForm() {
         throw new Error(errorPayload?.error || "Unable to submit your assessment request.");
       }
 
-      const responsePayload = (await response.json()) as { data?: { id?: string } };
+      const responsePayload = (await response.json()) as { data?: { id?: string; locationMarket?: LocationMarket } };
       submittedLeadIdRef.current = responsePayload.data?.id || "captured";
       form.reset();
       trackAnalyticsEvent("assessment_lead_submit_success", {
         cta_location: "assessment-form",
         section: "free-assessment"
+      });
+      trackAnalyticsEvent("lead_location_market", {
+        market: responsePayload.data?.locationMarket || "UNKNOWN",
+        form_source: "assessment_form"
       });
       setSubmissionState("success");
     } catch (error) {
@@ -131,7 +147,8 @@ export default function AssessmentLeadForm() {
           <span>Phone</span>
           <input type="tel" name="phone" placeholder="+91 98..." required disabled={isLocked} />
         </label>
-        <LocationAutocompleteField disabled={isLocked} onMeta={(meta) => { locationMetaRef.current = meta; }} />
+        <LocationAutocompleteField disabled={isLocked} formSource="assessment_form" onMeta={(meta) => { locationMetaRef.current = meta; }} />
+        <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
         <label className={styles.fullWidth}>
           <span>Assessment type</span>
           <select name="assessmentType" defaultValue="" required disabled={isLocked}>

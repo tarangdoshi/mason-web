@@ -9,6 +9,7 @@
     "dev": "pnpm run dev:localclean",
     "dev:localclean": "rm -rf .next-localclean && AEGIS_DIST_DIR=.next-localclean next dev -p 3000",
     "build": "rm -rf ${AEGIS_DIST_DIR:-.next} && next build",
+    "test": "node --import tsx --test lib/*.test.ts",
     "build:localclean": "rm -rf .next-localclean && AEGIS_DIST_DIR=.next-localclean next build",
     "start": "next start -p 3000",
     "sanity:seed": "tsx scripts/seed-sanity.ts",
