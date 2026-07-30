@@ -3,9 +3,12 @@
 import { useRef, useState } from "react";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
+import { createSubmissionGate, submitGuidanceLead } from "../../lib/lead-submission";
+import { INDIAN_MOBILE_ERROR, isValidNationalMobile, toE164 } from "../../lib/phone";
 import styles from "./guidance-form.module.css";
 import LeadPrivacyNotice from "./lead-privacy-notice";
 import LocationAutocompleteField from "./location-autocomplete-field";
+import PhoneField from "./phone-field";
 import { manualLocationMeta, type LocationMeta } from "../../lib/location";
 import { ASSESSMENT_AVAILABILITY_COPY, type LocationMarket } from "../../lib/serviceability";
 
@@ -25,10 +28,13 @@ function isAssessmentType(value: string): value is AssessmentType {
 export default function AssessmentLeadForm() {
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [assessmentType, setAssessmentType] = useState<AssessmentType | "">("");
+  const [phoneDigits, setPhoneDigits] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const hasTrackedFormStartRef = useRef(false);
-  const isSubmittingRef = useRef(false);
-  const submittedLeadIdRef = useRef<string | null>(null);
-  const locationMetaRef = useRef<LocationMeta | null>(null);
+  const gateRef = useRef(createSubmissionGate());
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
 
   function trackFormStart() {
     if (hasTrackedFormStartRef.current) {
@@ -42,18 +48,45 @@ export default function AssessmentLeadForm() {
     });
   }
 
+  function handleLocationMeta(meta: LocationMeta) {
+    setLocationMeta(meta);
+  }
+
+  function handlePhoneChange(nationalDigits: string) {
+    setPhoneDigits(nationalDigits);
+    if (fieldErrors.phone) {
+      setFieldErrors((current) => {
+        const next = { ...current };
+        delete next.phone;
+        return next;
+      });
+    }
+  }
+
+  function focusPhone() {
+    phoneInputRef.current?.focus();
+    phoneInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isSubmittingRef.current || submittedLeadIdRef.current) {
-      return;
-    }
-
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const assessmentTypeValue = String(formData.get("assessmentType") || "");
+    const assessmentTypeValue = assessmentType;
     const locationText = String(formData.get("locationText") || "");
-    const resolvedLocationMeta = locationMetaRef.current ?? manualLocationMeta(locationText);
+    const resolvedLocationMeta = locationMeta ?? manualLocationMeta(locationText);
+
+    // These checks mirror the API contract for fast feedback; the API
+    // re-validates every submission and remains the authority.
+    const phoneE164 = isValidNationalMobile(phoneDigits) ? toE164(phoneDigits) : null;
+    if (!phoneE164) {
+      setFieldErrors((current) => ({ ...current, phone: INDIAN_MOBILE_ERROR }));
+      setSubmissionState("error");
+      setErrorMessage(null);
+      focusPhone();
+      return;
+    }
 
     if (!isAssessmentType(assessmentTypeValue)) {
       setSubmissionState("error");
@@ -70,13 +103,19 @@ export default function AssessmentLeadForm() {
       });
     }
 
-    isSubmittingRef.current = true;
+    // Refuses a second submission while one is in flight, and permanently once
+    // a lead has been created, so repeated clicks cannot duplicate a lead.
+    if (!gateRef.current.tryBegin()) {
+      return;
+    }
+
     setSubmissionState("submitting");
     setErrorMessage(null);
+    setFieldErrors({});
 
     const payload = {
       customerName: String(formData.get("customerName") || ""),
-      phone: String(formData.get("phone") || ""),
+      phone: phoneE164,
       locationText,
       enquiryTopic: `Free Safety Assessment - ${assessmentTypeLabel}`,
       notes: String(formData.get("notes") || "") || undefined,
@@ -97,44 +136,51 @@ export default function AssessmentLeadForm() {
       }
     };
 
-    try {
-      const response = await fetch("/api/leads/guidance", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+    const result = await submitGuidanceLead(payload);
 
-      if (!response.ok) {
-        const errorPayload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(errorPayload?.error || "Unable to submit your assessment request.");
-      }
-
-      const responsePayload = (await response.json()) as { data?: { id?: string; locationMarket?: LocationMarket } };
-      submittedLeadIdRef.current = responsePayload.data?.id || "captured";
+    if (result.ok) {
+      gateRef.current.complete();
       form.reset();
+      setPhoneDigits("");
+      setAssessmentType("");
+      setLocationMeta(null);
       trackAnalyticsEvent("assessment_lead_submit_success", {
         cta_location: "assessment-form",
         section: "free-assessment"
       });
       trackAnalyticsEvent("lead_location_market", {
-        market: responsePayload.data?.locationMarket || "UNKNOWN",
+        market: (result.locationMarket as LocationMarket) || "UNKNOWN",
         form_source: "assessment_form"
       });
       setSubmissionState("success");
-    } catch (error) {
-      setSubmissionState("error");
-      setErrorMessage(error instanceof Error ? error.message : "Unable to submit your assessment request.");
-      isSubmittingRef.current = false;
       return;
     }
 
-    isSubmittingRef.current = false;
+    // Failure: release the gate and keep every entered value so the customer
+    // can correct one field and retry without re-typing the rest.
+    gateRef.current.release();
+    setSubmissionState("error");
+
+    if (result.kind === "validation") {
+      const nextFieldErrors: Record<string, string> = {};
+      for (const [field, messages] of Object.entries(result.fieldErrors)) {
+        if (messages?.[0]) {
+          nextFieldErrors[field] = messages[0];
+        }
+      }
+      setFieldErrors(nextFieldErrors);
+      setErrorMessage(nextFieldErrors.phone ? null : result.message);
+      if (nextFieldErrors.phone) {
+        focusPhone();
+      }
+      return;
+    }
+
+    setErrorMessage(result.message);
   }
 
   const isLocked = submissionState === "submitting" || submissionState === "success";
+  const isSubmitting = submissionState === "submitting";
 
   return (
     <form className={styles.form} onFocusCapture={trackFormStart} onChange={trackFormStart} onSubmit={handleSubmit}>
@@ -143,15 +189,25 @@ export default function AssessmentLeadForm() {
           <span>Name</span>
           <input type="text" name="customerName" placeholder="Your name" required disabled={isLocked} />
         </label>
-        <label>
-          <span>Phone</span>
-          <input type="tel" name="phone" placeholder="+91 98..." required disabled={isLocked} />
-        </label>
-        <LocationAutocompleteField disabled={isLocked} formSource="assessment_form" onMeta={(meta) => { locationMetaRef.current = meta; }} />
+        <PhoneField
+          ref={phoneInputRef}
+          value={phoneDigits}
+          onChange={handlePhoneChange}
+          disabled={isLocked}
+          error={fieldErrors.phone}
+          describedById="assessment-phone"
+        />
+        <LocationAutocompleteField disabled={isLocked} formSource="assessment_form" onMeta={handleLocationMeta} />
         <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
         <label className={styles.fullWidth}>
           <span>Assessment type</span>
-          <select name="assessmentType" defaultValue="" required disabled={isLocked}>
+          <select
+            name="assessmentType"
+            value={assessmentType}
+            onChange={(event) => setAssessmentType(event.target.value as AssessmentType | "")}
+            required
+            disabled={isLocked}
+          >
             <option value="" disabled>
               Choose assessment type
             </option>
@@ -166,16 +222,22 @@ export default function AssessmentLeadForm() {
       </div>
 
       <div className={styles.actions}>
-        <button type="submit" disabled={isLocked}>
-          {submissionState === "submitting" ? "Sending..." : submissionState === "success" ? "Request received" : "Book Free Safety Assessment"}
+        <button type="submit" disabled={isLocked} aria-busy={isSubmitting}>
+          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Book Free Safety Assessment"}
         </button>
       </div>
       <LeadPrivacyNotice className={styles.privacyNotice} />
 
       {submissionState === "success" ? (
-        <p className={styles.successMessage}>Your free safety assessment request is in. Mason will contact you shortly to schedule it.</p>
+        <p className={styles.successMessage} role="status">
+          Assessment received. Mason will contact you shortly.
+        </p>
       ) : null}
-      {submissionState === "error" && errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
+      {submissionState === "error" && errorMessage ? (
+        <p className={styles.errorMessage} role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </form>
   );
 }
