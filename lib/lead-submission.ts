@@ -68,6 +68,46 @@ export async function submitGuidanceLead(
   return { ok: false, kind: "server", message: body?.error || GENERIC_SUBMIT_ERROR };
 }
 
+export type ValidationFeedback = {
+  /** First message per field, ready to render beside each input. */
+  fieldErrors: Record<string, string>;
+  /** Field to focus, or null when no inline-capable field is affected. */
+  focusField: string | null;
+  /** Generic banner, suppressed when an inline field error is shown instead. */
+  bannerMessage: string | null;
+};
+
+/**
+ * Maps an API validation response onto what the form should show.
+ *
+ * `inlineFieldOrder` lists the fields that render their own inline error, in
+ * the form's visual order — extending this to a new field is one entry here
+ * plus its inline error markup, with no change to this logic.
+ *
+ * A field error on a field that cannot show one inline (or a validation error
+ * carrying no field errors at all) keeps the generic banner, so a failure is
+ * never silent.
+ */
+export function resolveValidationFeedback(
+  result: { fieldErrors: LeadFieldErrors; message: string },
+  inlineFieldOrder: readonly string[]
+): ValidationFeedback {
+  const fieldErrors: Record<string, string> = {};
+  for (const [field, messages] of Object.entries(result.fieldErrors ?? {})) {
+    if (messages?.[0]) {
+      fieldErrors[field] = messages[0];
+    }
+  }
+
+  const focusField = inlineFieldOrder.find((field) => fieldErrors[field]) ?? null;
+
+  return {
+    fieldErrors,
+    focusField,
+    bannerMessage: focusField ? null : result.message
+  };
+}
+
 /**
  * Guards against duplicate leads: a second submit is refused while one is in
  * flight, and permanently once a lead has been created.

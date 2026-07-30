@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
-import { createSubmissionGate, submitGuidanceLead } from "../../lib/lead-submission";
+import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../../lib/lead-submission";
 import { EMAIL_ERROR, toCanonicalEmail } from "../../lib/email";
 import { INDIAN_MOBILE_ERROR, isValidNationalMobile, toE164 } from "../../lib/phone";
 import styles from "./guidance-form.module.css";
@@ -25,6 +25,11 @@ type AssessmentType = keyof typeof assessmentTypeLabels;
 function isAssessmentType(value: string): value is AssessmentType {
   return value === "home_visit" || value === "video_assessment";
 }
+
+// Fields that render their own inline error, in the form's visual order. A new
+// one is added here plus its inline markup — the server-error handling below
+// stays field-agnostic.
+const INLINE_ERROR_FIELD_ORDER = ["phone", "email"] as const;
 
 export default function AssessmentLeadForm() {
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
@@ -76,14 +81,19 @@ export default function AssessmentLeadForm() {
     clearFieldError("email");
   }
 
-  function focusField(ref: React.RefObject<HTMLInputElement | null>) {
-    ref.current?.focus();
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  function focusField(ref: React.RefObject<HTMLInputElement | null> | undefined) {
+    ref?.current?.focus();
+    ref?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function focusPhone() {
     focusField(phoneInputRef);
   }
+
+  const inlineFieldRefs: Record<string, React.RefObject<HTMLInputElement | null>> = {
+    phone: phoneInputRef,
+    email: emailInputRef
+  };
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -191,16 +201,11 @@ export default function AssessmentLeadForm() {
     setSubmissionState("error");
 
     if (result.kind === "validation") {
-      const nextFieldErrors: Record<string, string> = {};
-      for (const [field, messages] of Object.entries(result.fieldErrors)) {
-        if (messages?.[0]) {
-          nextFieldErrors[field] = messages[0];
-        }
-      }
-      setFieldErrors(nextFieldErrors);
-      setErrorMessage(nextFieldErrors.phone ? null : result.message);
-      if (nextFieldErrors.phone) {
-        focusPhone();
+      const feedback = resolveValidationFeedback(result, INLINE_ERROR_FIELD_ORDER);
+      setFieldErrors(feedback.fieldErrors);
+      setErrorMessage(feedback.bannerMessage);
+      if (feedback.focusField) {
+        focusField(inlineFieldRefs[feedback.focusField]);
       }
       return;
     }
