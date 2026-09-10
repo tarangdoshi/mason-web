@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { smoothScroll } from "./SmoothScroll";
 
 /* Scroll-position memory across route changes.
@@ -36,12 +36,6 @@ function writePositions(map: Record<string, number>) {
 
 export default function ScrollRestoration() {
   const pathname = usePathname();
-  const router = useRouter();
-  useEffect(() => {
-    const redirectLegacyQuiz = () => {if (window.location.pathname === "/" && window.location.hash === "#risk-quiz") router.replace("/packages#risk-quiz");};
-    redirectLegacyQuiz(); window.addEventListener("hashchange", redirectLegacyQuiz);
-    return () => window.removeEventListener("hashchange", redirectLegacyQuiz);
-  }, [pathname, router]);
   // True only for the window between a back/forward press and the route settling.
   const isPop = useRef(false);
 

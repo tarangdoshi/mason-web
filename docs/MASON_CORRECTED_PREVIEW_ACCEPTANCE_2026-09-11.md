@@ -103,3 +103,13 @@ API tests were not rerun because the API is unchanged and its dependencies were 
 PR #1 is not merge-ready until the supplied Preview can be opened in a browser, the corrected commit/deployment identity is confirmed, the package/Google/attribution checks are completed, and install/lint/TypeScript/tests/build pass in a networked workspace. Do not merge or deploy Production from this state.
 
 When accepted, the cutover is: verify Preview → approve PR #1 → merge `feature/prerna-frontend-integration` into the canonical default branch → let the existing Vercel Production integration deploy → smoke-test public routes and lead capture. Rollback is a Vercel revert to the last known-good Production deployment or a revert of the merge commit; do not alter API, database, Redis, or Sanity infrastructure as part of rollback.
+
+## Founder correction: remove the public launch quiz
+
+The public `/packages` launch page no longer imports or renders `PackageAdvisor`, so the Risk Quiz / “Quick safety fit check” / “Start the 30-second quiz” module is removed from the launch journey. The page now transitions directly from the package cards to the existing “See what gets installed” cue and kit section, following the approved Prerna structure.
+
+The reusable quiz implementation and data remain intact: `components/PackageAdvisor.tsx`, `app/components/risk-quiz.tsx`, the Risk Quiz Sanity schema/query/content, quiz session context, lead payload fields, tests, and the historical `/compare-packages` route were not deleted or changed. The obsolete homepage hash redirect was removed from `components/ScrollRestoration.tsx` so public navigation cannot redirect visitors into a removed launch section. No current public launch navigation or CTA directly targets the obsolete `#risk-quiz` journey; historical comparison links continue to target the comparison package section.
+
+Files changed for this correction: `app/(public)/packages/page.tsx`, `components/ScrollRestoration.tsx`, and this report. No backend, Sanity schema, CMS content, quiz data, or quiz tests were changed. Removing the launch module does not require test updates; existing quiz persistence and lead-context tests remain applicable to the preserved functionality.
+
+Verification after this correction passes locally: `pnpm lint` exits 0 with five pre-existing `no-html-link-for-pages` warnings, `pnpm typecheck` exits 0, `pnpm test` passes all 44 web tests, `pnpm build` exits 0, and `git diff --check` passes. The API is unchanged, so no API source or API test was changed. PR #1 remains unmerged and Production remains untouched.
