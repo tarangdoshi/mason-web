@@ -60,3 +60,11 @@
 - **Reason:** Launch simplicity; supports a remote payer (e.g. an adult child in another city).
 - **Impact:** Payment tracked in CRM notes; reconciliation is manual until a webhook is added.
 - **Status:** ✅ Accepted
+
+## ADR-011 — Prerna public presentation with canonical Mason functionality
+- **Date:** 2026-09-10
+- **Decision:** Integrate the approved public design into `mason-web` on a feature branch. Retain Next 15/React 19.1, operational routes, lead APIs, canonical risk scoring, attribution and backend behaviour. Scope design CSS away from existing screens.
+- **Reason:** Replace public presentation without replacing the operational system.
+- **Impact:** Add GSAP/Lenis/Tailwind, new public routes and source assets. Form surfaces retain assessment type and notes. Empty locations use an explicit address-not-provided value with UNKNOWN metadata to satisfy the existing API schema. The new public editorial presentation is code-managed; existing Sanity Studio, draft rendering and CMS-driven retained routes remain available. CMS mapping for all new homepage sections is a remaining review item, not a backend migration.
+- **Release:** PR and Preview only. No Production API/database/Redis modifications; no new infrastructure. Backend-dependent checks are separately gated.
+- **Status:** Implemented on feature branch; release review pending.

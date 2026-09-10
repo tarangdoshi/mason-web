@@ -5,6 +5,9 @@ const SITE_URL = "https://www.masoncompany.in";
 const ROUTES = [
   "/",
   "/about",
+  "/packages",
+  "/why",
+  "/contact",
   "/compare-packages",
   "/packages/standard",
   "/packages/advanced",

@@ -92,7 +92,7 @@ export default function AboutPage() {
           <p className={styles.eyebrow}>Founders</p>
           <h2>Why we are built for this</h2>
           <p>
-            Mason Company brings together the founders' experience in brand-building, product thinking, startup creation, operations, investing,
+            Mason Company brings together the founders&apos; experience in brand-building, product thinking, startup creation, operations, investing,
             and service design.
           </p>
         </div>

@@ -88,3 +88,11 @@ pnpm build        # next build (production build)
 ```
 
 Run a clean production build before committing changes that touch the app.
+
+## Public frontend integration (feature branch, September 2026)
+
+- `app/(public)` contains the redesigned home, about, packages, why and contact pages. `components/` contains the imported design components.
+- Public Tailwind selectors and tokens are scoped to `.mason-public`; legacy CSS has its own cascade layer. CRM/admin keep their existing routes and components.
+- Booking dialog and inline assessment reuse `app/components/assessment-lead-form.tsx`. Contact uses the same real guidance submission transport. No browser-only success stub remains.
+- `/content-preview` retains the prior CMS homepage renderer; `/?preview=draft` redirects there. New public copy is code-managed; preserved package/detail/checkout and canonical quiz still use their original content paths.
+- Preview without `NEXT_PUBLIC_API_URL` returns a 503 for backend calls. Production retains its existing configured API URL. No database or Redis migration.

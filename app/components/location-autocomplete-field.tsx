@@ -160,7 +160,6 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
         inputMode="text"
         autoComplete="off"
         placeholder="Start typing your full address"
-        required
         disabled={disabled}
         value={value}
         onChange={(event) => {

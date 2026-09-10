@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Manrope, Newsreader } from "next/font/google";
-import "./styles.css";
+import "./legacy.css";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -19,6 +19,7 @@ const newsreaderBrand = Newsreader({
 });
 
 export const metadata: Metadata = {
+  robots: process.env.VERCEL_ENV === "preview" ? {index:false,follow:false} : undefined,
   title: "Mason Company | Bathroom Safety Upgrades for Ageing Parents",
   description: "Mason Company delivers premium bathroom safety upgrades with a warm, practical approach for modern families in Mumbai and Goa."
 };

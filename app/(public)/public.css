@@ -1,0 +1,432 @@
+@import "tailwindcss";
+
+/* ============================================================
+   MASON COMPANY — design system v4
+   Source of truth: design-tokens.json (W3C Design Tokens format).
+   Sand neutrals (never pure grey) + forest green + near-black ink.
+   Type: Archivo extrabold display, Fraunces italic accent words,
+   Geist body, Geist Mono labels.
+   NOTE: token NAMES are inherited from the dark theme (ink/cream/…);
+   their VALUES follow the token file so components re-theme for free.
+   The dark theme is preserved in /backup-dark-theme.
+   ============================================================ */
+
+@theme inline {
+  /* ---- raw palette (mirrors design-tokens.json `color`) ---- */
+  --color-sand-50: #fafaf8;
+  --color-sand-100: #f2f1ec;
+  --color-sand-200: #e5e3dd;
+  --color-sand-400: #82807a;
+  --color-sand-600: #5c5b57;
+  --color-forest-50: #e6f3ef;
+  --color-forest-200: #8fc9b4;
+  --color-forest-600: #0e7c5a;
+  --color-forest-700: #0b6749;
+  --color-gold: #b4791a; /* attention / warning — accents only */
+  --color-brick: #c0392b; /* error / danger — accents only */
+  --color-brick-deep: #9a3226; /* deep, muted brick — for a full danger surface
+                                  (the "cost of doing nothing" card), where the
+                                  brighter brick above would read as alarm */
+
+  /* ---- semantic aliases (design-tokens.json `semantic`) ----
+     Restyle the brand by repointing these, not by editing raw colors. */
+
+  /* Elevation ladder — warm paper. Page → card → sunken. */
+  --color-ink: var(--color-sand-50); /* page / background */
+  --color-ink-raised: #ffffff; /* card / raised panel */
+  --color-surface: var(--color-sand-100); /* sunken section / footer */
+  --color-surface-2: var(--color-sand-200); /* hover / chip / featured card */
+  --color-clinical: var(--color-sand-100); /* doctors section */
+
+  /* Foreground — warm near-black on paper (all >=4.5:1) */
+  --color-cream: #1a1a18; /* foreground / text-primary */
+  --color-cream-dim: var(--color-sand-600); /* secondary */
+  --color-cream-faint: var(--color-sand-400); /* muted — labels ONLY */
+  --color-bone-dim: var(--color-sand-200); /* legacy hover slot */
+
+  /* Accent — forest. Sparing punctuation: CTAs, links, one mark per section. */
+  --color-accent: var(--color-forest-700); /* primary */
+  --color-accent-hover: var(--color-forest-600); /* primaryHover */
+  --color-accent-muted: var(--color-forest-700); /* full-bleed dark green sections */
+  --color-accent-tint: var(--color-forest-50); /* light green wash background */
+  --color-accent-soft: var(--color-forest-200); /* highlights ON dark green */
+  --color-on-accent: var(--color-sand-100); /* text ON dark green — not pure white */
+
+  /* Status — small accents only, never structural */
+  --color-warning: var(--color-gold);
+  --color-danger: var(--color-brick);
+
+  /* Selection tokens repurposed to forest */
+  --color-oxblood: var(--color-forest-700);
+  --color-oxblood-soft: var(--color-forest-600);
+  --color-oxblood-deep: var(--color-forest-700);
+
+  /* Clay repurposed → forest punctuation (logo dot, process rule/progress) */
+  --color-clay: var(--color-forest-700);
+  --color-clay-soft: var(--color-forest-600);
+  --color-clay-deep: var(--color-forest-700);
+
+  /* Olive — tertiary surface / depth (rarely used) */
+  --color-olive: #57503e;
+
+  /* Hairlines — sand-200, expressed as ink at low alpha so they sit on any surface */
+  --color-line: rgba(26, 24, 20, 0.1); /* border */
+  --color-line-strong: rgba(26, 24, 20, 0.17); /* border-hover */
+
+  /* ---- type (design-tokens.json `fontFamily`) ---- */
+  --font-display: var(--font-archivo);
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #fafaf8;
+  --foreground: #1a1a18;
+}
+
+/* Accessibility: every focusable element gets a 2px accent ring, 2px offset */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* …except text fields, which per spec match :focus-visible even on a mouse
+   click — so that hard 2px ring fired on every tap into a form. They signal
+   focus with a soft border shift instead (see BookingDialog).
+   This has to live here, unlayered: the rule above is unlayered too, and
+   unlayered styles beat anything in @layer utilities no matter how specific,
+   so a Tailwind focus:outline-none utility can never override it. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* …and dialogs, which are containers rather than controls. The booking sheet
+   takes focus itself on open so that showModal() doesn't hand it to the close
+   button (see BookingDialog) — but a ring drawn around the whole sheet says no
+   more than one drawn around the X did. Same reason this lives unlayered. */
+dialog:focus-visible {
+  outline: none;
+}
+
+/* Default hairline colour for anything with a border but no explicit one.
+   MUST stay inside @layer base: unlayered, this beats every border-* utility
+   in @layer utilities no matter how specific, so border-sand-200,
+   border-white/35, focus:border-forest-700 and friends all silently rendered
+   as --color-line instead. */
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: #cfccc4;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #bdb9af;
+}
+
+/* ============================================================
+   Type utilities
+   ============================================================ */
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+/* typography.headline — Archivo extrabold */
+.h-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+/* typography.accentWord — Fraunces italic, set inline inside a headline.
+   The signature move: swap one or two words per headline.
+   No letter-spacing of its own: it must inherit the headline's tracking, or the
+   accent word sits looser than the words either side of it.
+   Colour is forest — the token file omits it, but every accent word in the
+   reference build is green. */
+.accent-word {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+/* on the dark-green surfaces, forest-700 would vanish — use the soft tint */
+.accent-word.on-dark {
+  color: var(--color-accent-soft);
+}
+
+/* typography.label — Geist Mono, eyebrows and numerals */
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-cream-faint); /* muted — eyebrows stay neutral */
+}
+
+/* on the dark-green surfaces, sand-400 is far too low-contrast for a label */
+.eyebrow.on-dark {
+  color: var(--color-accent-soft);
+}
+
+.font-mono-label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 500;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Photo scrim — a dark ramp so captions sit ON the photograph rather than in a
+   white fog. Most of these bathrooms are bright, so a paper-coloured scrim just
+   dissolved the bottom third of the image. Five stops rather than two: a plain
+   linear alpha ramp reads as a visible band edge. Text over this must be light. */
+.photo-scrim {
+  background-image: linear-gradient(
+    to top,
+    rgba(26, 26, 24, 0.82) 0%,
+    rgba(26, 26, 24, 0.56) 13%,
+    rgba(26, 26, 24, 0.3) 26%,
+    rgba(26, 26, 24, 0.1) 42%,
+    rgba(26, 26, 24, 0) 62%
+  );
+}
+
+/* Very subtle filmic grain — keeps surfaces from feeling sterile */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   Hero tile lattice
+   ============================================================ */
+
+/* A tiled bathroom wall, drawn in hairlines — the room we're actually selling,
+   rather than a generic dot grid. Held under 6% contrast, and double-masked so
+   it clears out behind the headline (radial) and dies well above the photo rail
+   (linear). Three tiles are grouted in forest at ~5% so the wall has one small
+   moment in it. Sits on top of the global .grain, so both stay very faint. */
+.tile-lattice {
+  --tile: 84px;
+  --grout: rgba(26, 26, 24, 0.055);
+  --glazed: rgba(11, 103, 73, 0.05);
+
+  background-image:
+    /* three accent tiles, placed clear of the masked-out centre */
+    linear-gradient(var(--glazed), var(--glazed)),
+    linear-gradient(var(--glazed), var(--glazed)),
+    linear-gradient(var(--glazed), var(--glazed)),
+    /* the grout lines */
+    repeating-linear-gradient(
+      to right,
+      var(--grout) 0px,
+      var(--grout) 1px,
+      transparent 1px,
+      transparent var(--tile)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--grout) 0px,
+      var(--grout) 1px,
+      transparent 1px,
+      transparent var(--tile)
+    );
+  background-size:
+    var(--tile) var(--tile),
+    var(--tile) var(--tile),
+    var(--tile) var(--tile),
+    auto,
+    auto;
+  background-position:
+    left calc(var(--tile) * 1) top calc(var(--tile) * 2),
+    left calc(var(--tile) * 3) top calc(var(--tile) * 4),
+    right calc(var(--tile) * 2) top calc(var(--tile) * 3),
+    0 0,
+    0 0;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
+
+  /* intersect: hidden wherever EITHER mask is transparent.
+     The vertical mask fades in below the nav (px, because the nav is a fixed
+     height) and back out well above the photo rail. */
+  -webkit-mask-image:
+    radial-gradient(ellipse 66% 46% at 50% 42%, transparent 40%, #000 85%),
+    linear-gradient(to bottom, transparent 0px, transparent 84px, #000 200px, #000 30%, transparent 58%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(ellipse 66% 46% at 50% 42%, transparent 40%, #000 85%),
+    linear-gradient(to bottom, transparent 0px, transparent 84px, #000 200px, #000 30%, transparent 58%);
+  mask-composite: intersect;
+}
+
+/* ============================================================
+   Cinematic hero scrim
+   ============================================================ */
+
+/* Two ramps over the full-bleed photo. The job is to make the middle read as a
+   lit photograph rather than dead black: the horizontal ramp is a left vignette
+   only — near-opaque behind the headline, then falling away hard so the centre
+   and right show the room. The vertical ramp is just a cap for the transparent
+   nav (which turns bright over the revealed photo) and a soft floor. Kept in ink
+   (#121210), not black, so it reads warm rather than switched-off. */
+.hero-cine-scrim {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(18, 18, 16, 0.94) 0%,
+      rgba(18, 18, 16, 0.84) 28%,
+      rgba(18, 18, 16, 0.57) 42%,
+      rgba(18, 18, 16, 0.23) 56%,
+      rgba(18, 18, 16, 0.17) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(18, 18, 16, 0.6) 0%,
+      rgba(18, 18, 16, 0) 24%,
+      rgba(18, 18, 16, 0) 80%,
+      rgba(18, 18, 16, 0.46) 100%
+    );
+}
+
+/* Reveal (GSAP animates these) */
+.reveal {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Mobile menu rows — rise and fade as the panel opens. A keyframe rather than
+   a transition because the rows mount with the panel: a transition needs a
+   from-state that has already been painted, which mounting doesn't give you
+   without a state flag and a spare frame. Each row carries its own
+   animation-delay inline; fill-mode both keeps it hidden until its turn. */
+@keyframes menu-row-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.menu-row {
+  animation: menu-row-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-row {
+    animation: none;
+  }
+}
+
+/* Booking dialog. Two entrances, because it is two different objects: a sheet
+   rising from the bottom edge on a phone, a panel settling in the middle on a
+   pointer. Both run on open — a <dialog> goes display:none -> block when
+   showModal() fires, which is enough to start a keyframe. */
+/* transform, not the standalone translate/scale properties. Those are newer
+   and this runs on a top-layer <dialog>, which is exactly the kind of place
+   an older iOS Safari drops them — and a sheet that fails to animate back to
+   0 is a sheet stuck off the bottom of the screen. transform is the boring
+   choice and there is nothing to gain from the other one here. */
+/* Scroll cue — the chevron drifts down and resets, which is the whole job:
+   a static arrow reads as decoration, a moving one reads as "there is more
+   this way". Small travel and a long pause between passes, so it sits at the
+   bottom of a section without competing with anything in it. */
+@keyframes cue-nudge {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  80% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mason-assessment { --primary: #0b6749; --primary-strong:#0e7c5a; --primary-soft:#e6f3ef; --muted:#5c5b57; --line-warm:#e5e3dd; --surface-container-lowest:white; --font-display:var(--font-archivo); }
+.mason-assessment form { gap:1rem; }
+.mason-assessment input, .mason-assessment textarea, .mason-assessment select { border-radius:12px; background:white; color:#1a1a18; min-height:48px; }
+.mason-assessment button[type=submit] { background:#0b6749; color:#f2f1ec; border-radius:999px; }
+.mason-assessment input:focus-visible, .mason-assessment select:focus-visible, .mason-assessment textarea:focus-visible { outline:2px solid #0b6749; outline-offset:2px; }
+
+.mason-assessment { --line:#e5e3dd; --surface-paper:#fff; --surface-container-low:#f2f1ec; --brand-brown:#1a1a18; }
+.mason-assessment form { padding:0; border:0; border-radius:0; background:transparent; }
+.mason-assessment button[type=submit] { width:100%; justify-content:center; }

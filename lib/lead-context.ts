@@ -75,13 +75,14 @@ export function getLeadCaptureSessionId() {
     return "server-render";
   }
 
-  const existing = window.sessionStorage.getItem(sessionStorageKey);
+  let existing: string | null = null;
+  try { existing = window.sessionStorage.getItem(sessionStorageKey); } catch { /* Storage must not block leads. */ }
   if (existing) {
     return existing;
   }
 
   const sessionId = window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  window.sessionStorage.setItem(sessionStorageKey, sessionId);
+  try { window.sessionStorage.setItem(sessionStorageKey, sessionId); } catch { /* Storage must not block leads. */ }
   return sessionId;
 }
 
@@ -91,23 +92,24 @@ export function storeLeadCtaContext(context: Partial<AttributionContext>) {
   }
 
   const searchParams = new URLSearchParams(window.location.search);
+  const previous = readJsonFromSessionStorage<AttributionContext>(ctaStorageKey);
 
   writeJsonToSessionStorage(ctaStorageKey, {
     sessionId: getLeadCaptureSessionId(),
     pagePath: window.location.pathname,
     referrer: document.referrer || undefined,
-    pageSection: context.pageSection,
-    entryPoint: context.entryPoint,
-    ctaId: context.ctaId,
-    packageCode: context.packageCode,
-    packageName: context.packageName,
-    utmSource: getUrlParam(searchParams, "utm_source"),
-    utmMedium: getUrlParam(searchParams, "utm_medium"),
-    utmCampaign: getUrlParam(searchParams, "utm_campaign"),
-    utmTerm: getUrlParam(searchParams, "utm_term"),
-    utmContent: getUrlParam(searchParams, "utm_content"),
-    gclid: getUrlParam(searchParams, "gclid"),
-    fbclid: getUrlParam(searchParams, "fbclid")
+    pageSection: context.pageSection || previous?.pageSection,
+    entryPoint: context.entryPoint || previous?.entryPoint,
+    ctaId: context.ctaId || previous?.ctaId,
+    packageCode: context.packageCode || previous?.packageCode,
+    packageName: context.packageName || previous?.packageName,
+    utmSource: getUrlParam(searchParams, "utm_source") || previous?.utmSource,
+    utmMedium: getUrlParam(searchParams, "utm_medium") || previous?.utmMedium,
+    utmCampaign: getUrlParam(searchParams, "utm_campaign") || previous?.utmCampaign,
+    utmTerm: getUrlParam(searchParams, "utm_term") || previous?.utmTerm,
+    utmContent: getUrlParam(searchParams, "utm_content") || previous?.utmContent,
+    gclid: getUrlParam(searchParams, "gclid") || previous?.gclid,
+    fbclid: getUrlParam(searchParams, "fbclid") || previous?.fbclid
   } satisfies AttributionContext);
 }
 
@@ -155,7 +157,7 @@ export function clearQuizContext() {
     return;
   }
 
-  window.sessionStorage.removeItem(quizStorageKey);
+  try { window.sessionStorage.removeItem(quizStorageKey); } catch { /* Storage is optional. */ }
 }
 
 export function getQuizContext() {

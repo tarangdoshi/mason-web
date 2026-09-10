@@ -9,6 +9,9 @@ export class ApiError extends Error {
 }
 
 function getApiBaseUrl() {
+  if (process.env.VERCEL_ENV === "preview" && !process.env.NEXT_PUBLIC_API_URL) {
+    throw new ApiError("Backend submission is unavailable in this Preview. Please review the frontend; production lead capture is unchanged.", 503);
+  }
   return process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:4000";
 }
 

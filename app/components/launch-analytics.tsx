@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { storeLeadCtaContext } from "../../lib/lead-context";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
@@ -102,6 +103,7 @@ function ManualPageViews() {
   const pathname = usePathname();
 
   useEffect(() => {
+    storeLeadCtaContext({});
     trackAnalyticsEvent("page_view", {
       page: pathname || "/"
     });

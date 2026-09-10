@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
 import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../../lib/lead-submission";
@@ -32,6 +32,7 @@ function isAssessmentType(value: string): value is AssessmentType {
 const INLINE_ERROR_FIELD_ORDER = ["phone", "email"] as const;
 
 export default function AssessmentLeadForm() {
+  const formId = useId();
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [assessmentType, setAssessmentType] = useState<AssessmentType | "">("");
@@ -154,7 +155,7 @@ export default function AssessmentLeadForm() {
       customerName: String(formData.get("customerName") || ""),
       phone: phoneE164,
       email: canonicalEmail,
-      locationText,
+      locationText: locationText.trim().length >= 2 ? locationText : "Address not provided",
       enquiryTopic: `Free Safety Assessment - ${assessmentTypeLabel}`,
       notes: String(formData.get("notes") || "") || undefined,
       metadata: {
@@ -229,7 +230,7 @@ export default function AssessmentLeadForm() {
           onChange={handlePhoneChange}
           disabled={isLocked}
           error={fieldErrors.phone}
-          describedById="assessment-phone"
+          describedById={`assessment-phone-${formId}`}
         />
         <label>
           <span>
@@ -243,14 +244,14 @@ export default function AssessmentLeadForm() {
             autoComplete="email"
             placeholder="you@example.com"
             aria-invalid={fieldErrors.email ? "true" : undefined}
-            aria-describedby={fieldErrors.email ? "assessment-email-error" : undefined}
+            aria-describedby={fieldErrors.email ? `assessment-email-error-${formId}` : undefined}
             required
             disabled={isLocked}
             value={email}
             onChange={(event) => handleEmailChange(event.target.value)}
           />
           {fieldErrors.email ? (
-            <span id="assessment-email-error" className={styles.fieldError} role="alert">
+            <span id={`assessment-email-error-${formId}`} className={styles.fieldError} role="alert">
               {fieldErrors.email}
             </span>
           ) : null}

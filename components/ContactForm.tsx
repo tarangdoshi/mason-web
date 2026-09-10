@@ -1,0 +1,325 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { ctaClass } from "./Cta";
+import { ArrowForward } from "./Icon";
+import { toCanonicalEmail } from "../lib/email";
+import { isValidNationalMobile, sanitizePhoneInput } from "../lib/phone";
+import { createSubmissionGate, submitGuidanceLead } from "../lib/lead-submission";
+import { getLeadAttributionContext, getQuizContext } from "../lib/lead-context";
+import { manualLocationMeta } from "../lib/location";
+import { trackAnalyticsEvent } from "../lib/analytics";
+import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
+import ServiceArea from "./ServiceArea";
+
+type Values = {
+  name: string;
+  mobile: string;
+  email: string;
+  packageInterest: string;
+};
+
+const EMPTY: Values = {
+  name: "",
+  mobile: "",
+  email: "",
+  packageInterest: "",
+};
+
+/* Only these three block submission. The package is a nice-to-have, and
+   pressing someone to commit to one before they have spoken to us is the
+   fastest way to lose the enquiry. */
+type Required = "name" | "mobile" | "email";
+type Errors = Partial<Record<Required, string>>;
+
+function validate(v: Values): Errors {
+  const errors: Errors = {};
+  if (v.name.trim().length < 2) errors.name = "Please enter your full name.";
+  if (!isValidNationalMobile(v.mobile)) errors.mobile = "Enter a 10-digit mobile number.";
+  if (!toCanonicalEmail(v.email)) errors.email = "Enter a valid email address.";
+  return errors;
+}
+
+const LABEL = "block text-sm font-semibold text-cream";
+const OPTIONAL = "ml-1.5 text-xs font-normal text-sand-400";
+
+/* The card is white, so fields go one step DOWN the elevation ladder into
+   sand-100 — the inverse of the booking dialog, where a sand-50 dialog holds
+   white fields. Either way the field reads as recessed. */
+const FIELD =
+  "mt-2 w-full rounded-xl border bg-sand-100 px-4 py-3 text-base text-cream transition-colors duration-150";
+const INPUT = `${FIELD} placeholder:text-sand-400 focus:outline-none`;
+/* The mobile field wraps a static +91, so its active state comes from the
+   container (focus-within) rather than the input itself. */
+const GROUP = `${FIELD} flex items-center gap-2.5`;
+
+/* Reserved under EVERY field, not just the three that can error — it keeps
+   each grid row the same height and stops the card growing on submit. */
+const ERROR = "mt-1.5 min-h-4 text-xs leading-4 text-brick";
+
+const PACKAGES = ["Standard", "Advanced", "Not sure yet"];
+
+export default function ContactForm() {
+  const [values, setValues] = useState<Values>(EMPTY);
+  const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const gate = useRef(createSubmissionGate());
+
+  // Nothing is flagged until the first submit attempt — validating on blur
+  // scolds people for fields they have simply not finished yet. Derived rather
+  // than stored, so once errors ARE showing they clear live as you fix them.
+  const errors: Errors = submitted ? validate(values) : {};
+
+  const set = <K extends keyof Values>(key: K, value: Values[K]) =>
+    setValues((v) => ({ ...v, [key]: value }));
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    if (Object.keys(validate(values)).length > 0) return;
+
+    if (!gate.current.tryBegin()) return;
+    setBusy(true);
+    setError(null);
+    const location = manualLocationMeta("");
+    const result = await submitGuidanceLead({
+      customerName: values.name.trim(), phone: `+91${values.mobile}`, email: toCanonicalEmail(values.email),
+      locationText: "Address not provided", enquiryTopic: values.packageInterest ? `Package enquiry - ${values.packageInterest}` : "Contact enquiry",
+      metadata: { source: "contact-form", intentCategory: "guidance", packageInterest: values.packageInterest,
+        location, locationMarket: "UNKNOWN", serviceability: location.serviceability,
+        attribution: getLeadAttributionContext({entryPoint:"contact-form", packageName: values.packageInterest || undefined}), quiz: getQuizContext() }
+    });
+    setBusy(false);
+    if (result.ok) {
+      gate.current.complete(); setDone(true);
+      trackAnalyticsEvent("guidance_lead_submit_success", {cta_location:"contact-form", section:"contact"});
+    } else {gate.current.release(); setError(result.message);}
+
+  };
+
+  /* Active state is the border itself going green — same 1px stroke as at
+     rest, so nothing thickens or shifts. The global 2px offset outline is
+     suppressed for form fields in globals.css. */
+  const border = (field: Required) =>
+    errors[field] ? "border-brick" : "border-sand-200 focus:border-forest-700";
+
+  const groupBorder = (field: Required) =>
+    errors[field]
+      ? "border-brick"
+      : "border-sand-200 focus-within:border-forest-700";
+
+  const describedBy = (field: Required) =>
+    errors[field] ? `contact-${field}-error` : undefined;
+
+  return (
+    /* One shell for both states, with the form and the confirmation stacked in
+       the same grid cell. The form stays mounted once submitted - only
+       visibility:hidden - so the card keeps the form's height instead of
+       collapsing to whatever the confirmation happens to need. Hidden
+       visibility also drops the fields out of the tab order and the
+       accessibility tree, so nothing is reachable behind the confirmation. */
+    <div className="grid rounded-3xl border border-line bg-ink-raised p-6 sm:p-8 lg:p-10">
+      <form
+        onSubmit={onSubmit}
+        noValidate
+        className={`col-start-1 row-start-1 ${done ? "invisible" : ""}`}
+      >
+        <div className="grid gap-x-5 gap-y-1 sm:grid-cols-2">
+          <div>
+            <label htmlFor="contact-name" className={LABEL}>
+              Full name
+              <span aria-hidden="true" className="text-brick">
+                *
+              </span>
+            </label>
+            <input
+              id="contact-name"
+              name="name"
+              autoComplete="name"
+              required
+              value={values.name}
+              onChange={(e) => set("name", e.target.value)}
+              aria-invalid={!!errors.name}
+              aria-describedby={describedBy("name")}
+              placeholder="Priya Sharma"
+              className={`${INPUT} ${border("name")}`}
+            />
+            <p id="contact-name-error" aria-live="polite" className={ERROR}>
+              {errors.name}
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="contact-email" className={LABEL}>
+              Email address
+              <span aria-hidden="true" className="text-brick">
+                *
+              </span>
+            </label>
+            <input
+              id="contact-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={values.email}
+              onChange={(e) => set("email", e.target.value)}
+              aria-invalid={!!errors.email}
+              aria-describedby={describedBy("email")}
+              placeholder="priya@example.com"
+              className={`${INPUT} ${border("email")}`}
+            />
+            <p id="contact-email-error" aria-live="polite" className={ERROR}>
+              {errors.email}
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="contact-mobile" className={LABEL}>
+              Mobile number
+              <span aria-hidden="true" className="text-brick">
+                *
+              </span>
+            </label>
+            <div className={`${GROUP} ${groupBorder("mobile")}`}>
+              <span
+                aria-hidden="true"
+                className="shrink-0 select-none text-base text-sand-600"
+              >
+                +91
+              </span>
+              <span aria-hidden="true" className="h-5 w-px bg-sand-200" />
+              <input
+                id="contact-mobile"
+                name="mobile"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                required
+                value={values.mobile}
+                onChange={(e) => set("mobile", sanitizePhoneInput(e.target.value))}
+                aria-invalid={!!errors.mobile}
+                aria-describedby={describedBy("mobile")}
+                placeholder="98765 43210"
+                className="w-full bg-transparent text-base text-cream placeholder:text-sand-400 focus:outline-none"
+              />
+            </div>
+            <p id="contact-mobile-error" aria-live="polite" className={ERROR}>
+              {errors.mobile}
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="contact-package" className={LABEL}>
+              Package you&rsquo;re considering
+              <span className={OPTIONAL}>optional</span>
+            </label>
+            {/* appearance-none + our own chevron: the native arrow is a different
+                grey on every platform and sat outside the design system. */}
+            <div className="relative">
+              <select
+                id="contact-package"
+                name="package"
+                value={values.packageInterest}
+                onChange={(e) => set("packageInterest", e.target.value)}
+                className={`${FIELD} appearance-none border-sand-200 pr-11 focus:border-forest-700 focus:outline-none ${
+                  values.packageInterest ? "" : "text-sand-400"
+                }`}
+              >
+                <option value="">Choose a package</option>
+                {PACKAGES.map((p) => (
+                  <option key={p} value={p} className="text-cream">
+                    {p}
+                  </option>
+                ))}
+              </select>
+              {/* mt-2 on the field means the chevron centres on the field, not
+                  the label + field box. */}
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="pointer-events-none absolute right-4 top-2 h-[calc(100%-0.5rem)] w-4 text-sand-400"
+                fill="none"
+              >
+                <path
+                  d="M7 10l5 5 5-5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <p className={ERROR} />
+          </div>
+        </div>
+
+      {/* col-reverse, so the DOM order that gives text-left / button-right on
+          desktop stacks the other way round on mobile - the button belongs
+          directly under the last field, not beneath a paragraph of fine print.
+          items-center because the text runs to three lines against a one-line
+          button. */}
+        <div className="mt-6 flex flex-col-reverse gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <ServiceArea className="max-w-sm" />
+
+          <button
+            type="submit"
+            disabled={busy || done}
+            /* justify-center: stacked, this is a flex item in a column, so it
+               stretches to the full width while its own justify-content stays
+               at the default — label and arrow bunched against the left edge of
+               a 277px button. A no-op from sm, where shrink-0 in a row sizes it
+               to its content again. */
+            className={ctaClass({
+              className: "shrink-0 justify-center disabled:opacity-70",
+            })}
+          >
+            {busy ? "Sending…" : "Send my enquiry"}
+            <ArrowForward
+              size={19}
+              className="transition-transform duration-200 group-hover:translate-x-1"
+            />
+          </button>
+        </div>
+        <LeadPrivacyNotice />
+        {error && <p role="alert" className="mt-4 text-brick">{error}</p>}
+      </form>
+
+      {done && (
+        <div className="col-start-1 row-start-1 grid place-content-center text-center">
+          <h2 className="h-display text-3xl text-cream sm:text-4xl">
+            We&rsquo;ll be in <span className="accent-word">touch</span>.
+          </h2>
+          <p className="mx-auto mt-5 max-w-sm text-base leading-relaxed text-sand-600">
+            Thanks {values.name.trim().split(" ")[0]} - a Mason advisor will
+            call you on{" "}
+            {/* nowrap so the number never splits across two lines */}
+            <span className="whitespace-nowrap font-semibold text-cream">
+              +91 {values.mobile}
+            </span>{" "}
+            within 24 hours.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setValues(EMPTY);
+                setSubmitted(false);
+                setDone(false); gate.current = createSubmissionGate(); setError(null);
+              }}
+              className={ctaClass({ variant: "outline" })}
+            >
+              Send another enquiry
+              <ArrowForward
+                size={19}
+                className="transition-transform duration-200 group-hover:translate-x-1"
+              />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

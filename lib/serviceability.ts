@@ -1,4 +1,4 @@
-export const ASSESSMENT_AVAILABILITY_COPY = "Currently available in Goa and Bangalore.";
+export const ASSESSMENT_AVAILABILITY_COPY = "Mason is currently available in Goa and Bangalore.";
 
 export type LocationMarket = "GOA" | "BANGALORE" | "OTHER" | "UNKNOWN";
 export type ServiceabilityStatus = "SERVICEABLE" | "OUT_OF_AREA" | "UNKNOWN";

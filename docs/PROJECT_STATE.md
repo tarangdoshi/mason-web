@@ -60,3 +60,11 @@ Launch hardening — clearing go-live conditions and stabilising the Git-backed 
 3. **P2** — Resolve the Node 20 engine warning.
 4. Standardise shared UI components against Mason Design System v1.
 5. Begin Zoho operator-workspace Phase 1 (mirror, sync still OFF) when launch conditions clear.
+
+## Frontend integration — 10 September 2026 (Preview only)
+
+- Feature branch: `feature/prerna-frontend-integration`, based on canonical `main` `b84f056`.
+- Visual source: `prernaa-99/Mason-company-` `670a599`, deployed reference `https://mason-company.vercel.app`.
+- Public design integrated into canonical Next 15 app; existing API, CRM, package checkout and database contracts retained.
+- Production remains unchanged. See `FRONTEND_INTEGRATION_AUDIT.md` and `FRONTEND_HANDOFF.md` for scope, checks and remaining review gates.
+- Founder direction: do not repair the legacy staging API or create database/Redis infrastructure. Backend-dependent verification is recorded separately. Preview with no configured API returns an explicit unavailable response; no fake success and no Production test leads.
