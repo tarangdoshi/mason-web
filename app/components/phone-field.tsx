@@ -26,7 +26,9 @@ const PhoneField = forwardRef<HTMLInputElement, Props>(function PhoneField(
 
   return (
     <label>
-      <span>Phone</span>
+      <span>
+        Mobile number <span className={styles.requiredMark}>*</span>
+      </span>
       <span className={styles.phoneRow} data-invalid={error ? "true" : undefined}>
         <span className={styles.phonePrefix} aria-hidden="true">
           +91

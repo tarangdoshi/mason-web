@@ -1,30 +1,19 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import Link from "next/link";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
 import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../../lib/lead-submission";
 import { EMAIL_ERROR, toCanonicalEmail } from "../../lib/email";
 import { INDIAN_MOBILE_ERROR, isValidNationalMobile, toE164 } from "../../lib/phone";
 import styles from "./guidance-form.module.css";
-import LeadPrivacyNotice from "./lead-privacy-notice";
 import LocationAutocompleteField from "./location-autocomplete-field";
 import PhoneField from "./phone-field";
 import { manualLocationMeta, type LocationMeta } from "../../lib/location";
 import { ASSESSMENT_AVAILABILITY_COPY, type LocationMarket } from "../../lib/serviceability";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
-
-const assessmentTypeLabels = {
-  home_visit: "Home Visit",
-  video_assessment: "Video Assessment"
-} as const;
-
-type AssessmentType = keyof typeof assessmentTypeLabels;
-
-function isAssessmentType(value: string): value is AssessmentType {
-  return value === "home_visit" || value === "video_assessment";
-}
 
 // Fields that render their own inline error, in the form's visual order. A new
 // one is added here plus its inline markup — the server-error handling below
@@ -35,7 +24,6 @@ export default function AssessmentLeadForm() {
   const formId = useId();
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [assessmentType, setAssessmentType] = useState<AssessmentType | "">("");
   const [phoneDigits, setPhoneDigits] = useState("");
   const [email, setEmail] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -101,7 +89,6 @@ export default function AssessmentLeadForm() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const assessmentTypeValue = assessmentType;
     const locationText = String(formData.get("locationText") || "");
     const resolvedLocationMeta = locationMeta ?? manualLocationMeta(locationText);
 
@@ -126,14 +113,6 @@ export default function AssessmentLeadForm() {
       return;
     }
 
-    if (!isAssessmentType(assessmentTypeValue)) {
-      setSubmissionState("error");
-      setErrorMessage("Choose an assessment type.");
-      return;
-    }
-
-    const assessmentTypeLabel = assessmentTypeLabels[assessmentTypeValue];
-
     if (resolvedLocationMeta.source === "manual") {
       trackAnalyticsEvent("location_picker_fallback", {
         market: "UNKNOWN",
@@ -156,13 +135,13 @@ export default function AssessmentLeadForm() {
       phone: phoneE164,
       email: canonicalEmail,
       locationText: locationText.trim().length >= 2 ? locationText : "Address not provided",
-      enquiryTopic: `Free Safety Assessment - ${assessmentTypeLabel}`,
-      notes: String(formData.get("notes") || "") || undefined,
+      // The API requires a topic for the ENQUIRY record. The public form has
+      // no topic selector, so this neutral value describes the requested visit
+      // without inventing an assessment type or customer concern.
+      enquiryTopic: "Bathroom safety visit",
       metadata: {
         source: "assessment-form",
         intentCategory: "assessment",
-        assessmentType: assessmentTypeValue,
-        assessmentTypeLabel,
         locationMarket: resolvedLocationMeta.serviceability.locationMarket,
         serviceability: resolvedLocationMeta.serviceability,
         location: resolvedLocationMeta,
@@ -182,7 +161,6 @@ export default function AssessmentLeadForm() {
       form.reset();
       setPhoneDigits("");
       setEmail("");
-      setAssessmentType("");
       setLocationMeta(null);
       trackAnalyticsEvent("assessment_lead_submit_success", {
         cta_location: "assessment-form",
@@ -221,7 +199,9 @@ export default function AssessmentLeadForm() {
     <form className={styles.form} onFocusCapture={trackFormStart} onChange={trackFormStart} onSubmit={handleSubmit}>
       <div className={styles.grid}>
         <label>
-          <span>Name</span>
+          <span>
+            Full name <span className={styles.requiredMark}>*</span>
+          </span>
           <input type="text" name="customerName" placeholder="Your name" required disabled={isLocked} />
         </label>
         <PhoneField
@@ -234,7 +214,7 @@ export default function AssessmentLeadForm() {
         />
         <label>
           <span>
-            Email <span className={styles.requiredMark}>*</span>
+            Email address <span className={styles.requiredMark}>*</span>
           </span>
           <input
             ref={emailInputRef}
@@ -258,38 +238,20 @@ export default function AssessmentLeadForm() {
         </label>
         <LocationAutocompleteField disabled={isLocked} formSource="assessment_form" onMeta={handleLocationMeta} />
         <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
-        <label className={styles.fullWidth}>
-          <span>Assessment type</span>
-          <select
-            name="assessmentType"
-            value={assessmentType}
-            onChange={(event) => setAssessmentType(event.target.value as AssessmentType | "")}
-            required
-            disabled={isLocked}
-          >
-            <option value="" disabled>
-              Choose assessment type
-            </option>
-            <option value="home_visit">Home Visit (Recommended)</option>
-            <option value="video_assessment">Video Assessment</option>
-          </select>
-        </label>
-        <label className={styles.fullWidth}>
-          <span>Optional notes / concern</span>
-          <textarea name="notes" rows={3} placeholder="Anything we should know before calling?" disabled={isLocked} />
-        </label>
       </div>
 
       <div className={styles.actions}>
         <button type="submit" disabled={isLocked} aria-busy={isSubmitting}>
-          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Book Free Safety Assessment"}
+          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Request my visit"}
         </button>
       </div>
-      <LeadPrivacyNotice className={styles.privacyNotice} />
+      <p className={styles.privacyNotice}>
+        By submitting, you agree to our <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms</Link>.
+      </p>
 
       {submissionState === "success" ? (
         <p className={styles.successMessage} role="status">
-          Assessment received. Mason will contact you shortly.
+          Visit request received. Mason will contact you shortly.
         </p>
       ) : null}
       {submissionState === "error" && errorMessage ? (

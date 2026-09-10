@@ -177,7 +177,7 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
 
   return (
     <label className={styles.fullWidth}>
-      <span>Location / Area</span>
+      <span>Location</span>
       <input
         key={manualOnly ? "manual" : "places"}
         ref={inputRef}
