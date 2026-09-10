@@ -150,6 +150,7 @@ export interface PackageFeatureItem {
   id: string;
   label: string;
   description?: string;
+  quantity?: number;
   benefits?: string[];
 }
 

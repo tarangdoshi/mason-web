@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { TestimonialContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -42,8 +43,11 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function Testimonials() {
+export default function Testimonials({ items }: { items?: TestimonialContent[] }) {
   const container = useRef<HTMLElement>(null);
+  const displayTestimonials = items?.length
+    ? items.slice(0, 4).map((item) => ({ name: item.author, role: item.relation, city: item.city, quote: item.quote, tag: item.outcomeLine || null }))
+    : TESTIMONIALS;
 
   useGSAP(
     () => {
@@ -102,7 +106,7 @@ export default function Testimonials() {
 
         {/* Testimonial grid */}
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
-          {TESTIMONIALS.map((t) => (
+          {displayTestimonials.map((t) => (
             <figure
               key={t.name}
               className="tm-reveal flex flex-col rounded-3xl bg-sand-50 p-6 sm:p-7"

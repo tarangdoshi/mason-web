@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { FaqItemContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -30,11 +31,11 @@ const FAQS = [
   },
   {
     q: "What is included in Standard?",
-    a: "The complete 12-part kit includes three vertical grab bars, an L / angled bar, a folding support bar, anti-slip treatment, two anti-slip mats, shower seating, a two-way lock, edge and corner protection, drainage support, bathroom slippers, and reinforced fixture support. Toilet-seat support, sensor lighting, and SOS hardware are not included.",
+    a: "The complete 12-item kit includes three vertical grab bars, one L / angled bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Toilet-seat support, sensor lighting, and SOS hardware are not included.",
   },
   {
     q: "What is included in Advanced?",
-    a: "Exactly the same 12-part installation kit as Standard. Advanced adds one technician follow-up visit within the first year: we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit.",
+    a: "Exactly the same 12-item installation kit as Standard. Advanced adds one technician follow-up visit within the first year: we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit.",
   },
   {
     q: "Can I buy only one product, like a grab bar?",
@@ -113,9 +114,10 @@ function Item({
   );
 }
 
-export default function FAQ() {
+export default function FAQ({ items }: { items?: FaqItemContent[] }) {
   const container = useRef<HTMLElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const displayFaqs = items?.length ? items.map((item) => ({ q: item.question, a: item.answer })) : FAQS;
 
   useGSAP(
     () => {
@@ -176,7 +178,7 @@ export default function FAQ() {
 
         {/* Accordion */}
         <div className="faq-reveal">
-          {FAQS.map((item, i) => (
+          {displayFaqs.map((item, i) => (
             <Item
               key={item.q}
               q={item.q}

@@ -35,6 +35,13 @@ export const metadata: Metadata = {
 export default async function PackagesPage() {
   const content = await getHomepageContentData();
   const packages = content.packagesSection.plans.map(packageCardFromPlan);
+  const cmsFeatures = new Map(content.packagesSection.features.map((feature) => [feature.id, feature]));
+  const kit = KIT.map((item) => {
+    const feature = cmsFeatures.get(item.id);
+    return feature
+      ? { ...item, title: feature.label, qty: feature.quantity ?? item.qty }
+      : item;
+  });
   return (
     <>
       <Nav />
@@ -145,9 +152,8 @@ export default async function PackagesPage() {
             hunt for the difference between two identical columns.
 
             Every row carries the thing itself and how many of it turn up. Two
-            columns rather than three: a photograph, a title that runs to
-            "Toilet seat / raised seat / commode support" and a count need
-            about 570px between them, and at three across the titles broke to
+              columns rather than three: a photograph, a title that can wrap
+              across two lines and a count need about 570px between them, and at three across the titles broke to
             three lines each and the rows grew taller than the ones they were
             meant to save space over. */}
         <section
@@ -160,7 +166,7 @@ export default async function PackagesPage() {
                   a count, and set as display type it would compete with the
                   h1 for the page. */}
               <h2 className="inline-flex items-center rounded-full border border-dashed border-forest-200 bg-accent-tint px-4 py-2 font-mono-label text-[0.7rem] uppercase tracking-[0.18em] text-forest-700">
-                What we install &middot; {KIT.length}
+                What we install &middot; {kit.length}
               </h2>
               <p className="eyebrow">Identical in both packages</p>
             </div>
@@ -168,7 +174,7 @@ export default async function PackagesPage() {
             {/* Grid rather than columns so a title that wraps lifts its whole
                 row and the hairlines stay level across the gutter. */}
             <ul className="reveal mt-8 grid lg:grid-cols-2 lg:gap-x-14">
-              {KIT.map((item) => (
+              {kit.map((item) => (
                 <li
                   key={item.title}
                   className="flex items-center gap-4 border-b border-dashed border-sand-200 py-3"
@@ -211,7 +217,7 @@ export default async function PackagesPage() {
             </ul>
 
             <p className="reveal mt-8 max-w-lg text-sm leading-relaxed text-sand-600">
-              All {KIT.length} are fitted, tested and handed over on the same
+              All {kit.length} are fitted, tested and handed over on the same
               visit - there is no shorter version of the kit.
             </p>
           </Reveal>

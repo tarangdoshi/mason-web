@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Cta from "./Cta";
+import type { ProcessSectionContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -46,8 +47,11 @@ const offset = [
   "lg:ml-[35%]",
 ];
 
-export default function Process() {
+export default function Process({ content }: { content?: ProcessSectionContent }) {
   const ref = useRef<HTMLElement>(null);
+  const displaySteps = content?.steps?.length
+    ? content.steps.map((step) => ({ title: step.title, copy: step.description }))
+    : steps;
 
   useGSAP(
     () => {
@@ -83,7 +87,7 @@ export default function Process() {
         // progress bar spans the flight
         tl.to(
           ".proc-progress",
-          { scaleX: 1, ease: "none", duration: steps.length * BEAT },
+            { scaleX: 1, ease: "none", duration: displaySteps.length * BEAT },
           0
         );
 
@@ -122,7 +126,7 @@ export default function Process() {
             tl.progress(maxP);
             // one beat per step, so the furthest beat reached is the step number
             const n = Math.min(
-              steps.length,
+              displaySteps.length,
               Math.floor((maxP * tl.duration()) / BEAT) + 1
             );
             if (countEl) countEl.textContent = "0" + n;
@@ -179,7 +183,7 @@ export default function Process() {
               01
             </span>
             <span className="pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-clay">
-              / 0{steps.length}
+              / 0{displaySteps.length}
               <br />
               steps
             </span>
@@ -200,7 +204,7 @@ export default function Process() {
 
         {/* right — descending staircase */}
         <div className="proc-stair flex flex-col gap-3 lg:gap-2.5">
-          {steps.map((s, i) => (
+          {displaySteps.map((s, i) => (
             <div
               key={s.title}
               className={`proc-step w-full lg:w-[62%] ${offset[i]}`}

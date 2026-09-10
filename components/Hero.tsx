@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import Cta from "./Cta";
+import type { HeroContent } from "../content/types";
 
 /* The full-bleed backdrop. A real Mason install — a fitter fixing a grab bar
    while the parents look on. Two crops of the same scene, art-directed by a
@@ -22,7 +23,7 @@ const BACKGROUND = {
     split — the same point we switch to the landscape crop. */
 const DESKTOP_MEDIA = "(min-width: 1024px)";
 
-export default function Hero() {
+export default function Hero({ content }: { content?: HeroContent }) {
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -86,20 +87,16 @@ export default function Hero() {
                 even out the centred lines. The deliberate two-line split
                 returns at lg, where it's left-aligned. */}
             <h1 className="hero-rise text-balance font-display text-[9vw] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl sm:leading-[1.02] lg:text-6xl">
-              <span className="lg:block">
-                Most <span className="accent-word on-dark">falls</span> happen here.
-              </span>{" "}
-              <span className="lg:block">We help make yours less likely.</span>
+              {content?.heading || <><span className="lg:block">Most <span className="accent-word on-dark">falls</span> happen here.</span>{" "}<span className="lg:block">We help make yours less likely.</span></>}
             </h1>
 
             <p className="hero-rise mx-auto mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mt-6 sm:text-lg lg:mx-0">
-              You can&rsquo;t always be there - safety can be. Premium,
-              doctor-informed, expertly-installed bathroom safety.
+              {content?.subcopy || "You can’t always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety."}
             </p>
 
             <div className="hero-rise mt-9 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center sm:items-center lg:justify-start">
               <Cta href="#book" arrow={false} className="w-full justify-center sm:w-auto">
-                Book a Safety Visit
+                {content?.primaryCta || "Book a Safety Visit"}
               </Cta>
               <Cta
                 href="#transformations"
@@ -107,7 +104,7 @@ export default function Hero() {
                 arrow={false}
                 className="w-full justify-center sm:w-auto"
               >
-                See Transformations
+                {content?.secondaryCta || "See Transformations"}
               </Cta>
             </div>
           </div>

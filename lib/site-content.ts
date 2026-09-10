@@ -211,6 +211,7 @@ function toFeature(item: SanityFeature | null | undefined): PackageFeatureItem |
     id: item.key,
     label: item.publicLabel || item.label,
     description: item.publicDescription || item.description || undefined,
+    quantity: typeof item.quantity === "number" ? item.quantity : undefined,
     benefits: Array.isArray(item.benefits) ? item.benefits.filter((benefit): benefit is string => Boolean(benefit)) : undefined
   };
 }
@@ -313,6 +314,19 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
     }
   }
 
+  // Package, pricing, inclusion and cancellation language is a locked product
+  // requirement. Keep any existing CMS entries for other questions, while
+  // preventing an older published FAQ document from reintroducing the retired
+  // sensor/commode split or optional AMC wording before its content is edited.
+  const approvedFaqByQuestion = new Map(base.faqSection.items.map((item) => [item.question, item.answer]));
+  next.faqSection = {
+    ...next.faqSection,
+    items: next.faqSection.items.map((item) => ({
+      ...item,
+      answer: approvedFaqByQuestion.get(item.question) || item.answer
+    }))
+  };
+
   return next;
 }
 
@@ -326,14 +340,20 @@ function applySanityPackages(content: HomepageContent, packages: SanityPackage[]
     return content;
   }
 
-  const baseFeatures = (allFeatures || []).map(toFeature).filter((item): item is PackageFeatureItem => Boolean(item));
-  const planFeatures = lockedPackages.flatMap((pkg) => (pkg.includedFeatures || []).map(toFeature).filter((item): item is PackageFeatureItem => Boolean(item)));
-  const addOnFeatures = lockedPackages.flatMap((pkg) => (pkg.availableAddOns || []).map(toFeature).filter((item): item is PackageFeatureItem => Boolean(item)));
+  const approvedFeatureIds = new Set(content.packagesSection.features.map((feature) => feature.id));
+  const toPublicFeature = (item: SanityFeature | null | undefined) =>
+    item?.publicLabel && item.key && approvedFeatureIds.has(item.key) ? toFeature(item) : null;
+  const baseFeatures = (allFeatures || []).map(toPublicFeature).filter((item): item is PackageFeatureItem => Boolean(item));
+  const planFeatures = lockedPackages.flatMap((pkg) => (pkg.includedFeatures || []).map(toPublicFeature).filter((item): item is PackageFeatureItem => Boolean(item)));
 
   const plans: PackagePlanContent[] = lockedPackages.map((pkg, index) => {
-    const included = (pkg.includedFeatures || []).map(toFeature).filter((item): item is PackageFeatureItem => Boolean(item));
-    const addOns = (pkg.availableAddOns || []).map(toFeature).filter((item): item is PackageFeatureItem => Boolean(item));
+    const included = (pkg.includedFeatures || []).map(toPublicFeature).filter((item): item is PackageFeatureItem => Boolean(item));
     const fallbackPlan = content.packagesSection.plans.find((plan) => plan.id === pkg.code);
+    const fallbackFeatureIds = fallbackPlan?.includedFeatureIds ?? [];
+    const includedFeatureIds =
+      included.length === fallbackFeatureIds.length && fallbackFeatureIds.every((id) => included.some((feature) => feature.id === id))
+        ? included.map((feature) => feature.id)
+        : fallbackFeatureIds;
 
     return {
       id: pkg.code!,
@@ -350,8 +370,11 @@ function applySanityPackages(content: HomepageContent, packages: SanityPackage[]
       isFeatured: pkg.isFeatured ?? fallbackPlan?.isFeatured ?? index === 1,
       visual: toVisualAsset(pkg.visual, pkg.name || "Package visual", imageTransformSpecs.package) || fallbackPlan?.visual,
       visualHighlights: pkg.visualHighlights?.length ? pkg.visualHighlights : fallbackPlan?.visualHighlights,
-      includedFeatureIds: included.map((feature) => feature.id),
-      availableAddOnIds: addOns.length ? addOns.map((feature) => feature.id) : fallbackPlan?.availableAddOnIds,
+      includedFeatureIds,
+      // The locked Standard and Advanced offers have no optional maintenance add-on.
+      // Keep the legacy API fields available elsewhere, but never surface legacy
+      // AMC references from an un-migrated CMS document.
+      availableAddOnIds: [],
       ctaLabel: pkg.ctaLabel || fallbackPlan?.ctaLabel || `Book ${pkg.name}`
     };
   });
@@ -360,8 +383,8 @@ function applySanityPackages(content: HomepageContent, packages: SanityPackage[]
     ...content,
     packagesSection: {
       ...content.packagesSection,
-      features: uniqueFeatures([...baseFeatures, ...planFeatures]),
-      addOnFeatures: addOnFeatures.length ? uniqueFeatures(addOnFeatures) : content.packagesSection.addOnFeatures,
+      features: uniqueFeatures([...baseFeatures, ...planFeatures, ...content.packagesSection.features]),
+      addOnFeatures: [],
       plans
     }
   };

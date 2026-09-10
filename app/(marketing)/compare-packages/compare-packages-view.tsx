@@ -19,7 +19,6 @@ export default function ComparePackagesView({
 }) {
   const { hero, riskQuizSection, packagesSection, processSection, brand, finalCtaSection } = content;
   const plans = packagesSection.plans.slice(0, 2);
-  const addOn = packagesSection.addOnFeatures?.[0];
   const matrixFeatures = packagesSection.features;
   const recommendedQuizPlan = plans[1]?.name ?? plans[0]?.name ?? "Comfort";
   const phoneHref = `tel:${brand.phoneTel}`;
@@ -77,7 +76,7 @@ export default function ComparePackagesView({
             <ul>
               <li>Free assessment requires no package selection</li>
               <li>Quiz recommendation is a guide, not a final recommendation</li>
-              <li>AMC is available as an add-on</li>
+              <li>Advanced includes one technician safety check-up during the first year</li>
             </ul>
           </article>
         </div>
@@ -160,7 +159,10 @@ export default function ComparePackagesView({
                 <div className={styles.planBody}>
                   <p className={styles.planName}>{plan.name}</p>
                   <h3>{plan.titleDescriptor || plan.name}</h3>
-                  <p className={styles.planPrice}>{plan.price}</p>
+                  <div className={styles.planPriceBlock} aria-label={`${plan.name} pricing`}>
+                    {plan.referencePrice ? <span className={styles.planReferencePrice}>{plan.referencePrice}</span> : null}
+                    <strong className={styles.planPrice}>{plan.currentPrice || plan.price}</strong>
+                  </div>
                   <p>{plan.bestFor || plan.outcome}</p>
                   <ul className={styles.planFeatureList}>
                     {included.slice(0, 6).map((feature) => (
@@ -235,29 +237,14 @@ export default function ComparePackagesView({
           </div>
 
           <aside className={styles.sidePanel}>
-            {addOn ? (
-              <div className={styles.addOnCard}>
-                <p className={styles.cardEyebrow}>AMC add-on</p>
-                <h3>{addOn.label}</h3>
-                <p>{addOn.description}</p>
-                {addOn.benefits?.length ? (
-                  <ul>
-                    {addOn.benefits.map((benefit) => (
-                      <li key={benefit}>{benefit}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            ) : null}
-
             <div className={styles.paymentCard}>
               <p className={styles.cardEyebrow}>Payment clarity</p>
               <h3>Package checkout is for confident customers.</h3>
               <ul>
                 <li>Start with an assessment if you need help choosing</li>
-                <li>Online payment keeps the base package total</li>
+                <li>Online payment keeps the current package total</li>
                 <li>Pay on installation adds ₹500 service fee</li>
-                <li>AMC is calculated at 15% of package price</li>
+                <li>Advanced includes one first-year safety check-up visit</li>
               </ul>
             </div>
           </aside>

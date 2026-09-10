@@ -10,6 +10,7 @@
 /* Approved common installation kit. Quantities are exact units, not a count
    invented from the older Standard/Advanced distinction. */
 export type KitItem = {
+  id: string;
   title: string;
   label: string;
   img: string;
@@ -17,16 +18,16 @@ export type KitItem = {
 };
 
 export const KIT: KitItem[] = [
-  { title: "Vertical grab bars", label: "Grab support", img: "/prerna/images/bath-3.jpg", qty: 3 },
-  { title: "PVD-coated L / angled grab bar", label: "Grab support", img: "/prerna/images/bath-5.jpg", qty: 1 },
-  { title: "PVD-coated flip-up / folding bar", label: "Grab support", img: "/prerna/images/bath-1.jpg", qty: 1 },
-  { title: "Anti-slip surface treatment", label: "Traction", img: "/prerna/images/shower-3.jpg", qty: 1 },
-  { title: "Shower anti-slip mat", label: "Traction", img: "/prerna/images/shower-4.jpg", qty: 1 },
-  { title: "Post-shower anti-slip mat", label: "Traction", img: "/prerna/images/care-2.jpg", qty: 1 },
-  { title: "Shower seating stool", label: "Support", img: "/prerna/images/shower-2.jpg", qty: 1 },
-  { title: "Two-way lock", label: "Safety", img: "/prerna/images/detail-1.jpg", qty: 1 },
-  { title: "Edge & corner protection", label: "Protection", img: "/prerna/images/bath-2.jpg", qty: 1 },
-  { title: "Drainage support", label: "Hygiene", img: "/prerna/images/shower-1.jpg", qty: 4 },
-  { title: "Bathroom slippers", label: "Comfort", img: "/prerna/images/care-1.jpg", qty: 1 },
-  { title: "Reinforced fixture support", label: "Stability", img: "/prerna/images/bath-4.jpg", qty: 1 },
+  { id: "vertical-grab-bars", title: "Vertical grab bars", label: "Grab support", img: "/prerna/images/bath-3.jpg", qty: 3 },
+  { id: "angled-grab-bar", title: "L / angled grab bar", label: "Grab support", img: "/prerna/images/bath-5.jpg", qty: 1 },
+  { id: "folding-bar", title: "Flip-up / folding support bar", label: "Grab support", img: "/prerna/images/bath-1.jpg", qty: 1 },
+  { id: "anti-slip-coating", title: "Anti-slip surface treatment", label: "Traction", img: "/prerna/images/shower-3.jpg", qty: 1 },
+  { id: "anti-slip-mat-shower", title: "Shower anti-slip mat", label: "Traction", img: "/prerna/images/shower-4.jpg", qty: 1 },
+  { id: "anti-slip-mat-post-shower", title: "Post-shower anti-slip mat", label: "Traction", img: "/prerna/images/care-2.jpg", qty: 1 },
+  { id: "shower-stool", title: "Shower seating stool", label: "Support", img: "/prerna/images/shower-2.jpg", qty: 1 },
+  { id: "two-way-lock", title: "Two-way lock", label: "Safety", img: "/prerna/images/detail-1.jpg", qty: 1 },
+  { id: "corner-safety", title: "Edge & corner protection", label: "Protection", img: "/prerna/images/bath-2.jpg", qty: 1 },
+  { id: "drainage-solution", title: "Drainage support", label: "Hygiene", img: "/prerna/images/shower-1.jpg", qty: 4 },
+  { id: "slippers-one", title: "Bathroom slippers", label: "Comfort", img: "/prerna/images/care-1.jpg", qty: 1 },
+  { id: "total-support-solution", title: "Reinforced fixture support", label: "Stability", img: "/prerna/images/bath-4.jpg", qty: 1 },
 ];

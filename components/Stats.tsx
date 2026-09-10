@@ -1,4 +1,5 @@
 import Reveal from "./Reveal";
+import type { EvidenceSnapshotCardContent } from "../content/types";
 
 /* The figure is the thing someone repeats to their sibling that evening, so
    it is rounded to something sayable and the precision moves into the copy
@@ -29,7 +30,12 @@ const stats = [
   },
 ];
 
-export default function Stats() {
+type DisplayStat = { prefix?: string; value: string; label: string; copy: string };
+
+export default function Stats({ cards }: { cards?: EvidenceSnapshotCardContent[] }) {
+  const displayStats: DisplayStat[] = cards?.length
+    ? cards.slice(0, 4).map((card) => ({ value: card.value, label: card.kicker || card.sourceLabel, copy: card.label }))
+    : stats;
   return (
     <section id="why" className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-24">
       <Reveal className="mx-auto max-w-7xl px-6 lg:px-10">
@@ -81,7 +87,7 @@ export default function Stats() {
             a step down in the figure — so two fit a ~360px row without the
             number crowding its own cell. */}
         <div className="reveal mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:mt-14 lg:grid-cols-4">
-          {stats.map((s, i) => (
+          {displayStats.map((s, i) => (
             <div
               key={i}
               className="bg-ink-raised p-5 sm:p-7"

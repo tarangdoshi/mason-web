@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import PhotoSlot from "./PhotoSlot";
 import VisitForm from "./VisitForm";
+import type { WhatWeDoSectionContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -19,7 +20,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  * instead, so the one place on the page where the promise is stated outright is
  * also the first place you can act on it — without a click in between.
  */
-export default function Safer() {
+export default function Safer({ content }: { content?: WhatWeDoSectionContent }) {
   const container = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -99,14 +100,12 @@ export default function Safer() {
           <h2 className="font-display text-[7.3vw] font-extrabold leading-[1.12] tracking-tight text-sand-100 max-sm:-mx-2 max-sm:tracking-[-0.045em] sm:text-[clamp(2rem,5vw,3.5rem)] lg:text-[clamp(1.85rem,2.9vw,2.6rem)]">
             <span className="block overflow-hidden pb-1">
               <span className="safer-line block">
-                Make your bathroom{" "}
-                <span className="accent-word on-dark">safer</span>
+                Make your bathroom <span className="accent-word on-dark">safer</span>
               </span>
             </span>
             <span className="block overflow-hidden pb-1">
               <span className="safer-line block">
-                while it still feels like{" "}
-                <span className="accent-word on-dark">home</span>
+                while it still feels like <span className="accent-word on-dark">home</span>
               </span>
             </span>
           </h2>
@@ -114,8 +113,7 @@ export default function Safer() {
           {/* white/90 rather than the sand-100 of the headline: a step back
               from it, and still clear of the 4.5:1 floor on forest-700. */}
           <p className="safer-rise mx-auto mt-6 max-w-md text-base leading-relaxed text-white/90 lg:mx-0">
-            Leave your details and a Mason advisor will call to arrange the
-            visit. Full refund before the technician arrives or starts implementation.
+            {content?.description || "Leave your details and a Mason advisor will call to arrange the visit. Full refund before the technician arrives or starts implementation."}
           </p>
 
           {/* The column is two short blocks against a form that runs to ~590px,

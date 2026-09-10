@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import Reveal from "./Reveal";
 import { GALLERY } from "./gallery-data";
+import type { TransformationGallerySectionContent } from "../content/types";
 
 function BeforeAfter() {
   const [pos, setPos] = useState(52);
@@ -167,7 +168,7 @@ function Tile({
   );
 }
 
-export default function Transformations() {
+export default function Transformations({ content }: { content?: TransformationGallerySectionContent }) {
   return (
     <section
       id="transformations"
@@ -177,12 +178,10 @@ export default function Transformations() {
         <div className="max-w-2xl">
           <p className="reveal eyebrow mb-5">Transformations</p>
           <h2 className="reveal h-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-            A <span className="accent-word">reassurance</span>. Not a
-            renovation.
+            {content?.title || <>A <span className="accent-word">reassurance</span>. Not a renovation.</>}
           </h2>
           <p className="reveal mt-6 text-lg leading-relaxed text-cream-dim">
-            We make bathrooms safer through thoughtful additions - grip,
-            balance, comfort, ease. Drag to see the difference.
+            {content?.subtitle || "We make bathrooms safer through thoughtful additions - grip, balance, comfort, ease. Drag to see the difference."}
           </p>
         </div>
 

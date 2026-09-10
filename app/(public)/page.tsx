@@ -13,29 +13,31 @@ import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
 import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
+import { getHomepageContentData } from "@/lib/site-content";
 
 export default async function Home({searchParams}: {searchParams?: Promise<Record<string, string | string[] | undefined>>}) {
   const query = await searchParams;
   if (query?.preview === "draft") redirect("/content-preview?preview=draft");
+  const content = await getHomepageContentData();
   return (
     <>
       <Nav />
       <main>
-        <Hero />
-        <Stats />
-        <Safer />
+        <Hero content={content.hero} />
+        <Stats cards={content.evidenceSection.cards} />
+        <Safer content={content.whatWeDoSection} />
         <span id="why-mason" />
-        <WhyMason />
+        <WhyMason items={content.whySection.items} />
         <span id="before-after" />
-        <Transformations />
+        <Transformations content={content.transformationGallerySection} />
         <span id="package-comparison" />
         <Packages />
         <span id="how-it-works" />
-        <Process />
-        <Doctors />
-        <Testimonials />
-        <FAQ />
-        <Booking />
+        <Process content={content.processSection} />
+        <Doctors items={content.doctorsSection.items} />
+        <Testimonials items={content.testimonialsSection.items} />
+        <FAQ items={content.faqSection.items} />
+        <Booking content={content.finalCtaSection} />
       </main>
       <Footer />
     </>

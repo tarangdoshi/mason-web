@@ -51,8 +51,6 @@ type ReviewState = {
   date: string;
   slot: string;
   paymentChoice: PaymentChoice;
-  amcSelected: boolean;
-  amcAmount: number | null;
   installationFee: number;
   totalPayable: number | null;
 };
@@ -64,7 +62,6 @@ type ReverseGeocodeResponse = {
 
 const SERVICE_UNAVAILABLE_MESSAGE = "Service currently not available in your area, we will be there soon.";
 const PAY_ON_INSTALLATION_SURCHARGE = 500;
-const AMC_RATE = 0.15;
 const slotOptions = ["9am - 12pm", "12pm - 3pm", "3pm - 6pm"];
 const mumbaiTokens = [
   "mumbai",
@@ -84,13 +81,6 @@ const mumbaiTokens = [
   "bhiwandi"
 ];
 const goaTokens = ["goa", "north goa", "south goa", "panaji", "mapusa", "margao", "madgaon", "vasco", "porvorim"];
-const defaultAmcBenefits = [
-  "Periodic post-installation health check of installed support points",
-  "Re-tightening and alignment review of key fittings",
-  "Wear-and-tear inspection for daily-use safety components",
-  "Priority follow-up support scheduling"
-];
-
 function formatDate(rawDate: string) {
   if (!rawDate) {
     return "Select a preferred date";
@@ -220,8 +210,7 @@ async function reverseGeocode(latitude: number, longitude: number) {
 export default function CheckoutExperience({
   entry,
   includedFeatures,
-  excludedFeatures,
-  addOnFeatures
+  excludedFeatures
 }: CheckoutExperienceProps) {
   const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>("online");
   const [phoneDigits, setPhoneDigits] = useState("");
@@ -230,7 +219,6 @@ export default function CheckoutExperience({
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [locationResolution, setLocationResolution] = useState<LocationResolution>({ status: "idle" });
-  const [amcSelected, setAmcSelected] = useState(false);
   const [reviewState, setReviewState] = useState<ReviewState | null>(null);
   const [isBottomCtaVisible, setIsBottomCtaVisible] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -243,20 +231,11 @@ export default function CheckoutExperience({
   const checkoutLeadSuccessTrackedRef = useRef(false);
 
   const basePrice = useMemo(() => parsePriceAmount(entry.plan.price), [entry.plan.price]);
-  const amcFeature = useMemo(
-    () => addOnFeatures.find((feature) => feature.id === "amc-recheck" || feature.label.toLowerCase().includes("amc")) ?? null,
-    [addOnFeatures]
-  );
-  const hasAmcOption = Boolean(amcFeature);
-  const amcAmount = useMemo(() => (basePrice === null ? null : Math.round(basePrice * AMC_RATE)), [basePrice]);
-  const amcBenefits = amcFeature?.benefits?.length ? amcFeature.benefits : defaultAmcBenefits;
   const installationFee = paymentChoice === "installation" ? PAY_ON_INSTALLATION_SURCHARGE : 0;
-  const totalPayable = basePrice === null ? null : basePrice + (amcSelected && hasAmcOption ? amcAmount ?? 0 : 0) + installationFee;
+  const totalPayable = basePrice === null ? null : basePrice + installationFee;
   const leadTotalPayable = totalPayable ?? 0;
   const serviceableLocation = locationResolution.status === "serviceable" ? locationResolution : null;
-  const stickySummary = `${paymentChoice === "online" ? "Online payment" : `Pay on installation + ${formatCurrency(PAY_ON_INSTALLATION_SURCHARGE)}`}${
-    amcSelected && hasAmcOption ? ` • AMC ${formatAmount(amcAmount)}` : " • No AMC"
-  }`;
+  const stickySummary = `${paymentChoice === "online" ? "Online payment" : `Pay on installation + ${formatCurrency(PAY_ON_INSTALLATION_SURCHARGE)}`} • ${entry.plan.name === "Advanced" ? "1-Year Safety Check-Up Included" : "Complete installation kit"}`;
 
   useEffect(() => {
     if (checkoutStartTrackedRef.current) {
@@ -406,7 +385,7 @@ export default function CheckoutExperience({
           </div>
           <div className={styles.summaryOverviewMeta}>
             <p className={styles.savingsBadge}>{entry.plan.savings}</p>
-            <p className={styles.reviewCopy}>Final total updates live as AMC and payment options change.</p>
+            <p className={styles.reviewCopy}>Final total updates with the selected payment route.</p>
           </div>
         </div>
 
@@ -415,12 +394,6 @@ export default function CheckoutExperience({
             <span>Package total</span>
             <strong>{formatAmount(basePrice)}</strong>
           </div>
-          {hasAmcOption ? (
-            <div className={styles.summaryTotalRow}>
-              <span>AMC add-on</span>
-              <strong>{amcSelected ? formatAmount(amcAmount) : "Not added"}</strong>
-            </div>
-          ) : null}
           <div className={styles.summaryTotalRow}>
             <span>Pay on installation fee</span>
             <strong>{installationFee > 0 ? formatCurrency(installationFee) : formatCurrency(0)}</strong>
@@ -610,8 +583,6 @@ export default function CheckoutExperience({
               date: String(formData.get("date") || ""),
               slot: String(formData.get("slot") || ""),
               paymentChoice,
-              amcSelected: hasAmcOption && amcSelected,
-              amcAmount: hasAmcOption && amcSelected ? amcAmount : 0,
               installationFee,
               totalPayable
             } satisfies ReviewState;
@@ -636,7 +607,7 @@ export default function CheckoutExperience({
                     preferredDate: reviewPayload.date,
                     preferredSlot: reviewPayload.slot,
                     paymentChoice: reviewPayload.paymentChoice,
-                    amcSelected: reviewPayload.amcSelected,
+                    amcSelected: false,
                     totalPayable: leadTotalPayable,
                     serviceAreaLabel: serviceableLocation.serviceArea,
                     notes: String(formData.get("address") || "") || undefined,
@@ -663,8 +634,8 @@ export default function CheckoutExperience({
                       payment: {
                         choice: reviewPayload.paymentChoice,
                         installationSurcharge: reviewPayload.installationFee,
-                        amcSelected: reviewPayload.amcSelected,
-                        amcAmount: reviewPayload.amcAmount,
+                        amcSelected: false,
+                        amcAmount: 0,
                         totalPayable: reviewPayload.totalPayable,
                         priceStatus: reviewPayload.totalPayable === null ? "to-be-confirmed" : "priced"
                       },
@@ -795,48 +766,11 @@ export default function CheckoutExperience({
                 </div>
               </section>
 
-              {hasAmcOption ? (
-                <section className={styles.moduleCard}>
-                  <div className={styles.moduleHeader}>
-                    <p className={styles.formKicker}>Step 3</p>
-                    <h2 className={styles.moduleTitle}>Choose AMC follow-up support</h2>
-                    <p className={styles.formLead}>
-                      {amcFeature?.description || "Add a post-installation care plan to keep the installed safety setup performing well over time."}
-                    </p>
-                  </div>
-
-                  <label className={`${styles.selectionCard} ${styles.amcToggle}${amcSelected ? ` ${styles.selectionCardSelected}` : ""}`}>
-                    <input
-                      className={styles.paymentInput}
-                      type="checkbox"
-                      checked={amcSelected}
-                      onChange={() => {
-                        setAmcSelected((current) => !current);
-                        setReviewState(null);
-                      }}
-                    />
-                    <div className={styles.selectionCopy}>
-                      <div className={styles.selectionHeader}>
-                        <span className={styles.selectionTitle}>Add AMC for {formatAmount(amcAmount)}</span>
-                        <span className={styles.selectionPill}>{amcSelected ? "Added" : "Optional"}</span>
-                      </div>
-                      <span className={styles.selectionMeta}>15% of the package price</span>
-                    </div>
-                  </label>
-
-                  <ul className={styles.amcBenefits}>
-                    {amcBenefits.map((benefit) => (
-                      <li key={benefit}>{benefit}</li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-
               <section className={styles.moduleCard}>
                 <div className={styles.moduleHeader}>
-                  <p className={styles.formKicker}>Step 4</p>
+                  <p className={styles.formKicker}>Step 3</p>
                   <h2 className={styles.moduleTitle}>Choose payment method</h2>
-                  <p className={styles.formLead}>Online payment keeps pricing clean. Pay on installation remains available with a ₹500 assisted collection fee.</p>
+                  <p className={styles.formLead}>Choose how you would like Mason to arrange payment after the request is confirmed.</p>
                 </div>
 
                 <div className={styles.selectionGrid}>
@@ -854,10 +788,10 @@ export default function CheckoutExperience({
                     />
                     <div className={styles.selectionCopy}>
                       <div className={styles.selectionHeader}>
-                        <span className={styles.selectionTitle}>Online payment</span>
-                        <span className={styles.selectionPill}>Recommended</span>
+                        <span className={styles.selectionTitle}>Request online payment link</span>
+                        <span className={styles.selectionPill}>Razorpay link</span>
                       </div>
-                      <span className={styles.selectionMeta}>Card, UPI, or bank transfer in the next step.</span>
+                      <span className={styles.selectionMeta}>Mason can share a Razorpay link after confirming your request. No payment is collected on this screen.</span>
                       <strong className={styles.selectionImpact}>+ {formatCurrency(0)}</strong>
                     </div>
                   </label>
@@ -888,9 +822,9 @@ export default function CheckoutExperience({
 
               <section ref={finalCtaRef} className={`${styles.moduleCard} ${styles.finalActionSection}`}>
                 <div className={styles.moduleHeader}>
-                  <p className={styles.formKicker}>Step 5</p>
+                  <p className={styles.formKicker}>Step 4</p>
                   <h2 className={styles.moduleTitle}>Review and confirm booking</h2>
-                  <p className={styles.formLead}>Your final payable amount reflects the package, AMC selection, and payment method chosen above.</p>
+                  <p className={styles.formLead}>Your final payable amount reflects the package and payment method chosen above.</p>
                 </div>
 
                 <div className={styles.finalActionGrid}>
@@ -899,12 +833,6 @@ export default function CheckoutExperience({
                       <span>Package total</span>
                       <strong>{formatAmount(basePrice)}</strong>
                     </div>
-                    {hasAmcOption ? (
-                      <div className={styles.summaryTotalRow}>
-                        <span>AMC add-on</span>
-                        <strong>{amcSelected ? formatAmount(amcAmount) : "Not added"}</strong>
-                      </div>
-                    ) : null}
                     <div className={styles.summaryTotalRow}>
                       <span>Pay on installation fee</span>
                       <strong>{installationFee > 0 ? formatCurrency(installationFee) : formatCurrency(0)}</strong>
@@ -916,7 +844,7 @@ export default function CheckoutExperience({
                   </div>
 
                   <div className={styles.finalActionCta}>
-                    <p className={styles.reviewTitle}>{paymentChoice === "online" ? "Online payment selected" : "Pay on installation selected"}</p>
+                    <p className={styles.reviewTitle}>{paymentChoice === "online" ? "Online payment link requested" : "Pay on installation selected"}</p>
                     <p className={styles.reviewCopy}>{stickySummary}</p>
                     <button type="submit" className={styles.primaryButton} disabled={isSubmittingReview}>
                       {isSubmittingReview ? "Preparing booking..." : "Review booking details"}
@@ -954,11 +882,7 @@ export default function CheckoutExperience({
               </div>
               <div className={styles.reviewStat}>
                 <span className={styles.reviewStatLabel}>Payment</span>
-                <strong>{reviewState.paymentChoice === "online" ? "Online" : `On installation (${formatCurrency(reviewState.installationFee)})`}</strong>
-              </div>
-              <div className={styles.reviewStat}>
-                <span className={styles.reviewStatLabel}>AMC</span>
-                <strong>{reviewState.amcSelected ? formatAmount(reviewState.amcAmount) : "Not added"}</strong>
+                <strong>{reviewState.paymentChoice === "online" ? "Payment link" : `On installation (${formatCurrency(reviewState.installationFee)})`}</strong>
               </div>
               <div className={styles.reviewStat}>
                 <span className={styles.reviewStatLabel}>Final payable</span>

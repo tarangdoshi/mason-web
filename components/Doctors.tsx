@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { DoctorAttestationContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -47,8 +48,18 @@ const DOCTORS: {
   },
 ];
 
-export default function Doctors() {
+export default function Doctors({ items }: { items?: DoctorAttestationContent[] }) {
   const container = useRef<HTMLElement>(null);
+  const displayDoctors = items?.length
+    ? items.slice(0, 3).map((item) => ({
+        initials: item.doctorName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+        photo: item.photo?.src,
+        name: item.doctorName,
+        creds: item.registration,
+        meta: item.specialty,
+        quote: item.quote
+      }))
+    : DOCTORS;
 
   useGSAP(
     () => {
@@ -115,7 +126,7 @@ export default function Doctors() {
 
         {/* Doctor cards */}
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {DOCTORS.map((doc) => (
+          {displayDoctors.map((doc) => (
             <figure
               key={doc.name}
               className="doc-reveal flex flex-col rounded-3xl border border-sand-200 bg-sand-50 p-7"

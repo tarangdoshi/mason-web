@@ -379,6 +379,19 @@
   gap: 0.85rem;
 }
 
+.planPriceBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.planReferencePrice {
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
 .planPrice {
   margin: 0;
   font-family: var(--font-display), serif;

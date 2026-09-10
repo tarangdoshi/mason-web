@@ -7,6 +7,10 @@ const expectedPackageNamesByCode: Record<string, string> = {
   "package-standard": "Standard",
   "package-advanced": "Advanced"
 };
+const lockedPricesByCode: Record<string, { referencePrice: string; currentPrice: string }> = {
+  "package-standard": { referencePrice: "₹35,000", currentPrice: "₹30,000" },
+  "package-advanced": { referencePrice: "₹44,000", currentPrice: "₹37,000" }
+};
 
 export const packageSchema = defineType({
   name: "package",
@@ -58,8 +62,30 @@ export const packageSchema = defineType({
     defineField({ name: "summary", title: "Summary", type: "text", rows: 3 }),
     defineField({ name: "ctaLabel", title: "CTA label", type: "string" }),
     defineField({ name: "priceLabel", title: "Price label", type: "string" }),
-    defineField({ name: "referencePrice", title: "Reference / list price", type: "string", description: "Displayed struck through on public package cards." }),
-    defineField({ name: "currentPrice", title: "Current price", type: "string", description: "Actual package price shown prominently and used for the package request." }),
+    defineField({
+      name: "referencePrice",
+      title: "Reference / list price",
+      type: "string",
+      description: "Displayed struck through on public package cards.",
+      validation: (rule) => rule.required().custom((value, context) => {
+        const code = context.document?.code;
+        return typeof code === "string" && lockedPricesByCode[code]?.referencePrice === value
+          ? true
+          : "Use ₹35,000 for Standard or ₹44,000 for Advanced.";
+      })
+    }),
+    defineField({
+      name: "currentPrice",
+      title: "Current price",
+      type: "string",
+      description: "Actual package price shown prominently and used for the package request.",
+      validation: (rule) => rule.required().custom((value, context) => {
+        const code = context.document?.code;
+        return typeof code === "string" && lockedPricesByCode[code]?.currentPrice === value
+          ? true
+          : "Use ₹30,000 for Standard or ₹37,000 for Advanced.";
+      })
+    }),
     defineField({ name: "followUpLabel", title: "Included follow-up", type: "string", description: "For Advanced: the single included first-year safety check-up." }),
     defineField({ name: "savings", title: "Savings / tier label", type: "string" }),
     defineField({ name: "isFeatured", title: "Featured", type: "boolean", initialValue: false }),

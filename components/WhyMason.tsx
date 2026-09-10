@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { smoothScroll } from "./SmoothScroll";
+import type { WhyFeatureContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -47,8 +48,11 @@ const reasons = [
 const dealRank = [0, 4, 1, 3, 5, 2]; // TL,TR,BR,BL first; TM,BM last
 const flightRot = [-9, 7, -6, 8, -4, 5]; // per-rank tilt while stacked
 
-export default function WhyMason() {
+export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
   const ref = useRef<HTMLElement>(null);
+  const displayReasons = items?.length
+    ? items.slice(0, 6).map((item) => ({ title: item.title, copy: item.description, tag: "Mason approach" }))
+    : reasons;
 
   useGSAP(
     () => {
@@ -249,7 +253,7 @@ export default function WhyMason() {
             on a tall one, instead of being a fixed height that only happens to
             fit at 861px. */}
         <div className="wm-grid relative mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:flex-1 lg:grid-cols-3">
-          {reasons.map((r, i) => (
+          {displayReasons.map((r, i) => (
             <article
               key={r.title}
               /* lg:min-h-0 hands the height back to the grid row. The 220px

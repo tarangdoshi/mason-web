@@ -448,20 +448,18 @@ export const homepageContent: HomepageContent = {
     title: "Understand your package options",
     subtitle: "Packages are shown for pricing and scope clarity. If you are unsure which one fits, start with a free safety assessment first.",
     features: [
-      { id: "vertical-grab-bars", label: "3 vertical grab bars", description: "Support at key standing and movement points." },
-      { id: "angled-grab-bar", label: "1 L / angled grab bar", description: "Angled support for reaching and turning." },
-      { id: "folding-bar", label: "1 flip-up / folding bar", description: "Foldable support where access and clearance matter." },
-      { id: "anti-slip-coating", label: "Anti-slip coating", description: "Slip reduction on existing surfaces." },
-      { id: "anti-slip-mats", label: "2 anti-slip mats", description: "Extra grip in wet zones." },
-      { id: "commode-support", label: "Toilet seat / raised seat / commode support", description: "Additional sit-stand support for toilet use." },
-      { id: "shower-stool", label: "Shower seating stool", description: "Seated shower support." },
-      { id: "sensor-lighting", label: "Sensor lighting", description: "Motion-triggered night lighting." },
-      { id: "two-way-lock", label: "Two-way lock", description: "Safer access and family response support." },
-      { id: "corner-safety", label: "8-corner equivalent corner safety solution", description: "Protective corner treatment." },
-      { id: "drainage-solution", label: "4 drainage solutions", description: "Drainage support without redesign." },
-      { id: "slippers-one", label: "1 pair bathroom slippers", description: "Bathroom-use slippers included." },
-      { id: "slippers-two", label: "2 pairs bathroom slippers", description: "Additional bathroom-use slippers included." },
-      { id: "total-support-solution", label: "Total support solution: 3 sizes, 4 quantity", description: "Support accessories across common movement zones." }
+      { id: "vertical-grab-bars", label: "Vertical grab bars", description: "Support placed at key standing and movement points.", quantity: 3 },
+      { id: "angled-grab-bar", label: "L / angled grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
+      { id: "folding-bar", label: "Flip-up / folding support bar", description: "Foldable support where access and clearance matter.", quantity: 1 },
+      { id: "anti-slip-coating", label: "Anti-slip surface treatment", description: "Treatment for improved traction on existing surfaces.", quantity: 1 },
+      { id: "anti-slip-mat-shower", label: "Shower anti-slip mat", description: "Added grip in the shower zone.", quantity: 1 },
+      { id: "anti-slip-mat-post-shower", label: "Post-shower anti-slip mat", description: "Added grip where feet leave the shower.", quantity: 1 },
+      { id: "shower-stool", label: "Shower seating stool", description: "Seated support for showering.", quantity: 1 },
+      { id: "two-way-lock", label: "Two-way lock", description: "A lock designed for safer access and family response.", quantity: 1 },
+      { id: "corner-safety", label: "Edge & corner protection", description: "Protective cushioning for sharp edges and corners that could cause injury.", quantity: 1 },
+      { id: "drainage-solution", label: "Drainage support", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
+      { id: "slippers-one", label: "Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
+      { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 }
     ],
     plans: [
       {
@@ -472,7 +470,7 @@ export const homepageContent: HomepageContent = {
         isFeatured: false,
         bestFor: "Families who want the essential support and slip-risk upgrades for everyday bathroom use.",
         outcome: "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
-        price: "Standard",
+        price: "₹30,000",
         referencePrice: "₹35,000",
         currentPrice: "₹30,000",
         savings: "Core package",
@@ -481,15 +479,15 @@ export const homepageContent: HomepageContent = {
           alt: "Bathroom with essential safety upgrades for the Standard package",
           objectPosition: "50% 52%"
         },
-        visualHighlights: ["Grab support", "Wet-zone grip", "Night-time visibility"],
+        visualHighlights: ["Grab support", "Wet-zone grip", "Steadier movement"],
         includedFeatureIds: [
           "vertical-grab-bars",
           "angled-grab-bar",
           "folding-bar",
           "anti-slip-coating",
-          "anti-slip-mats",
+          "anti-slip-mat-shower",
+          "anti-slip-mat-post-shower",
           "shower-stool",
-          "sensor-lighting",
           "two-way-lock",
           "corner-safety",
           "drainage-solution",
@@ -504,9 +502,9 @@ export const homepageContent: HomepageContent = {
         badge: "Premium safety upgrade",
         titleDescriptor: "Full Mason safety setup",
         isFeatured: true,
-        bestFor: "Families who want the full Mason safety setup with added comfort, premium finishes, and stronger sit-stand support.",
-        outcome: "A more complete and premium bathroom safety upgrade, with stronger support for higher-risk daily routines.",
-        price: "Advanced",
+        bestFor: "Families who want the same complete installation with one included first-year safety check-up.",
+        outcome: "The complete installation kit, plus one technician visit within the first year to inspect the work and cover necessary corrective support identified during that visit.",
+        price: "₹37,000",
         referencePrice: "₹44,000",
         currentPrice: "₹37,000",
         savings: "Premium package",
@@ -515,20 +513,19 @@ export const homepageContent: HomepageContent = {
           alt: "Bathroom with broader safety support for the Advanced package",
           objectPosition: "50% 48%"
         },
-        visualHighlights: ["PVD-coated bars", "Raised-seat support", "Premium mats"],
+        visualHighlights: ["Same complete kit", "Home-first finish", "1-year safety check-up"],
         includedFeatureIds: [
           "vertical-grab-bars",
           "angled-grab-bar",
           "folding-bar",
           "anti-slip-coating",
-          "anti-slip-mats",
-          "commode-support",
+          "anti-slip-mat-shower",
+          "anti-slip-mat-post-shower",
           "shower-stool",
-          "sensor-lighting",
           "two-way-lock",
           "corner-safety",
           "drainage-solution",
-          "slippers-two",
+          "slippers-one",
           "total-support-solution"
         ],
         ctaLabel: "Continue with Advanced"
@@ -729,15 +726,15 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What packages do you offer?",
-        answer: "Mason currently offers two packages: Standard and Advanced. Standard covers core safety needs. Advanced adds premium finish details and additional support components."
+        answer: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install the same complete kit. Advanced adds one technician safety check-up visit during the first year."
       },
       {
         question: "What is included in Standard?",
-        answer: "Standard includes grab bars, anti-slip coating, anti-slip mats, shower seating, sensor lighting, two-way lock, corner safety, drainage support, bathroom slippers, and total support solutions."
+        answer: "Standard includes the complete 12-item kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting, SOS hardware, and toilet-seat support are not included."
       },
       {
         question: "What is included in Advanced?",
-        answer: "Advanced includes everything in Standard, plus PVD-coated grab bars, toilet seat / raised seat / commode support, premium-looking mats, and additional bathroom slippers."
+        answer: "Advanced includes the same complete 12-item installation kit as Standard, plus one technician follow-up visit within the first year. During that visit we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit."
       },
       {
         question: "How does booking and payment work?",

@@ -36,7 +36,7 @@ export const comparePackagesContent: HomepageContent = {
   },
   processSection: {
     ...homepageContent.processSection,
-    addOnDisclosure: "AMC care follow-up available as an add-on."
+    addOnDisclosure: "Advanced includes one technician safety check-up visit during the first year."
   },
   packagesSection: {
     title: "Compare package options",

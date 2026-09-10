@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import Cta from "./Cta";
+import type { FinalCtaSectionContent } from "../content/types";
 
 const chips = [
   "Full refund before technician arrival",
@@ -8,7 +9,7 @@ const chips = [
   "Trained Mason experts",
 ];
 
-export default function Booking() {
+export default function Booking({ content }: { content?: FinalCtaSectionContent }) {
   /* Full-bleed below sm. The inset card is a desktop device: it needs margin
      around it to read as a card, and at 390px the 24px gutter and 24px radius
      are too small to do that — they just shave the photograph and leave a
@@ -56,8 +57,7 @@ export default function Booking() {
         <div className="relative flex min-h-svh flex-col justify-center px-6 py-12 text-center sm:block sm:min-h-0 sm:px-12 sm:py-14 lg:py-16">
           <p className="reveal eyebrow on-dark mb-6">Book a Safety Visit</p>
           <h2 className="reveal mx-auto max-w-3xl h-display text-4xl leading-[1.05] text-white sm:text-5xl lg:text-6xl">
-            Book the visit. We&rsquo;ll handle the{" "}
-            <span className="accent-word on-dark">rest</span>.
+            {content?.title || <>Book the visit. We&rsquo;ll handle the <span className="accent-word on-dark">rest</span>.</>}
           </h2>
           {/* white/90, not /80: the last 10% is the difference between 4.28:1
               and 4.78:1 over the lit part of the photo, and costs nothing —
@@ -67,8 +67,7 @@ export default function Booking() {
                 were two buttons here to choose between. One of them opens the
                 same sheet as the other, so the sentence was offering a fork
                 that did not exist. */}
-            Act before a fall changes everything. Leave your number and one
-            accountable Mason team handles the rest.
+            {content?.subtitle || "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest."}
           </p>
 
           {/* One button, because there was only ever one action. The pair here
@@ -78,7 +77,7 @@ export default function Booking() {
               reader a decision and returns nothing for it. */}
           <div className="reveal mt-9 flex justify-center">
             <Cta href="#book" className="w-full justify-center sm:w-auto">
-              Request a Callback
+              {content?.primaryCta || "Request a Callback"}
             </Cta>
           </div>
 
