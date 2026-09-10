@@ -211,10 +211,11 @@ async function writeBackup(snapshot: Snapshot, backupDir: string, projectId: str
   await mkdir(resolvedDir, { recursive: true });
   const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
   const file = path.join(resolvedDir, `mason-sanity-backup-${timestamp}.json`);
-  const payload = { generatedAt: new Date().toISOString(), projectId, dataset, documents: [snapshot.homepage, ...snapshot.packages, ...snapshot.testimonials, ...snapshot.features] };
+  const documents = [snapshot.homepage, ...snapshot.packages, ...snapshot.testimonials, ...snapshot.features];
+  const payload = { generatedAt: new Date().toISOString(), projectId, dataset, documentIds: documents.map((document) => document._id), documents };
   await writeFile(file, JSON.stringify(payload, null, 2), "utf8");
   const verified = JSON.parse(await readFile(file, "utf8")) as typeof payload;
-  if (!Array.isArray(verified.documents) || verified.documents.length !== payload.documents.length) throw new Error("Backup verification failed; refusing to write Sanity.");
+  if (!Array.isArray(verified.documents) || verified.documents.length !== payload.documents.length || JSON.stringify(verified.documentIds) !== JSON.stringify(payload.documentIds)) throw new Error("Backup verification failed; refusing to write Sanity.");
   return file;
 }
 
