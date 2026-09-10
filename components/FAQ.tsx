@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import type { FaqItemContent } from "../content/types";
+import type { FaqSectionContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -43,11 +43,11 @@ const FAQS = [
   },
   {
     q: "How does booking work?",
-    a: "Start with a free safety assessment. Our team will contact you to discuss the right package and next step. An assessment request is an enquiry, not a confirmed booking.",
+    a: "You can choose a package online, proceed to payment, request a callback, or speak with our team for assisted booking.",
   },
   {
     q: "How can I pay?",
-    a: "Our team can arrange cash or UPI payment, or share a Razorpay Payment Link. The website does not collect payment or automatically issue a payment link.",
+    a: "You can pay through the website, or our team can share a secure payment link after your call.",
   },
   {
     q: "Can I cancel after booking?",
@@ -114,10 +114,21 @@ function Item({
   );
 }
 
-export default function FAQ({ items }: { items?: FaqItemContent[] }) {
+function renderTitle(title?: string) {
+  if (!title || title === "Questions, answered") {
+    return (
+      <>
+        Questions, <span className="font-serif font-normal italic text-forest-700">answered</span>
+      </>
+    );
+  }
+  return title;
+}
+
+export default function FAQ({ content }: { content?: FaqSectionContent }) {
   const container = useRef<HTMLElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const displayFaqs = items?.length ? items.map((item) => ({ q: item.question, a: item.answer })) : FAQS;
+  const displayFaqs = content?.items?.length ? content.items.map((item) => ({ q: item.question, a: item.answer })) : FAQS;
 
   useGSAP(
     () => {
@@ -165,14 +176,10 @@ export default function FAQ({ items }: { items?: FaqItemContent[] }) {
             FAQ
           </span>
           <h2 className="mt-4 font-display text-3xl font-extrabold leading-[1.05] tracking-tight text-cream sm:text-4xl lg:text-5xl">
-            Questions,{" "}
-            <span className="font-serif font-normal italic text-forest-700">
-              answered
-            </span>
+            {renderTitle(content?.title)}
           </h2>
           <p className="mt-4 max-w-sm text-base leading-relaxed text-sand-600">
-            Everything about packages, booking, and installation. Still unsure?
-            Book a free visit and we&rsquo;ll talk it through.
+            {content?.subtitle || "Everything about packages, booking, and installation. Still unsure? Book a free visit and we'll talk it through."}
           </p>
         </div>
 

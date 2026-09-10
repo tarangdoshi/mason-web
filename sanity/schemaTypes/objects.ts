@@ -86,6 +86,7 @@ export const evidenceCard = defineType({
   fields: [
     defineField({ name: "id", title: "ID", type: "string", validation: (rule) => rule.required() }),
     defineField({ name: "kicker", title: "Kicker", type: "string" }),
+    defineField({ name: "prefix", title: "Value prefix", type: "string", description: "Optional qualifier displayed before the value, such as Up to." }),
     defineField({ name: "value", title: "Value", type: "string", validation: (rule) => rule.required() }),
     defineField({ name: "label", title: "Label", type: "text", rows: 3, validation: (rule) => rule.required() }),
     defineField({ name: "context", title: "Context", type: "text", rows: 3 }),

@@ -4,10 +4,21 @@ import Cta from "./Cta";
 import type { FinalCtaSectionContent } from "../content/types";
 
 const chips = [
-  "Full refund before technician arrival",
+  "Full refund before installation",
   "Doctor-informed planning",
   "Trained Mason experts",
 ];
+
+function renderTitle(title?: string) {
+  if (!title || title === "Book the visit. We'll handle the rest.") {
+    return (
+      <>
+        Book the visit. We&rsquo;ll handle the <span className="accent-word on-dark">rest</span>.
+      </>
+    );
+  }
+  return title;
+}
 
 export default function Booking({ content }: { content?: FinalCtaSectionContent }) {
   /* Full-bleed below sm. The inset card is a desktop device: it needs margin
@@ -57,7 +68,7 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
         <div className="relative flex min-h-svh flex-col justify-center px-6 py-12 text-center sm:block sm:min-h-0 sm:px-12 sm:py-14 lg:py-16">
           <p className="reveal eyebrow on-dark mb-6">Book a Safety Visit</p>
           <h2 className="reveal mx-auto max-w-3xl h-display text-4xl leading-[1.05] text-white sm:text-5xl lg:text-6xl">
-            {content?.title || <>Book the visit. We&rsquo;ll handle the <span className="accent-word on-dark">rest</span>.</>}
+            {renderTitle(content?.title)}
           </h2>
           {/* white/90, not /80: the last 10% is the difference between 4.28:1
               and 4.78:1 over the lit part of the photo, and costs nothing —

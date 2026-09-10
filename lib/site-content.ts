@@ -314,17 +314,36 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
     }
   }
 
-  // Package, pricing, inclusion and cancellation language is a locked product
-  // requirement. Keep any existing CMS entries for other questions, while
-  // preventing an older published FAQ document from reintroducing the retired
-  // sensor/commode split or optional AMC wording before its content is edited.
-  const approvedFaqByQuestion = new Map(base.faqSection.items.map((item) => [item.question, item.answer]));
+  // Package and inclusion language is a locked product requirement. Preserve
+  // editor-owned answers for other questions, while preventing an older
+  // published FAQ document from reintroducing retired inclusions before its
+  // content is edited. Base questions missing from CMS are retained as safe
+  // fallbacks so adding approved Prerna questions does not require a write
+  // migration before the public page can render them.
+  const lockedFaqQuestions = new Set([
+    "What does Mason Company do?",
+    "What packages do you offer?",
+    "What is included in Standard?",
+    "What is included in Advanced?"
+  ]);
+  const baseFaqByQuestion = new Map(base.faqSection.items.map((item) => [item.question, item]));
+  const cmsFaqByQuestion = new Map(next.faqSection.items.map((item) => [item.question, item]));
+  const mergedFaqItems = base.faqSection.items.map((baseItem) => {
+    const cmsItem = cmsFaqByQuestion.get(baseItem.question);
+    return {
+      ...baseItem,
+      ...(cmsItem || {}),
+      answer: lockedFaqQuestions.has(baseItem.question) ? baseItem.answer : cmsItem?.answer || baseItem.answer
+    };
+  });
+  for (const cmsItem of next.faqSection.items) {
+    if (!baseFaqByQuestion.has(cmsItem.question)) {
+      mergedFaqItems.push(cmsItem);
+    }
+  }
   next.faqSection = {
     ...next.faqSection,
-    items: next.faqSection.items.map((item) => ({
-      ...item,
-      answer: approvedFaqByQuestion.get(item.question) || item.answer
-    }))
+    items: mergedFaqItems
   };
 
   return next;
@@ -511,47 +530,6 @@ function applySanityRiskQuiz(content: HomepageContent, riskQuiz: SanityRiskQuiz 
   };
 }
 
-function enforceAssessmentFirstLaunchFraming(content: HomepageContent, base: HomepageContent) {
-  return {
-    ...content,
-    packagesSection: {
-      ...content.packagesSection,
-      title: base.packagesSection.title,
-      subtitle: base.packagesSection.subtitle,
-      plans: content.packagesSection.plans.map((plan) => ({
-        ...plan,
-        ctaLabel: `Continue with ${plan.name}`
-      }))
-    },
-    riskQuizSection: {
-      ...content.riskQuizSection,
-      title: base.riskQuizSection.title,
-      subtitle: base.riskQuizSection.subtitle,
-      intro: base.riskQuizSection.intro,
-      startLabel: base.riskQuizSection.startLabel,
-      resultCtaLabel: base.riskQuizSection.resultCtaLabel,
-      restartLabel: base.riskQuizSection.restartLabel
-    },
-    processSection: {
-      ...content.processSection,
-      title: base.processSection.title,
-      subtitle: base.processSection.subtitle,
-      highlights: base.processSection.highlights,
-      addOnDisclosure: base.processSection.addOnDisclosure,
-      primaryCta: base.processSection.primaryCta,
-      secondaryCta: base.processSection.secondaryCta,
-      steps: base.processSection.steps
-    },
-    finalCtaSection: {
-      ...content.finalCtaSection,
-      title: base.finalCtaSection.title,
-      subtitle: base.finalCtaSection.subtitle,
-      primaryCta: base.finalCtaSection.primaryCta,
-      secondaryLabel: base.finalCtaSection.secondaryLabel
-    }
-  };
-}
-
 async function isDraftModeEnabled() {
   const store = await draftMode();
   return store.isEnabled;
@@ -606,7 +584,7 @@ async function buildContent(base: HomepageContent, view: "homepage" | "compare-p
     };
   }
 
-  return enforceAssessmentFirstLaunchFraming(content, base);
+  return content;
 }
 
 export async function getHomepageContentData(options: SiteContentFetchOptions = {}) {

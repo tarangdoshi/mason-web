@@ -12,7 +12,7 @@ const TESTIMONIALS = [
   {
     name: "Anita Mehra",
     role: "Daughter",
-    city: "Delhi",
+    city: "Bengaluru",
     quote:
       "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
     tag: "Safer movement, premium finish",
@@ -20,7 +20,7 @@ const TESTIMONIALS = [
   {
     name: "Rohan Kapoor",
     role: "Son",
-    city: "Gurgaon",
+    city: "Goa",
     quote:
       "The process was clear from the first call. The team explained the package, inspected the bathroom, and installed everything neatly. My mother now has support exactly where she needs it.",
     tag: "Clear process, confident handover",
@@ -28,7 +28,7 @@ const TESTIMONIALS = [
   {
     name: "Neha Shah",
     role: "Daughter-in-law",
-    city: "Mumbai",
+    city: "Bengaluru",
     quote:
       "The biggest relief was not having to coordinate multiple vendors. Mason handled the planning, products, installation, and walkthrough as one complete solution.",
     tag: "One accountable team",

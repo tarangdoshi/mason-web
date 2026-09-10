@@ -2,10 +2,22 @@ import Reveal from "./Reveal";
 import PackageCard from "./PackageCard";
 import { packageCardFromPlan } from "./packages-data";
 import { getHomepageContentData } from "../lib/site-content";
+import type { HomepageContent } from "../content/types";
 
-export default async function Packages() {
-  const content = await getHomepageContentData();
-  const packages = content.packagesSection.plans.map(packageCardFromPlan);
+function renderTitle(title: string) {
+  if (title === "The same complete kit. You choose the cover.") {
+    return (
+      <>
+        The same complete kit. You choose the <span className="accent-word on-dark">cover</span>.
+      </>
+    );
+  }
+  return title;
+}
+
+export default async function Packages({ content: contentProp }: { content?: HomepageContent["packagesSection"] }) {
+  const content = contentProp || (await getHomepageContentData()).packagesSection;
+  const packages = content.plans.map(packageCardFromPlan);
   return (
     <section
       id="packages"
@@ -19,12 +31,10 @@ export default async function Packages() {
             Choose your safety package
           </p>
           <h2 className="reveal h-display text-3xl text-sand-100 sm:text-4xl lg:text-[2.5rem]">
-            The same complete kit. You choose the{" "}
-            <span className="accent-word on-dark">cover</span>.
+            {renderTitle(content.title || "The same complete kit. You choose the cover.")}
           </h2>
           <p className="reveal mt-3 text-base leading-relaxed text-sand-100/75">
-            Both packages install the same complete kit, fitted by Mason-trained experts.
-            Advanced includes one safety check-up visit during the first year.
+            {content.subtitle || "Both packages install everything, fitted by Mason-trained experts. Advanced includes one safety check-up visit during the first year."}
           </p>
         </div>
 

@@ -34,7 +34,7 @@ type DisplayStat = { prefix?: string; value: string; label: string; copy: string
 
 export default function Stats({ cards }: { cards?: EvidenceSnapshotCardContent[] }) {
   const displayStats: DisplayStat[] = cards?.length
-    ? cards.slice(0, 4).map((card) => ({ value: card.value, label: card.kicker || card.sourceLabel, copy: card.label }))
+    ? cards.slice(0, 4).map((card) => ({ prefix: card.prefix, value: card.value, label: card.kicker || card.sourceLabel, copy: card.label }))
     : stats;
   return (
     <section id="why" className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-24">

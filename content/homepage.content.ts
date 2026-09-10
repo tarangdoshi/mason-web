@@ -17,7 +17,7 @@ export const homepageContent: HomepageContent = {
     name: "Mason Company",
     tagline: "",
     serviceLine: "Premium bathroom safety upgrades for ageing parents",
-    trustBadges: ["Pre-priced safety packages", "Trained Mason experts", "Doctor-reviewed planning", "Full refund before technician arrival"],
+    trustBadges: ["Pre-priced safety packages", "Trained Mason experts", "Doctor-reviewed planning", "Full refund before installation"],
     phoneDisplay: "+91 98765 43210",
     phoneTel: "+919876543210",
     whatsappLabel: "WhatsApp Support",
@@ -30,11 +30,10 @@ export const homepageContent: HomepageContent = {
   },
   hero: {
     eyebrow: "Bathroom Safety for Ageing Parents",
-    heading: "Prevent the most common home accidents for ageing parents.",
-    subcopy:
-      "You cannot always be there. Safety can be. Mason Company upgrades existing bathrooms into safer, more comfortable spaces with premium, home-first safety solutions.",
-    primaryCta: "Book Free Safety Assessment",
-    secondaryCta: "See Packages",
+    heading: "Most falls happen here. We make sure yours don't.",
+    subcopy: "You can't always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety.",
+    primaryCta: "Book a Safety Visit",
+    secondaryCta: "See Transformations",
     supportNote: "",
     supportPoints: ["Premium home-first finish", "Trained Mason experts", "Doctor-reviewed planning"],
     visual: {
@@ -72,7 +71,7 @@ export const homepageContent: HomepageContent = {
     eyebrow: "What we do",
     title: "A reassurance. Not a renovation.",
     description:
-      "Mason Company upgrades existing bathrooms into safer, calmer spaces for ageing parents. We plan the support points, install the right safety components, and finish the space so it feels premium at home, not clinical.",
+      "Leave your details and a Mason advisor will call to arrange the visit. Full refund any time before installation.",
     valueTags: ["Grip", "Balance", "Comfort", "Ease"],
     visual: {
       src: "/images/stock-web/upgrades/upgrade-shower-support.jpg",
@@ -82,8 +81,8 @@ export const homepageContent: HomepageContent = {
   },
   transformationGallerySection: {
     id: "transformations",
-    title: "See what changes in one visit",
-    subtitle: "Real before-and-after bathroom safety upgrades designed for everyday confidence.",
+    title: "A reassurance. Not a renovation.",
+    subtitle: "We make bathrooms safer through thoughtful additions - grip, balance, comfort, ease. Drag to see the difference.",
     explainer: {
       title: "Bathroom safety in 20 seconds",
       caption: "A short walkthrough of a safer bathroom layout.",
@@ -231,9 +230,9 @@ export const homepageContent: HomepageContent = {
       },
       {
         id: "ev-card-independence-loss",
-        kicker: "Bathroom injuries caused by falls",
+        kicker: "Bathroom injuries from falls",
         value: "81%",
-        label: "Bathroom injury data shows falls are the dominant risk around wet zones, toilets, and transfers.",
+        label: "Falls are the dominant risk around wet zones, toilets, and transfers.",
         context: "The bathroom concentrates several high-risk movements in one room.",
         sourceLabel: "CDC Bathroom Injuries Report",
         sourceId: "cdc-bathroom-injuries",
@@ -241,21 +240,22 @@ export const homepageContent: HomepageContent = {
         ctaHref: "/evidence"
       },
       {
-        id: "ev-card-family-liability",
-        kicker: "Potential full recovery cost",
-        value: "₹3L-₹10L",
-        label: "A serious fall can mean surgery, rehab, home care, transport, and weeks of family coordination.",
-        context: "Estimated family impact range based on India injury-cost data and home-care benchmarks.",
-        sourceLabel: "LASI cost data + recovery benchmarks",
-        sourceId: "family-impact-estimate",
+        id: "ev-card-falls-injury-rate",
+        kicker: "Falls that led to injury",
+        value: "66%",
+        label: "A review of older adults in India put the pooled injury rate at 65.6% among those who fell.",
+        context: "A fall often carries an injury burden beyond the immediate incident.",
+        sourceLabel: "India falls-injury systematic review",
+        sourceId: "india-falls-injury-review",
         ctaLabel: "View Evidence",
         ctaHref: "/evidence"
       },
       {
         id: "ev-card-prevention-effect",
-        kicker: "Fall-rate reduction",
-        value: "26-38%",
-        label: "Evidence shows home hazard interventions can reduce fall rates, especially for higher-risk adults.",
+        kicker: "Fewer falls after home changes",
+        prefix: "Up to",
+        value: "38%",
+        label: "Home hazard interventions cut fall rates by 26–38%, with the largest effect for higher-risk adults.",
         context: "Targeted changes at home can make a measurable difference.",
         sourceLabel: "Cochrane home hazard review",
         sourceId: "cochrane-home-hazards-2021",
@@ -345,17 +345,17 @@ export const homepageContent: HomepageContent = {
   },
   processSection: {
     id: "how-it-works",
-    title: "From free assessment to a safer bathroom",
-    subtitle: "Start with a free home visit or video assessment. Mason reviews your situation, helps you choose the right package when you are ready, and follows up with clear next steps.",
+    title: "From booking to a safer bathroom.",
+    subtitle: "Six clear steps, handled by one accountable Mason team - from package booking all the way to final handover.",
     highlights: ["Clear steps", "Assisted support", "One accountable Mason team from booking to handover"],
     addOnDisclosure: "Clear steps. Assisted support. One accountable Mason team from booking to handover.",
-    primaryCta: "Book Free Safety Assessment",
+    primaryCta: "Book a Safety Visit",
     secondaryCta: "Talk to a Mason Company specialist",
     steps: [
       {
         id: "process-step-1",
-        title: "Book your free assessment",
-        description: "Share your name, phone, area, and whether you prefer a home visit or video assessment. No package selection is required.",
+        title: "Book your package",
+        description: "Choose Standard or Advanced online, request a callback, or call us for guidance.",
         icon: "/images/stock-web/process/process-book-consultation.jpg",
         alt: "Family discussing a home safety visit at a table",
         badge: "INCLUDED",
@@ -367,8 +367,8 @@ export const homepageContent: HomepageContent = {
       },
       {
         id: "process-step-2",
-        title: "Team review and follow-up",
-        description: "Our team reviews your assessment request and contacts you to schedule the right next step. No payment is taken on the website.",
+        title: "Confirm payment",
+        description: "Pay securely on the website, or receive a payment link from our team after your call.",
         icon: "/images/stock-web/process/process-doctor-video-review.jpg",
         alt: "Doctor on a video consultation using a laptop",
         badge: "MANDATORY",
@@ -380,8 +380,8 @@ export const homepageContent: HomepageContent = {
       },
       {
         id: "process-step-3",
-        title: "Assessment and recommendation",
-        description: "Mason checks the bathroom routine and risk points, then recommends the package scope that fits best.",
+        title: "Inspection",
+        description: "We schedule a virtual or physical bathroom inspection depending on location and logistics.",
         icon: "/images/stock-web/process/process-onsite-inspection.jpg",
         alt: "Technician inspecting a bathroom before installation planning",
         badge: "INCLUDED",
@@ -393,8 +393,8 @@ export const homepageContent: HomepageContent = {
       },
       {
         id: "process-step-4",
-        title: "Confirm package and visit",
-        description: "Once the recommendation is clear, confident customers can confirm a package and installation visit.",
+        title: "Technician visit",
+        description: "Our trained technicians verify the site and finalise support placement.",
         icon: "/images/stock-web/process/process-installation-day.jpg",
         alt: "Bathroom safety installation work in progress",
         badge: "INCLUDED",
@@ -445,8 +445,8 @@ export const homepageContent: HomepageContent = {
     items: []
   },
   packagesSection: {
-    title: "Understand your package options",
-    subtitle: "Packages are shown for pricing and scope clarity. If you are unsure which one fits, start with a free safety assessment first.",
+    title: "The same complete kit. You choose the cover.",
+    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes one safety check-up visit during the first year.",
     features: [
       { id: "vertical-grab-bars", label: "Vertical grab bars", description: "Support placed at key standing and movement points.", quantity: 3 },
       { id: "angled-grab-bar", label: "L / angled grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
@@ -465,10 +465,10 @@ export const homepageContent: HomepageContent = {
       {
         id: "package-standard",
         name: "Standard",
-        badge: "Core safety upgrade",
+        badge: "The complete kit",
         titleDescriptor: "Everyday safety",
-        isFeatured: false,
-        bestFor: "Families who want the essential support and slip-risk upgrades for everyday bathroom use.",
+        isFeatured: true,
+        bestFor: "The full safety upgrade, installed, inspected and handed over in one go.",
         outcome: "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
         price: "₹30,000",
         referencePrice: "₹35,000",
@@ -494,15 +494,15 @@ export const homepageContent: HomepageContent = {
           "slippers-one",
           "total-support-solution"
         ],
-        ctaLabel: "Continue with Standard"
+        ctaLabel: "Book Standard"
       },
       {
         id: "package-advanced",
         name: "Advanced",
-        badge: "Premium safety upgrade",
+        badge: "The complete kit + 1-Year Safety Check-Up Included",
         titleDescriptor: "Full Mason safety setup",
-        isFeatured: true,
-        bestFor: "Families who want the same complete installation with one included first-year safety check-up.",
+        isFeatured: false,
+        bestFor: "The same installation, with one included safety check-up during the first year.",
         outcome: "The complete installation kit, plus one technician visit within the first year to inspect the work and cover necessary corrective support identified during that visit.",
         price: "₹37,000",
         referencePrice: "₹44,000",
@@ -528,7 +528,7 @@ export const homepageContent: HomepageContent = {
           "slippers-one",
           "total-support-solution"
         ],
-        ctaLabel: "Continue with Advanced"
+        ctaLabel: "Book Advanced"
       },
     ]
   },
@@ -542,15 +542,15 @@ export const homepageContent: HomepageContent = {
       },
       {
         title: "Doctor-informed planning",
-        description: "Our safety approach is shaped with doctor inputs, preventive mobility guidance, and senior-care context."
+        description: "Our approach is shaped with doctor inputs, preventive mobility guidance, and senior-care context."
       },
       {
         title: "Trained Mason experts",
-        description: "Every visit is handled by trained technicians who understand support placement, secure fitting, and family handover."
+        description: "Every visit is handled by trained technicians who understand support placement and secure fitting."
       },
       {
         title: "One accountable team",
-        description: "From package selection to inspection, installation, and follow-up, Mason Company stays responsible for the outcome."
+        description: "From selection to inspection, installation, and follow-up, Mason stays responsible for the outcome."
       },
       {
         title: "Premium, home-first finish",
@@ -558,7 +558,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         title: "Evidence-led prevention",
-        description: "We study fall-risk patterns, hospital safety practices, and assisted-care environments to design practical home upgrades."
+        description: "We study fall-risk patterns and assisted-care environments to design practical home upgrades."
       }
     ]
   },
@@ -572,7 +572,7 @@ export const homepageContent: HomepageContent = {
         quote: "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
         author: "Anita Mehra",
         relation: "Daughter",
-        city: "Delhi",
+        city: "Bengaluru",
         outcomeLine: "Safer movement, premium finish",
         photo: {
           src: "/images/proof/testimonial-anita.jpg",
@@ -584,7 +584,7 @@ export const homepageContent: HomepageContent = {
         quote: "The process was clear from the first call. The team explained the package, inspected the bathroom, and installed everything neatly. My mother now has support exactly where she needs it.",
         author: "Rohan Kapoor",
         relation: "Son",
-        city: "Gurgaon",
+        city: "Goa",
         outcomeLine: "Clear process, confident handover",
         photo: {
           src: "/images/proof/testimonial-rohan.jpg",
@@ -596,7 +596,7 @@ export const homepageContent: HomepageContent = {
         quote: "The biggest relief was not having to coordinate multiple vendors. Mason handled the planning, products, installation, and walkthrough as one complete solution.",
         author: "Neha Shah",
         relation: "Daughter-in-law",
-        city: "Mumbai",
+        city: "Bengaluru",
         outcomeLine: "One accountable team"
       },
       {
@@ -709,16 +709,20 @@ export const homepageContent: HomepageContent = {
   },
   faqSection: {
     id: "faq",
-    title: "Frequently Asked Questions",
-    subtitle: "Clear answers before you book your Mason safety upgrade.",
+    title: "Questions, answered",
+    subtitle: "Everything about packages, booking, and installation. Still unsure? Book a free visit and we'll talk it through.",
     items: [
       {
         question: "What does Mason Company do?",
-        answer: "Mason Company upgrades existing bathrooms with safety components such as grab bars, anti-slip solutions, support accessories, lighting, drainage support, corner protection, and package-specific senior-friendly additions."
+        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support."
       },
       {
         question: "Who is Mason Company for?",
         answer: "Mason is designed for families with ageing parents, seniors living independently, people with balance concerns, and households that want to reduce bathroom risk before an incident happens."
+      },
+      {
+        question: "Do you renovate the entire bathroom?",
+        answer: "No. Mason focuses on safety upgrades to the existing bathroom. Most installations do not require a major renovation."
       },
       {
         question: "Will the bathroom look clinical?",
@@ -737,9 +741,16 @@ export const homepageContent: HomepageContent = {
         answer: "Advanced includes the same complete 12-item installation kit as Standard, plus one technician follow-up visit within the first year. During that visit we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit."
       },
       {
-        question: "How does booking and payment work?",
-        answer:
-          "Most families start with a free safety assessment. Mason then helps confirm the right package and next step. If you already know what you need, you can submit a package booking request through checkout. The website does not currently collect payment or automatically issue a payment link."
+        question: "Can I buy only one product, like a grab bar?",
+        answer: "Mason is designed as a package-first service. We focus on complete bathroom safety coverage rather than isolated product installation."
+      },
+      {
+        question: "How does booking work?",
+        answer: "You can choose a package online, proceed to payment, request a callback, or speak with our team for assisted booking."
+      },
+      {
+        question: "How can I pay?",
+        answer: "You can pay through the website, or our team can share a secure payment link after your call."
       },
       {
         question: "Can I cancel after booking?",
@@ -752,14 +763,18 @@ export const homepageContent: HomepageContent = {
       {
         question: "Does this guarantee that no fall will happen?",
         answer: "No service can guarantee a fall-free outcome. Mason focuses on preventive bathroom safety upgrades that support safer daily movement."
+      },
+      {
+        question: "Who installs the package?",
+        answer: "Mason-trained technicians handle the installation, site verification, fitting, and final handover."
       }
     ]
   },
   finalCtaSection: {
     id: "final-cta",
-    title: "Give your parents a safer bathroom that still feels like home.",
-    subtitle: "Start with a free safety assessment, or compare packages if you already know what you need.",
-    primaryCta: "Book Free Safety Assessment",
+    title: "Book the visit. We'll handle the rest.",
+    subtitle: "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest.",
+    primaryCta: "Request a Callback",
     secondaryLabel: "Call +91 98765 43210"
   }
 };

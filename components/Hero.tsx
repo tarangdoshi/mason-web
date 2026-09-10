@@ -23,6 +23,20 @@ const BACKGROUND = {
     split — the same point we switch to the landscape crop. */
 const DESKTOP_MEDIA = "(min-width: 1024px)";
 
+function renderHeading(heading: string) {
+  if (heading === "Most falls happen here. We make sure yours don't.") {
+    return (
+      <>
+        <span className="lg:block">
+          Most <span className="accent-word on-dark">falls</span> happen here.
+        </span>{" "}
+        <span className="lg:block">We make sure yours don&rsquo;t.</span>
+      </>
+    );
+  }
+  return heading;
+}
+
 export default function Hero({ content }: { content?: HeroContent }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -87,7 +101,7 @@ export default function Hero({ content }: { content?: HeroContent }) {
                 even out the centred lines. The deliberate two-line split
                 returns at lg, where it's left-aligned. */}
             <h1 className="hero-rise text-balance font-display text-[9vw] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl sm:leading-[1.02] lg:text-6xl">
-              {content?.heading || <><span className="lg:block">Most <span className="accent-word on-dark">falls</span> happen here.</span>{" "}<span className="lg:block">We help make yours less likely.</span></>}
+              {renderHeading(content?.heading || "Most falls happen here. We make sure yours don't.")}
             </h1>
 
             <p className="hero-rise mx-auto mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mt-6 sm:text-lg lg:mx-0">

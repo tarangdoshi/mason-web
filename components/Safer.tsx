@@ -113,7 +113,7 @@ export default function Safer({ content }: { content?: WhatWeDoSectionContent })
           {/* white/90 rather than the sand-100 of the headline: a step back
               from it, and still clear of the 4.5:1 floor on forest-700. */}
           <p className="safer-rise mx-auto mt-6 max-w-md text-base leading-relaxed text-white/90 lg:mx-0">
-            {content?.description || "Leave your details and a Mason advisor will call to arrange the visit. Full refund before the technician arrives or starts implementation."}
+            {content?.description || "Leave your details and a Mason advisor will call to arrange the visit. Full refund any time before installation."}
           </p>
 
           {/* The column is two short blocks against a form that runs to ~590px,

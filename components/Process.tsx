@@ -11,12 +11,12 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const steps = [
   {
-    title: "Request your assessment",
-    copy: "Request a free home or video safety assessment, or call us for guidance.",
+    title: "Book your package",
+    copy: "Choose Standard or Advanced online, request a callback, or call us for guidance.",
   },
   {
-    title: "Confirm the next step",
-    copy: "Our team calls to discuss your needs and arrange the assessment. Submitting the form does not confirm a paid booking.",
+    title: "Confirm payment",
+    copy: "Pay securely on the website, or receive a payment link from our team after your call.",
   },
   {
     title: "Inspection",
@@ -46,6 +46,17 @@ const offset = [
   "lg:ml-[28%]",
   "lg:ml-[35%]",
 ];
+
+function renderTitle(title: string) {
+  if (title === "From booking to a safer bathroom.") {
+    return (
+      <>
+        From booking to a <span className="accent-word">safer</span> bathroom.
+      </>
+    );
+  }
+  return title;
+}
 
 export default function Process({ content }: { content?: ProcessSectionContent }) {
   const ref = useRef<HTMLElement>(null);
@@ -164,12 +175,10 @@ export default function Process({ content }: { content?: ProcessSectionContent }
         <div>
           <p className="proc-head eyebrow mb-5">Our process</p>
           <h2 className="proc-head h-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-            From booking to a <span className="accent-word">safer</span>{" "}
-            bathroom.
+            {renderTitle(content?.title || "From booking to a safer bathroom.")}
           </h2>
           <p className="proc-head mt-6 max-w-md text-base leading-relaxed text-cream-dim">
-            Six clear steps, handled by one accountable Mason team - from
-            package booking all the way to final handover.
+            {content?.subtitle || "Six clear steps, handled by one accountable Mason team - from package booking all the way to final handover."}
           </p>
 
           {/* Counter and progress rule are desktop instruments: they track the
@@ -198,7 +207,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
               six steps themselves — asking for the decision before showing
               the thing that earns it. */}
           <div className="proc-head mt-8 hidden lg:block">
-            <Cta href="#book">Book a Safety Visit</Cta>
+            <Cta href="#book">{content?.primaryCta || "Book a Safety Visit"}</Cta>
           </div>
         </div>
 
@@ -233,7 +242,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
             of the staircase. */}
         <div className="lg:hidden">
           <Cta href="#book" className="w-full justify-center sm:w-auto">
-            Book a Safety Visit
+            {content?.primaryCta || "Book a Safety Visit"}
           </Cta>
         </div>
       </div>

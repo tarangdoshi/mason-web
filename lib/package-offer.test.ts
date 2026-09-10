@@ -34,3 +34,12 @@ test("Standard and Advanced share the same kit and locked current/reference pric
     ]
   );
 });
+
+test("Advanced differs only through the included first-year safety check-up", () => {
+  const plans = homepageContent.packagesSection.plans;
+  assert.equal(plans[0]?.isFeatured, true);
+  assert.equal(plans[1]?.isFeatured, false);
+  assert.match(plans[1]?.badge || "", /1-Year Safety Check-Up Included/);
+  assert.match(plans[1]?.bestFor || "", /one included safety check-up during the first year/i);
+  assert.match(plans[1]?.outcome || "", /one technician visit within the first year/i);
+});

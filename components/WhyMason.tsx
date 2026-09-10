@@ -51,7 +51,7 @@ const flightRot = [-9, 7, -6, 8, -4, 5]; // per-rank tilt while stacked
 export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
   const ref = useRef<HTMLElement>(null);
   const displayReasons = items?.length
-    ? items.slice(0, 6).map((item) => ({ title: item.title, copy: item.description, tag: "Mason approach" }))
+    ? items.slice(0, 6).map((item, index) => ({ title: item.title, copy: item.description, tag: reasons[index]?.tag || "Mason approach" }))
     : reasons;
 
   useGSAP(

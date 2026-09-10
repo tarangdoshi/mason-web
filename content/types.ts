@@ -191,6 +191,7 @@ export interface ProblemStatContent {
 export interface EvidenceSnapshotCardContent {
   id: string;
   kicker?: string;
+  prefix?: string;
   value: string;
   label: string;
   context: string;

@@ -31,12 +31,12 @@ export default async function Home({searchParams}: {searchParams?: Promise<Recor
         <span id="before-after" />
         <Transformations content={content.transformationGallerySection} />
         <span id="package-comparison" />
-        <Packages />
+        <Packages content={content.packagesSection} />
         <span id="how-it-works" />
         <Process content={content.processSection} />
         <Doctors items={content.doctorsSection.items} />
         <Testimonials items={content.testimonialsSection.items} />
-        <FAQ items={content.faqSection.items} />
+        <FAQ content={content.faqSection} />
         <Booking content={content.finalCtaSection} />
       </main>
       <Footer />
