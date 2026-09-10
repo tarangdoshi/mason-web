@@ -159,10 +159,10 @@ export default function PackageCard({
                       : s.rowMid
                 }
               >
-                {row.label}
+                {row.label}{differentiator && on ? " Included" : ""}
               </span>
               <span className="sr-only">
-                {on ? "Included" : "Not included"}
+                {on ? (differentiator ? "" : "Included") : "Not included"}
               </span>
             </li>
           );

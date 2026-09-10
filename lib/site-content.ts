@@ -349,7 +349,7 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
   return next;
 }
 
-function applySanityPackages(content: HomepageContent, packages: SanityPackage[] | null | undefined, allFeatures: SanityFeature[] | null | undefined) {
+export function applySanityPackages(content: HomepageContent, packages: SanityPackage[] | null | undefined, allFeatures: SanityFeature[] | null | undefined) {
   const lockedPackages = (packages || [])
     .filter((pkg) => pkg.code === "package-standard" || pkg.code === "package-advanced")
     .filter((pkg) => pkg.name === "Standard" || pkg.name === "Advanced")
@@ -381,14 +381,15 @@ function applySanityPackages(content: HomepageContent, packages: SanityPackage[]
       referencePrice: pkg.referencePrice || fallbackPlan?.referencePrice,
       currentPrice: pkg.currentPrice || fallbackPlan?.currentPrice || fallbackPlan?.price,
       savings: pkg.savings || fallbackPlan?.savings || (index === 0 ? "Core package" : "Premium package"),
-      bestFor: pkg.bestFor || fallbackPlan?.bestFor,
-      outcome: pkg.outcome || fallbackPlan?.outcome,
-      summary: pkg.summary || fallbackPlan?.summary,
-      badge: pkg.badge || fallbackPlan?.badge,
-      titleDescriptor: pkg.titleDescriptor || fallbackPlan?.titleDescriptor,
+      // Launch copy follows the approved shared kit while legacy CMS packages await cleanup.
+      bestFor: fallbackPlan?.bestFor || pkg.bestFor || undefined,
+      outcome: fallbackPlan?.outcome || pkg.outcome || undefined,
+      summary: fallbackPlan?.summary || fallbackPlan?.outcome,
+      badge: fallbackPlan?.badge || pkg.badge || undefined,
+      titleDescriptor: fallbackPlan?.titleDescriptor || pkg.titleDescriptor || undefined,
       isFeatured: pkg.isFeatured ?? fallbackPlan?.isFeatured ?? index === 1,
       visual: toVisualAsset(pkg.visual, pkg.name || "Package visual", imageTransformSpecs.package) || fallbackPlan?.visual,
-      visualHighlights: pkg.visualHighlights?.length ? pkg.visualHighlights : fallbackPlan?.visualHighlights,
+      visualHighlights: fallbackPlan?.visualHighlights,
       includedFeatureIds,
       // The locked Standard and Advanced offers have no optional maintenance add-on.
       // Keep the legacy API fields available elsewhere, but never surface legacy

@@ -51,7 +51,7 @@ export default function ContactPage() {
             </h1>
             <p className="max-w-sm text-base leading-relaxed text-cream-dim lg:pb-3 lg:text-right">
               Send us the details and a Mason advisor calls you back within 24
-              hours - to answer questions, or to arrange a free safety visit.
+              hours - to answer questions, or to arrange a safety visit.
             </p>
           </div>
         </section>
@@ -74,10 +74,9 @@ export default function ContactPage() {
               />
               <div className="photo-scrim absolute inset-0" />
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-8">
-                <p className="eyebrow on-dark">The visit is free</p>
+                <p className="eyebrow on-dark">Request your visit</p>
                 <p className="mt-3 font-display text-xl font-extrabold leading-snug text-white sm:text-2xl">
-                  A trained Mason expert walks the bathroom with you. No
-                  obligation, no charge.
+                  Leave your details and a Mason advisor will call to arrange the visit.
                 </p>
               </div>
             </div>

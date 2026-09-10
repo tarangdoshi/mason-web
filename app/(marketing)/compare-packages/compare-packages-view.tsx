@@ -1,7 +1,6 @@
 import type { HomepageContent } from "../../../content/types";
 import PackageCheckoutLink from "../../components/package-checkout-link";
 import CmsImage from "../../components/cms-image";
-import RiskQuiz from "../../components/risk-quiz";
 import styles from "./compare-packages.module.css";
 
 type PreviewState = "live" | "draft" | "draft-auth-required" | "draft-unavailable";
@@ -17,10 +16,9 @@ export default function ComparePackagesView({
   content: HomepageContent;
   previewState?: PreviewState;
 }) {
-  const { hero, riskQuizSection, packagesSection, processSection, brand, finalCtaSection } = content;
+  const { hero, packagesSection, processSection, brand, finalCtaSection } = content;
   const plans = packagesSection.plans.slice(0, 2);
   const matrixFeatures = packagesSection.features;
-  const recommendedQuizPlan = plans[1]?.name ?? plans[0]?.name ?? "Comfort";
   const phoneHref = `tel:${brand.phoneTel}`;
   const previewMessage =
     previewState === "draft"
@@ -56,7 +54,7 @@ export default function ComparePackagesView({
                 data-analytics-cta-location="compare-hero-primary"
                 data-analytics-section="compare-hero"
               >
-                Book Free Safety Assessment
+                Request a Safety Visit
               </a>
               <a href="#packages" className={styles.secondaryButton}>
                 Compare plans
@@ -72,43 +70,12 @@ export default function ComparePackagesView({
           <article className={styles.heroSummaryCard}>
             <p className={styles.cardEyebrow}>Assessment first</p>
             <h2>Use packages to understand your options.</h2>
-            <p>Most families start with a free assessment. If you already know what you need, you can compare package scope and continue to checkout.</p>
+            <p>Most families start with a visit request. If you already know what you need, you can compare package scope and continue to checkout.</p>
             <ul>
-              <li>Free assessment requires no package selection</li>
-              <li>Quiz recommendation is a guide, not a final recommendation</li>
+              <li>A visit request requires no package selection</li>
               <li>Advanced includes one technician safety check-up during the first year</li>
             </ul>
           </article>
-        </div>
-      </section>
-
-      <section className={styles.section} id="risk-quiz">
-        <div className={styles.sectionHead}>
-          <div>
-            <p className={styles.eyebrow}>Quick screening</p>
-            <h2>{riskQuizSection.title}</h2>
-          </div>
-          <p>{riskQuizSection.subtitle}</p>
-        </div>
-
-        <div className={styles.quizSectionGrid}>
-          <div className={styles.quizIntroCard}>
-            <h3>What this quiz does</h3>
-            <p>{riskQuizSection.intro}</p>
-            <p className={styles.quizAssessmentNote}>For the safest recommendation, Mason should confirm the bathroom through a free home visit or video assessment.</p>
-            <div className={styles.bandList}>
-              {riskQuizSection.bands.map((band) => (
-                <article key={band.id} className={styles.bandCard}>
-                  <p className={styles.bandLabel}>{band.label}</p>
-                  <p>{band.summary}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.quizCardWrap}>
-            <RiskQuiz section={riskQuizSection} packagesSectionId="packages" fallbackPlan={recommendedQuizPlan} />
-          </div>
         </div>
       </section>
 
@@ -118,7 +85,7 @@ export default function ComparePackagesView({
             <p className={styles.eyebrow}>Compare plans</p>
             <h2>Compare package options with confidence.</h2>
           </div>
-          <p>Packages are here for pricing and scope clarity. Start with a free assessment if you are unsure which option fits your parent’s bathroom.</p>
+          <p>Packages are here for pricing and scope clarity. Start with a visit request if you are unsure which option fits your parent’s bathroom.</p>
         </div>
 
         <div className={styles.assessmentCallout}>
@@ -134,7 +101,7 @@ export default function ComparePackagesView({
             data-analytics-cta-location="compare-packages-assessment-callout"
             data-analytics-section="packages"
           >
-            Book Free Safety Assessment
+            Request a Safety Visit
           </a>
         </div>
 
@@ -266,7 +233,7 @@ export default function ComparePackagesView({
               data-analytics-cta-location="compare-final-primary"
               data-analytics-section={finalCtaSection.id || "compare-cta"}
             >
-              Book Free Safety Assessment
+              Request a Safety Visit
             </a>
             <a
               href={phoneHref}

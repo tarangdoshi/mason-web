@@ -30,6 +30,17 @@ function BeforeAfter() {
   return (
     <div
       ref={ref}
+      role="slider"
+      tabIndex={0}
+      aria-label="Compare bathroom before and after"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pos)}
+      onKeyDown={(event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        setPos((current) => event.key === "Home" ? 0 : event.key === "End" ? 100 : Math.max(0, Math.min(100, current + (event.key === "ArrowRight" ? 5 : -5))));
+      }}
       onPointerDown={(e) => {
         dragging.current = true;
         el(e).setPointerCapture(e.pointerId);

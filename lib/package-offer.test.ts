@@ -43,3 +43,20 @@ test("Advanced differs only through the included first-year safety check-up", ()
   assert.match(plans[1]?.bestFor || "", /one included safety check-up during the first year/i);
   assert.match(plans[1]?.outcome || "", /one technician visit within the first year/i);
 });
+
+
+test("legacy CMS package descriptions cannot change the shared-kit launch offer", async () => {
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "testproject";
+  const { applySanityPackages } = await import("./site-content");
+  const packages = homepageContent.packagesSection.plans.map((plan) => ({
+    code: plan.id, name: plan.name, bestFor: "Premium hardware and stronger sit-stand support",
+    outcome: "Extra slippers and PVD upgrades", summary: "A different physical kit",
+    badge: "Extra components", titleDescriptor: "Premium hardware", visualHighlights: ["Sensor lighting"],
+    referencePrice: plan.referencePrice, currentPrice: plan.currentPrice,
+  }));
+  const result = applySanityPackages(homepageContent, packages, []).packagesSection.plans;
+  assert.equal(result.length, 2);
+  assert.doesNotMatch(JSON.stringify(result.map(({ bestFor, outcome, summary, badge, titleDescriptor, visualHighlights }) => ({ bestFor, outcome, summary, badge, titleDescriptor, visualHighlights }))), /PVD|extra slippers|sensor lighting|different physical kit|premium hardware/i);
+  assert.deepEqual(result.map((plan) => plan.includedFeatureIds), homepageContent.packagesSection.plans.map((plan) => plan.includedFeatureIds));
+  assert.deepEqual(result.map((plan) => [plan.referencePrice, plan.currentPrice]), packages.map((plan) => [plan.referencePrice, plan.currentPrice]));
+});

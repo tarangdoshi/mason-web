@@ -100,7 +100,7 @@ export default function Footer() {
             variant="light"
             className="w-full shrink-0 justify-center sm:w-auto"
           >
-            Book a free visit
+            Request a visit
           </Cta>
         </div>
 

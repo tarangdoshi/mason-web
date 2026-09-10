@@ -21,7 +21,7 @@ const newsreaderBrand = Newsreader({
 export const metadata: Metadata = {
   robots: process.env.VERCEL_ENV === "preview" ? {index:false,follow:false} : undefined,
   title: "Mason Company | Bathroom Safety Upgrades for Ageing Parents",
-  description: "Mason Company delivers premium bathroom safety upgrades with a warm, practical approach for modern families in Mumbai and Goa."
+  description: "Mason Company delivers premium bathroom safety upgrades with a warm, practical approach for modern families in Goa and Bangalore."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

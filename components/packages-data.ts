@@ -22,7 +22,7 @@ export const PACKAGE_ROWS: PackageRow[] = [
     advanced: true,
   },
   { label: "Inspection and final walkthrough", standard: true, advanced: true },
-  { label: "One-year safety check-up visit", standard: false, advanced: true },
+  { label: "1-Year Safety Check-Up", standard: false, advanced: true },
 ];
 
 export type Package = {

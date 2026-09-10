@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/packages"},
   title: "Packages - Mason Company",
   description:
-    "Book a free bathroom safety visit, or choose Standard or Advanced outright. Both install the same 12 upgrades, fitted by trained Mason experts.",
+    "Request a bathroom safety visit and explore Standard or Advanced. Both install the same 12 upgrades, fitted by trained Mason experts.",
 };
 
 /* Three blocks, in the order the decision is actually made.
@@ -52,7 +52,7 @@ export default async function PackagesPage() {
         <section className="border-b border-line bg-sand-100 px-6 pt-24 pb-14 lg:px-10 lg:pt-28 lg:pb-20">
           <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className="eyebrow mb-4">Free &amp; no obligation</p>
+              <p className="eyebrow mb-4">Request your visit</p>
               {/* The lg step down from text-6xl is the column: the h1 has half
                   the page beside the form, and 60px there puts three words on
                   a line. */}
@@ -62,7 +62,7 @@ export default async function PackagesPage() {
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-cream-dim sm:text-lg">
                 We walk the bathroom with you first, then recommend Standard or
-                Advanced. Full refund before the technician arrives or starts implementation.
+                Advanced. Full refund any time before installation.
               </p>
 
               {/* Directly under the sentence it answers, not under the photo.
