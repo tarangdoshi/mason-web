@@ -11,12 +11,12 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const steps = [
   {
-    title: "Book your package",
-    copy: "Choose Standard or Advanced online, request a callback, or call us for guidance.",
+    title: "Request your visit",
+    copy: "Leave your details and a Mason advisor will call to arrange the visit.",
   },
   {
-    title: "Confirm payment",
-    copy: "Pay securely on the website, or receive a payment link from our team after your call.",
+    title: "Mason follow-up",
+    copy: "Our team reviews your request and contacts you to confirm the visit, package details, and next steps.",
   },
   {
     title: "Inspection",

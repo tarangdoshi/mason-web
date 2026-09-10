@@ -17,7 +17,7 @@ export const homepageContent: HomepageContent = {
     name: "Mason Company",
     tagline: "",
     serviceLine: "Premium bathroom safety upgrades for ageing parents",
-    trustBadges: ["Pre-priced safety packages", "Trained Mason experts", "Doctor-reviewed planning", "Full refund before installation"],
+    trustBadges: ["Pre-priced safety packages", "Trained Mason experts", "Doctor-reviewed planning", "Full refund any time before installation."],
     phoneDisplay: "+91 98765 43210",
     phoneTel: "+919876543210",
     whatsappLabel: "WhatsApp Support",
@@ -57,7 +57,7 @@ export const homepageContent: HomepageContent = {
     },
     trustModule: {
       title: "Why families act early",
-      otpBadge: "Full refund before technician arrival or implementation",
+      otpBadge: "Full refund any time before installation.",
       doctorQuote: "A serious bathroom fall can affect treatment, recovery, mobility, caregiving, and weeks of family coordination.",
       doctorByline: "Estimated family impact range: ₹3L-₹10L",
       stats: [
@@ -354,8 +354,8 @@ export const homepageContent: HomepageContent = {
     steps: [
       {
         id: "process-step-1",
-        title: "Book your package",
-        description: "Choose Standard or Advanced online, request a callback, or call us for guidance.",
+        title: "Request your visit",
+        description: "Leave your details and a Mason advisor will call to arrange the visit.",
         icon: "/images/stock-web/process/process-book-consultation.jpg",
         alt: "Family discussing a home safety visit at a table",
         badge: "INCLUDED",
@@ -367,8 +367,8 @@ export const homepageContent: HomepageContent = {
       },
       {
         id: "process-step-2",
-        title: "Confirm payment",
-        description: "Pay securely on the website, or receive a payment link from our team after your call.",
+        title: "Mason follow-up",
+        description: "Our team reviews your request and contacts you to confirm the visit, package details, and next steps.",
         icon: "/images/stock-web/process/process-doctor-video-review.jpg",
         alt: "Doctor on a video consultation using a laptop",
         badge: "MANDATORY",
@@ -410,7 +410,7 @@ export const homepageContent: HomepageContent = {
         description: "The selected package is installed with careful fitting, clean execution, and minimal disruption.",
         icon: "/images/stock-web/process/process-family-walkthrough.jpg",
         alt: "Family reviewing the upgraded bathroom after installation",
-        badge: "ADD_ON",
+        badge: "INCLUDED",
         visual: {
           src: "/images/stock-web/process/process-family-walkthrough.jpg",
           alt: "Family handover and final walkthrough after bathroom upgrade completion",
@@ -746,15 +746,15 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "How does booking work?",
-        answer: "You can choose a package online, proceed to payment, request a callback, or speak with our team for assisted booking."
+        answer: "Leave your details and a Mason advisor will call to arrange the visit."
       },
       {
         question: "How can I pay?",
-        answer: "You can pay through the website, or our team can share a secure payment link after your call."
+        answer: "Our team will confirm the package and payment details with you after your visit request."
       },
       {
         question: "Can I cancel after booking?",
-        answer: "Yes. If you cancel before the technician arrives or starts implementation, you are eligible for a full refund."
+        answer: "Yes. Full refund any time before installation."
       },
       {
         question: "Do you inspect the bathroom before installation?",

@@ -104,6 +104,29 @@ test("package scope retains the fail-closed feature reference check", () => {
   );
 });
 
+test("homepage process and FAQ copy keep the request-first launch flow", () => {
+  const source = snapshot();
+  const plan = buildMigrationPlanForScope({ homepage: source.homepage, packages: [], testimonials: [], features: [] }, "homepage");
+  const process = plan.operations.find((operation) => operation.path === "processSection.steps");
+  const faq = plan.operations.find((operation) => operation.path === "faqSection.items");
+  assert.ok(process);
+  assert.ok(faq);
+
+  const steps = process.proposedValue as Array<Record<string, unknown>>;
+  assert.deepEqual(steps.map((step) => step.title), ["Request your visit", "Mason follow-up", "Inspection", "Technician visit", "Installation", "Success handover"]);
+  assert.equal(steps[2].description, "We schedule a virtual or physical bathroom inspection depending on location and logistics.");
+  assert.equal(steps[4].badge, "INCLUDED");
+  assert.doesNotMatch(JSON.stringify(steps), /online|payment link|ADD_ON/i);
+
+  const faqItems = faq.proposedValue as Array<Record<string, unknown>>;
+  const booking = faqItems.find((item) => item.question === "How does booking work?");
+  const payment = faqItems.find((item) => item.question === "How can I pay?");
+  const cancellation = faqItems.find((item) => item.question === "Can I cancel after booking?");
+  assert.equal(booking?.answer, "Leave your details and a Mason advisor will call to arrange the visit.");
+  assert.equal(payment?.answer, "Our team will confirm the package and payment details with you after your visit request.");
+  assert.equal(cancellation?.answer, "Yes. Full refund any time before installation.");
+});
+
 test("array helper reports deliberate replacement and keeps matching custom fields", () => {
   const operation = createArrayReplacementOperation("homepage", { _id: "homepage", _type: "homepage", section: [{ _key: "one", custom: "retain" }] }, "section", [{ _key: "one", value: "new" }], "approved set");
   assert.equal(operation.kind, "array-replacement");

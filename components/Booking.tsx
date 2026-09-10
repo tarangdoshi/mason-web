@@ -4,7 +4,7 @@ import Cta from "./Cta";
 import type { FinalCtaSectionContent } from "../content/types";
 
 const chips = [
-  "Full refund before installation",
+  "Full refund any time before installation.",
   "Doctor-informed planning",
   "Trained Mason experts",
 ];

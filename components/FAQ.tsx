@@ -43,15 +43,15 @@ const FAQS = [
   },
   {
     q: "How does booking work?",
-    a: "You can choose a package online, proceed to payment, request a callback, or speak with our team for assisted booking.",
+    a: "Leave your details and a Mason advisor will call to arrange the visit.",
   },
   {
     q: "How can I pay?",
-    a: "You can pay through the website, or our team can share a secure payment link after your call.",
+    a: "Our team will confirm the package and payment details with you after your visit request.",
   },
   {
     q: "Can I cancel after booking?",
-    a: "Yes. If you cancel before the technician arrives or starts implementation, you are eligible for a full refund.",
+    a: "Yes. Full refund any time before installation.",
   },
   {
     q: "Do you inspect the bathroom before installation?",

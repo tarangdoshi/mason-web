@@ -45,9 +45,9 @@ const faqItems = [
   ["faq-6", "What is included in Standard?", "The complete 12-item kit includes three vertical grab bars, one L / angled bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Toilet-seat support, sensor lighting, and SOS hardware are not included."],
   ["faq-7", "What is included in Advanced?", "Exactly the same 12-item installation kit as Standard. Advanced adds one technician follow-up visit within the first year: we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit."],
   ["faq-8", "Can I buy only one product, like a grab bar?", "Mason is designed as a package-first service. We focus on complete bathroom safety coverage rather than isolated product installation."],
-  ["faq-9", "How does booking work?", "You can choose a package online, proceed to payment, request a callback, or speak with our team for assisted booking."],
-  ["faq-10", "How can I pay?", "You can pay through the website, or our team can share a secure payment link after your call."],
-  ["faq-11", "Can I cancel after booking?", "Yes. If you cancel before the technician arrives or starts implementation, you are eligible for a full refund."],
+  ["faq-9", "How does booking work?", "Leave your details and a Mason advisor will call to arrange the visit."],
+  ["faq-10", "How can I pay?", "Our team will confirm the package and payment details with you after your visit request."],
+  ["faq-11", "Can I cancel after booking?", "Yes. Full refund any time before installation."],
   ["faq-12", "Do you inspect the bathroom before installation?", "Yes. Depending on location and logistics, Mason may complete a virtual or physical inspection before installation."],
   ["faq-13", "Who installs the package?", "Mason-trained technicians handle the installation, site verification, fitting, and final handover."],
 ].map(([key, question, answer]) => ({ _key: key, question, answer }));
@@ -60,11 +60,11 @@ const evidenceCards = [
 ];
 
 const processSteps = [
-  { _key: "process-step-1", id: "process-step-1", title: "Book your package", description: "Choose Standard or Advanced online, request a callback, or call us for guidance." },
-  { _key: "process-step-2", id: "process-step-2", title: "Confirm payment", description: "Pay securely on the website, or receive a payment link from our team after your call." },
+  { _key: "process-step-1", id: "process-step-1", title: "Request your visit", description: "Leave your details and a Mason advisor will call to arrange the visit." },
+  { _key: "process-step-2", id: "process-step-2", title: "Mason follow-up", description: "Our team reviews your request and contacts you to confirm the visit, package details, and next steps." },
   { _key: "process-step-3", id: "process-step-3", title: "Inspection", description: "We schedule a virtual or physical bathroom inspection depending on location and logistics." },
   { _key: "process-step-4", id: "process-step-4", title: "Technician visit", description: "Our trained technicians verify the site and finalise support placement." },
-  { _key: "process-step-5", id: "process-step-5", title: "Installation", description: "The selected package is installed with careful fitting, clean execution, and minimal disruption." },
+  { _key: "process-step-5", id: "process-step-5", title: "Installation", description: "The selected package is installed with careful fitting, clean execution, and minimal disruption.", badge: "INCLUDED" },
   { _key: "process-step-6", id: "process-step-6", title: "Success handover", description: "We complete a walkthrough and document the upgrade with before-and-after pictures." },
 ];
 
