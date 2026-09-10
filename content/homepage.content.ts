@@ -346,7 +346,7 @@ export const homepageContent: HomepageContent = {
   processSection: {
     id: "how-it-works",
     title: "From booking to a safer bathroom.",
-    subtitle: "Six clear steps, handled by one accountable Mason team - from package booking all the way to final handover.",
+    subtitle: "Six clear steps, handled by one accountable Mason team - from your visit request all the way to final handover.",
     highlights: ["Clear steps", "Assisted support", "One accountable Mason team from booking to handover"],
     addOnDisclosure: "Clear steps. Assisted support. One accountable Mason team from booking to handover.",
     primaryCta: "Book a Safety Visit",
@@ -361,7 +361,7 @@ export const homepageContent: HomepageContent = {
         badge: "INCLUDED",
         visual: {
           src: "/images/stock-web/process/process-book-consultation.jpg",
-          alt: "Family discussing a home safety visit and booking online",
+          alt: "Family discussing a home safety visit at a table",
           objectPosition: "52% 44%"
         }
       },
@@ -710,7 +710,7 @@ export const homepageContent: HomepageContent = {
   faqSection: {
     id: "faq",
     title: "Questions, answered",
-    subtitle: "Everything about packages, booking, and installation. Still unsure? Book a free visit and we'll talk it through.",
+    subtitle: "Everything about packages, booking, and installation. Still unsure? Request a visit and we'll talk it through.",
     items: [
       {
         question: "What does Mason Company do?",

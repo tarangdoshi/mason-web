@@ -178,7 +178,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
             {renderTitle(content?.title || "From booking to a safer bathroom.")}
           </h2>
           <p className="proc-head mt-6 max-w-md text-base leading-relaxed text-cream-dim">
-            {content?.subtitle || "Six clear steps, handled by one accountable Mason team - from package booking all the way to final handover."}
+            {content?.subtitle || "Six clear steps, handled by one accountable Mason team - from your visit request all the way to final handover."}
           </p>
 
           {/* Counter and progress rule are desktop instruments: they track the

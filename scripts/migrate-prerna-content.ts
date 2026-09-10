@@ -93,14 +93,14 @@ const homepageScalarValues: Array<[string, unknown]> = [
   ["whySection.title", "Why Mason Company"],
   ["whySection.subtitle", "A complete bathroom safety solution, shaped by medical expertise, expert installation, and the design standards families expect at home."],
   ["processSection.title", "From booking to a safer bathroom."],
-  ["processSection.subtitle", "Six clear steps, handled by one accountable Mason team - from package booking all the way to final handover."],
+  ["processSection.subtitle", "Six clear steps, handled by one accountable Mason team - from your visit request all the way to final handover."],
   ["processSection.addOnDisclosure", "Clear steps. Assisted support. One accountable Mason team from booking to handover."],
   ["processSection.primaryCta", "Book a Safety Visit"],
   ["processSection.secondaryCta", "Talk to a Mason Company specialist"],
   ["testimonialsSection.title", "What Families Say After Installation"],
   ["testimonialsSection.subtitle", "Families choose Mason Company because the upgrade feels thoughtful, premium, and reassuring, not like a temporary hospital setup."],
   ["faqSection.title", "Questions, answered"],
-  ["faqSection.subtitle", "Everything about packages, booking, and installation. Still unsure? Book a free visit and we'll talk it through."],
+  ["faqSection.subtitle", "Everything about packages, booking, and installation. Still unsure? Request a visit and we'll talk it through."],
   ["finalCtaSection.title", "Book the visit. We'll handle the rest."],
   ["finalCtaSection.subtitle", "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest."],
   ["finalCtaSection.primaryCta", "Request a Callback"],
@@ -142,7 +142,13 @@ function buildHomepageOperations(homepage: SanityDocument): MigrationOperation[]
   operations.push(createArrayReplacementOperation(homepage._id, homepage, "hero.supportPoints", ["Premium home-first finish", "Trained Mason experts", "Doctor-reviewed planning"], "Approved hero support points are a controlled scalar list."));
   operations.push(createArrayReplacementOperation(homepage._id, homepage, "evidenceSection.cards", evidenceCards, "Approved evidence card set changes item content and is replaced deliberately; matching _key fields retain unknown custom fields."));
   operations.push(createArrayReplacementOperation(homepage._id, homepage, "whySection.items", whyItems, "Approved Why Mason item set is replaced deliberately; matching _key fields retain unknown custom fields."));
-  operations.push(createArrayReplacementOperation(homepage._id, homepage, "processSection.steps", processSteps, "Approved process item set is replaced deliberately; matching _key fields retain unknown custom fields."));
+  const currentProcess = homepage.processSection as { steps?: Array<Record<string, unknown>> } | undefined;
+  const firstStep = currentProcess?.steps?.find((step) => step._key === "process-step-1");
+  const correctedProcessSteps = processSteps.map((step) => {
+    if (step._key !== "process-step-1" || !firstStep?.visual || typeof firstStep.visual !== "object") return step;
+    return { ...step, visual: { ...firstStep.visual, alt: "Family discussing a home safety visit at a table" } };
+  });
+  operations.push(createArrayReplacementOperation(homepage._id, homepage, "processSection.steps", correctedProcessSteps, "Approved process item set is replaced deliberately; matching _key fields retain unknown custom fields."));
   operations.push(createArrayReplacementOperation(homepage._id, homepage, "faqSection.items", faqItems, "Approved FAQ item set is replaced deliberately; matching _key fields retain unknown custom fields."));
   return operations;
 }

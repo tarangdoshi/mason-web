@@ -133,3 +133,14 @@ test("array helper reports deliberate replacement and keeps matching custom fiel
   assert.equal((operation.proposedValue as Array<Record<string, unknown>>)[0].custom, "retain");
   assert.equal(operation.reason, "approved set");
 });
+
+
+test("homepage alt correction preserves image configuration and removes obsolete launch phrases", () => {
+  const source = snapshot();
+  const visual = { _type: "image", alt: "Family discussing a home safety visit and booking online", asset: { _ref: "image-existing" }, crop: { top: 0.1 }, objectPosition: "52% 44%", custom: "keep" };
+  const document = { ...source.homepage, processSection: { steps: [{ _key: "process-step-1", visual }] } };
+  const plan = buildMigrationPlanForScope({ ...source, homepage: document }, "homepage");
+  const steps = plan.operations.find((operation) => operation.path === "processSection.steps")?.proposedValue as Array<Record<string, unknown>>;
+  assert.deepEqual(steps[0].visual, { ...visual, alt: "Family discussing a home safety visit at a table" });
+  assert.doesNotMatch(JSON.stringify(plan.operations.map((operation) => operation.proposedValue)), /free visit|online payment|pay securely|booking online|proceed to payment|ADD_ON|Book Package/i);
+});

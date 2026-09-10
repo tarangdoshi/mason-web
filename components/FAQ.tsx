@@ -179,7 +179,7 @@ export default function FAQ({ content }: { content?: FaqSectionContent }) {
             {renderTitle(content?.title)}
           </h2>
           <p className="mt-4 max-w-sm text-base leading-relaxed text-sand-600">
-            {content?.subtitle || "Everything about packages, booking, and installation. Still unsure? Book a free visit and we'll talk it through."}
+            {content?.subtitle || "Everything about packages, booking, and installation. Still unsure? Request a visit and we'll talk it through."}
           </p>
         </div>
 
