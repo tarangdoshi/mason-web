@@ -95,18 +95,34 @@ export function sameStringSet(left: string[], right: string[]): boolean {
   return left.length === right.length && [...left].sort().every((value, index) => value === [...right].sort()[index]);
 }
 
-export function parseMigrationArgs(argv: string[]): { apply: boolean; dryRun: boolean; backupDir?: string } {
+export type MigrationScope = "homepage" | "packages" | "testimonials" | "all";
+
+export function parseMigrationArgs(argv: string[]): { apply: boolean; dryRun: boolean; backupDir?: string; scope: MigrationScope } {
   const apply = argv.includes("--apply");
   const dryRun = argv.includes("--dry-run") || !apply;
   const backupIndex = argv.indexOf("--backup-dir");
   const backupDir = backupIndex >= 0 ? argv[backupIndex + 1] : undefined;
+  const scopeFlag = argv.find((argument) => argument === "--scope" || argument.startsWith("--scope="));
+  const scopeIndex = argv.indexOf("--scope");
+  const rawScope = scopeFlag?.startsWith("--scope=")
+    ? scopeFlag.slice("--scope=".length)
+    : scopeIndex >= 0
+      ? argv[scopeIndex + 1]
+      : undefined;
+  const scope = rawScope || "all";
+  if (scope !== "homepage" && scope !== "packages" && scope !== "testimonials" && scope !== "all") {
+    throw new Error("--scope must be one of homepage, packages, testimonials, or all.");
+  }
+  if (scopeIndex >= 0 && (!rawScope || rawScope.startsWith("--"))) {
+    throw new Error("--scope requires homepage, packages, testimonials, or all.");
+  }
   if (backupIndex >= 0 && (!backupDir || backupDir.startsWith("--"))) {
     throw new Error("--backup-dir requires a directory path.");
   }
   if (apply && argv.includes("--dry-run")) throw new Error("Choose either --dry-run or --apply, not both.");
   if (argv.includes("--execute")) throw new Error("--execute is removed. Use --apply with --backup-dir after review.");
   if (!apply && backupDir) throw new Error("--backup-dir is only valid with --apply.");
-  return { apply, dryRun, backupDir };
+  return { apply, dryRun, backupDir, scope: scope as MigrationScope };
 }
 
 export function assertApplyBackupDir(backupDir: string | undefined): string {

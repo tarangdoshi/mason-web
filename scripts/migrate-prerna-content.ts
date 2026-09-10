@@ -8,6 +8,7 @@ import {
   createLeafOperation,
   parseMigrationArgs,
   sameStringSet,
+  type MigrationScope,
   type MigrationOperation,
   type SanityDocument,
 } from "../lib/sanity-migration";
@@ -112,7 +113,7 @@ const packageValues = [
 
 const testimonialCities = ["Bengaluru", "Goa", "Bengaluru"];
 
-type Snapshot = { homepage: SanityDocument; packages: SanityDocument[]; testimonials: SanityDocument[]; features: SanityDocument[] };
+type Snapshot = { homepage?: SanityDocument; packages: SanityDocument[]; testimonials: SanityDocument[]; features: SanityDocument[] };
 
 function requirePublished(document: SanityDocument, expectedType: string): void {
   if (document._id.startsWith("drafts.")) throw new Error(`Safety check failed: draft ${document._id} is not an allowed migration target.`);
@@ -134,18 +135,28 @@ function resolveFeatureRefs(packages: SanityDocument[]): string[] {
   return refSets[0];
 }
 
-export function buildMigrationPlan(snapshot: Snapshot): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
-  requirePublished(snapshot.homepage, "homepage");
-  if (snapshot.packages.length !== 2) throw new Error("Safety check failed: both package documents are required.");
-  for (const [index, doc] of snapshot.packages.entries()) {
+function buildHomepageOperations(homepage: SanityDocument): MigrationOperation[] {
+  requirePublished(homepage, "homepage");
+  const operations: MigrationOperation[] = [];
+  for (const [fieldPath, value] of homepageScalarValues) operations.push(createLeafOperation(homepage._id, homepage, fieldPath, value));
+  operations.push(createArrayReplacementOperation(homepage._id, homepage, "hero.supportPoints", ["Premium home-first finish", "Trained Mason experts", "Doctor-reviewed planning"], "Approved hero support points are a controlled scalar list."));
+  operations.push(createArrayReplacementOperation(homepage._id, homepage, "evidenceSection.cards", evidenceCards, "Approved evidence card set changes item content and is replaced deliberately; matching _key fields retain unknown custom fields."));
+  operations.push(createArrayReplacementOperation(homepage._id, homepage, "whySection.items", whyItems, "Approved Why Mason item set is replaced deliberately; matching _key fields retain unknown custom fields."));
+  operations.push(createArrayReplacementOperation(homepage._id, homepage, "processSection.steps", processSteps, "Approved process item set is replaced deliberately; matching _key fields retain unknown custom fields."));
+  operations.push(createArrayReplacementOperation(homepage._id, homepage, "faqSection.items", faqItems, "Approved FAQ item set is replaced deliberately; matching _key fields retain unknown custom fields."));
+  return operations;
+}
+
+function buildPackageOperations(packages: SanityDocument[], features: SanityDocument[]): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
+  if (packages.length !== 2) throw new Error("Safety check failed: both package documents are required.");
+  for (const [index, doc] of packages.entries()) {
     requirePublished(doc, "package");
     const expected = EXPECTED_PACKAGES[index];
     if (doc.code !== expected.code || doc.name !== expected.name) throw new Error(`Safety check failed: ${doc._id} is not the expected ${expected.name} package document.`);
   }
-  for (const doc of snapshot.testimonials) requirePublished(doc, "testimonial");
 
-  const refs = resolveFeatureRefs(snapshot.packages);
-  const featureById = new Map(snapshot.features.map((feature) => [feature._id, feature]));
+  const refs = resolveFeatureRefs(packages);
+  const featureById = new Map(features.map((feature) => [feature._id, feature]));
   const expectedKeys = new Set<string>(APPROVED_FEATURES.map(([key]) => key));
   const resolvedFeatures = refs.map((id) => {
     const feature = featureById.get(id);
@@ -158,15 +169,9 @@ export function buildMigrationPlan(snapshot: Snapshot): { operations: MigrationO
   if (!sameStringSet(resolvedKeys, [...expectedKeys])) throw new Error("Safety check failed: package references do not resolve to exactly the approved 12-item kit.");
 
   const operations: MigrationOperation[] = [];
-  for (const [fieldPath, value] of homepageScalarValues) operations.push(createLeafOperation(snapshot.homepage._id, snapshot.homepage, fieldPath, value));
-  operations.push(createArrayReplacementOperation(snapshot.homepage._id, snapshot.homepage, "hero.supportPoints", ["Premium home-first finish", "Trained Mason experts", "Doctor-reviewed planning"], "Approved hero support points are a controlled scalar list."));
-  operations.push(createArrayReplacementOperation(snapshot.homepage._id, snapshot.homepage, "evidenceSection.cards", evidenceCards, "Approved evidence card set changes item content and is replaced deliberately; matching _key fields retain unknown custom fields."));
-  operations.push(createArrayReplacementOperation(snapshot.homepage._id, snapshot.homepage, "whySection.items", whyItems, "Approved Why Mason item set is replaced deliberately; matching _key fields retain unknown custom fields."));
-  operations.push(createArrayReplacementOperation(snapshot.homepage._id, snapshot.homepage, "processSection.steps", processSteps, "Approved process item set is replaced deliberately; matching _key fields retain unknown custom fields."));
-  operations.push(createArrayReplacementOperation(snapshot.homepage._id, snapshot.homepage, "faqSection.items", faqItems, "Approved FAQ item set is replaced deliberately; matching _key fields retain unknown custom fields."));
 
   for (const item of packageValues) {
-    const document = snapshot.packages.find((candidate) => candidate._id === item.id);
+    const document = packages.find((candidate) => candidate._id === item.id);
     if (!document) throw new Error(`Safety check failed: ${item.id} is missing from the fetched snapshot.`);
     for (const [field, value] of Object.entries(item.fields)) operations.push(createLeafOperation(item.id, document, field, value));
   }
@@ -176,33 +181,81 @@ export function buildMigrationPlan(snapshot: Snapshot): { operations: MigrationO
     if (!values) throw new Error(`Safety check failed: no approved public definition exists for ${feature._id}.`);
     for (const [field, value] of Object.entries(values)) operations.push(createLeafOperation(feature._id, feature, field, value));
   }
-  for (const [index, id] of TESTIMONIAL_IDS.entries()) {
-    const document = snapshot.testimonials.find((candidate) => candidate._id === id);
-    if (document) operations.push(createLeafOperation(id, document, "city", testimonialCities[index]));
-  }
   return { operations, resolvedFeatureIds: resolvedFeatures.map((feature) => feature._id) };
 }
 
-async function fetchSnapshot(client: SanityClient): Promise<Snapshot> {
-  const rootIds = [HOMEPAGE_ID, ...PACKAGE_IDS, ...TESTIMONIAL_IDS];
+function buildTestimonialsOperations(testimonials: SanityDocument[]): MigrationOperation[] {
+  if (testimonials.length !== TESTIMONIAL_IDS.length) throw new Error("Safety check failed: all targeted testimonial documents are required.");
+  for (const doc of testimonials) requirePublished(doc, "testimonial");
+  return TESTIMONIAL_IDS.flatMap((id, index) => {
+    const document = testimonials.find((candidate) => candidate._id === id);
+    if (!document) throw new Error(`Safety check failed: ${id} is missing from the fetched snapshot.`);
+    return [createLeafOperation(id, document, "city", testimonialCities[index])];
+  });
+}
+
+export function buildHomepageMigrationPlan(homepage: SanityDocument): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
+  return { operations: buildHomepageOperations(homepage), resolvedFeatureIds: [] };
+}
+
+export function buildPackageMigrationPlan(packages: SanityDocument[], features: SanityDocument[]): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
+  return buildPackageOperations(packages, features);
+}
+
+export function buildTestimonialsMigrationPlan(testimonials: SanityDocument[]): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
+  return { operations: buildTestimonialsOperations(testimonials), resolvedFeatureIds: [] };
+}
+
+export function buildMigrationPlan(snapshot: Snapshot): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
+  if (!snapshot.homepage) throw new Error("Safety check failed: the published homepage document is required.");
+  const homepage = buildHomepageMigrationPlan(snapshot.homepage);
+  const packages = buildPackageMigrationPlan(snapshot.packages, snapshot.features);
+  const testimonials = buildTestimonialsMigrationPlan(snapshot.testimonials);
+  return { operations: [...homepage.operations, ...packages.operations, ...testimonials.operations], resolvedFeatureIds: packages.resolvedFeatureIds };
+}
+
+export function buildMigrationPlanForScope(snapshot: Snapshot, scope: MigrationScope): { operations: MigrationOperation[]; resolvedFeatureIds: string[] } {
+  if (scope === "homepage") {
+    if (!snapshot.homepage) throw new Error("Safety check failed: the published homepage document is required.");
+    return buildHomepageMigrationPlan(snapshot.homepage);
+  }
+  if (scope === "packages") return buildPackageMigrationPlan(snapshot.packages, snapshot.features);
+  if (scope === "testimonials") return buildTestimonialsMigrationPlan(snapshot.testimonials);
+  return buildMigrationPlan(snapshot);
+}
+
+async function fetchSnapshot(client: SanityClient, scope: MigrationScope): Promise<Snapshot> {
+  const rootIds = scope === "homepage" ? [HOMEPAGE_ID] : scope === "packages" ? [...PACKAGE_IDS] : scope === "testimonials" ? [...TESTIMONIAL_IDS] : [HOMEPAGE_ID, ...PACKAGE_IDS, ...TESTIMONIAL_IDS];
   const roots = await client.fetch<SanityDocument[]>(`*[_id in $ids]{..., "includedFeatureRefs": includedFeatures[]{_ref}}`, { ids: rootIds });
   const byId = new Map(roots.map((document) => [document._id, document]));
   for (const id of rootIds) if (!byId.has(id)) throw new Error(`Preflight failed: expected published Sanity document ${id} was not found.`);
-  const packages = PACKAGE_IDS.map((id) => byId.get(id) as SanityDocument);
-  const featureIds = resolveFeatureRefs(packages);
-  const features = await client.fetch<SanityDocument[]>(`*[_id in $ids]{...}`, { ids: featureIds });
-  return { homepage: byId.get(HOMEPAGE_ID) as SanityDocument, packages, testimonials: TESTIMONIAL_IDS.map((id) => byId.get(id) as SanityDocument), features };
+  const packages = scope === "packages" || scope === "all" ? PACKAGE_IDS.map((id) => byId.get(id) as SanityDocument) : [];
+  const testimonials = scope === "testimonials" || scope === "all" ? TESTIMONIAL_IDS.map((id) => byId.get(id) as SanityDocument) : [];
+  const features = packages.length > 0 ? await client.fetch<SanityDocument[]>(`*[_id in $ids]{...}`, { ids: resolveFeatureRefs(packages) }) : [];
+  return {
+    homepage: scope === "homepage" || scope === "all" ? byId.get(HOMEPAGE_ID) as SanityDocument : undefined,
+    packages,
+    testimonials,
+    features,
+  };
 }
 
-function printPlan(snapshot: Snapshot, plan: ReturnType<typeof buildMigrationPlan>, projectId: string, dataset: string): void {
+function printPlan(snapshot: Snapshot, plan: ReturnType<typeof buildMigrationPlan>, projectId: string, dataset: string, scope: MigrationScope): void {
   console.log(`Prerna content migration target: ${projectId}/${dataset}`);
-  console.log(`Resolved packageFeature references: ${plan.resolvedFeatureIds.join(", ")}`);
+  console.log(`Migration scope: ${scope}`);
+  console.log(`Resolved packageFeature references: ${plan.resolvedFeatureIds.length > 0 ? plan.resolvedFeatureIds.join(", ") : "not requested for this scope"}`);
   console.log(JSON.stringify({
     dryRun: true,
     writes: 0,
+    scope,
     arraysReplacedDeliberately: plan.operations.filter((operation) => operation.kind === "array-replacement").map((operation) => ({ documentId: operation.documentId, path: operation.path, reason: operation.reason })),
     operations: plan.operations.map(({ documentId, path: fieldPath, currentValue, proposedValue, changed, kind, reason }) => ({ documentId, fieldPath, currentValue, proposedValue, changed, kind, reason })),
-    snapshotDocumentIds: [snapshot.homepage._id, ...snapshot.packages.map((doc) => doc._id), ...snapshot.testimonials.map((doc) => doc._id), ...snapshot.features.map((doc) => doc._id)],
+    snapshotDocumentIds: [
+      ...(snapshot.homepage ? [snapshot.homepage._id] : []),
+      ...snapshot.packages.map((doc) => doc._id),
+      ...snapshot.testimonials.map((doc) => doc._id),
+      ...snapshot.features.map((doc) => doc._id),
+    ],
   }, null, 2));
 }
 
@@ -211,7 +264,12 @@ async function writeBackup(snapshot: Snapshot, backupDir: string, projectId: str
   await mkdir(resolvedDir, { recursive: true });
   const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
   const file = path.join(resolvedDir, `mason-sanity-backup-${timestamp}.json`);
-  const documents = [snapshot.homepage, ...snapshot.packages, ...snapshot.testimonials, ...snapshot.features];
+  const documents = [
+    ...(snapshot.homepage ? [snapshot.homepage] : []),
+    ...snapshot.packages,
+    ...snapshot.testimonials,
+    ...snapshot.features,
+  ];
   const payload = { generatedAt: new Date().toISOString(), projectId, dataset, documentIds: documents.map((document) => document._id), documents };
   await writeFile(file, JSON.stringify(payload, null, 2), "utf8");
   const verified = JSON.parse(await readFile(file, "utf8")) as typeof payload;
@@ -220,16 +278,16 @@ async function writeBackup(snapshot: Snapshot, backupDir: string, projectId: str
 }
 
 export async function runMigration(argv = process.argv.slice(2)): Promise<void> {
-  const { apply, backupDir } = parseMigrationArgs(argv);
+  const { apply, backupDir, scope } = parseMigrationArgs(argv);
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
   const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
   if (!projectId) throw new Error("NEXT_PUBLIC_SANITY_PROJECT_ID is required.");
   const token = process.env.SANITY_API_WRITE_TOKEN;
   if (apply && !token) throw new Error("SANITY_API_WRITE_TOKEN is required for --apply.");
   const client = createClient({ projectId, dataset, token, apiVersion: "2026-06-16", useCdn: false });
-  const snapshot = await fetchSnapshot(client);
-  const plan = buildMigrationPlan(snapshot);
-  printPlan(snapshot, plan, projectId, dataset);
+  const snapshot = await fetchSnapshot(client, scope);
+  const plan = buildMigrationPlanForScope(snapshot, scope);
+  printPlan(snapshot, plan, projectId, dataset, scope);
   if (!apply) {
     console.log("Dry run only. No writes made. Apply requires --apply --backup-dir <directory>.");
     return;

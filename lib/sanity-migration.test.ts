@@ -5,6 +5,7 @@ import {
   PACKAGE_IDS,
   TESTIMONIAL_IDS,
   buildMigrationPlan,
+  buildMigrationPlanForScope,
 } from "../scripts/migrate-prerna-content";
 import {
   assertApplyBackupDir,
@@ -73,10 +74,34 @@ test("ambiguous package feature references fail closed", () => {
 });
 
 test("apply requires an explicit backup directory and dry-run is the default", () => {
-  assert.deepEqual(parseMigrationArgs([]), { apply: false, dryRun: true, backupDir: undefined });
+  assert.deepEqual(parseMigrationArgs([]), { apply: false, dryRun: true, backupDir: undefined, scope: "all" });
   assert.throws(() => parseMigrationArgs(["--execute"]), /removed/);
   assert.throws(() => assertApplyBackupDir(undefined), /without --backup-dir/);
   assert.equal(parseMigrationArgs(["--apply", "--backup-dir", "/tmp/mason-backup"]).apply, true);
+  assert.equal(parseMigrationArgs(["--scope", "homepage"]).dryRun, true);
+});
+
+test("homepage scope is independently selectable and does not require package features", () => {
+  const source = snapshot();
+  const plan = buildMigrationPlanForScope({ homepage: source.homepage, packages: [], testimonials: [], features: [] }, "homepage");
+  assert.ok(plan.operations.length > 0);
+  assert.ok(plan.operations.every((operation) => operation.documentId === "homepage"));
+  assert.deepEqual(plan.resolvedFeatureIds, []);
+  assert.deepEqual(
+    plan.operations.filter((operation) => operation.path.startsWith("hero.")).map((operation) => operation.path),
+    ["hero.eyebrow", "hero.heading", "hero.subcopy", "hero.primaryCta", "hero.secondaryCta", "hero.supportPoints"],
+  );
+  assert.equal(parseMigrationArgs(["--scope", "homepage"]).scope, "homepage");
+  assert.equal(parseMigrationArgs(["--scope=homepage"]).scope, "homepage");
+});
+
+test("package scope retains the fail-closed feature reference check", () => {
+  const broken = snapshot();
+  broken.packages[1] = { ...broken.packages[1], includedFeatures: broken.packages[1].includedFeatures.slice(0, 11) };
+  assert.throws(
+    () => buildMigrationPlanForScope({ homepage: undefined, packages: broken.packages, testimonials: [], features: broken.features }, "packages"),
+    /same feature documents|exactly the approved/,
+  );
 });
 
 test("array helper reports deliberate replacement and keeps matching custom fields", () => {
