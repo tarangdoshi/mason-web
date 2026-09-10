@@ -43,15 +43,18 @@ export const siteContentQuery = groq`{
     summary,
     ctaLabel,
     priceLabel,
+    referencePrice,
+    currentPrice,
+    followUpLabel,
     savings,
     isFeatured,
     sortOrder,
     visual${imageProjection},
     visualHighlights,
-    "includedFeatures": includedFeatures[]->{key, label, description, benefits, sortOrder},
-    "availableAddOns": availableAddOns[]->{key, label, description, benefits, sortOrder}
+    "includedFeatures": includedFeatures[]->{key, label, publicLabel, publicDescription, quantity, description, benefits, sortOrder},
+    "availableAddOns": availableAddOns[]->{key, label, publicLabel, publicDescription, quantity, description, benefits, sortOrder}
   },
-  "packageFeatures": *[_type == "packageFeature"] | order(sortOrder asc){key, label, description, benefits, sortOrder},
+  "packageFeatures": *[_type == "packageFeature"] | order(sortOrder asc){key, label, publicLabel, publicDescription, quantity, description, benefits, sortOrder},
   "testimonials": *[_type == "testimonial"] | order(sortOrder asc){
     _id,
     name,

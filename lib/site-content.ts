@@ -51,6 +51,9 @@ const imageTransformSpecs = {
 type SanityFeature = {
   key?: string | null;
   label?: string | null;
+  publicLabel?: string | null;
+  publicDescription?: string | null;
+  quantity?: number | null;
   description?: string | null;
   benefits?: string[] | null;
   sortOrder?: number | null;
@@ -67,6 +70,9 @@ type SanityPackage = {
   summary?: string | null;
   ctaLabel?: string | null;
   priceLabel?: string | null;
+  referencePrice?: string | null;
+  currentPrice?: string | null;
+  followUpLabel?: string | null;
   savings?: string | null;
   isFeatured?: boolean | null;
   visual?: SanityImageValue | null;
@@ -203,8 +209,8 @@ function toFeature(item: SanityFeature | null | undefined): PackageFeatureItem |
 
   return {
     id: item.key,
-    label: item.label,
-    description: item.description || undefined,
+    label: item.publicLabel || item.label,
+    description: item.publicDescription || item.description || undefined,
     benefits: Array.isArray(item.benefits) ? item.benefits.filter((benefit): benefit is string => Boolean(benefit)) : undefined
   };
 }
@@ -332,7 +338,9 @@ function applySanityPackages(content: HomepageContent, packages: SanityPackage[]
     return {
       id: pkg.code!,
       name: pkg.name as PackagePlanContent["name"],
-      price: pkg.priceLabel || fallbackPlan?.price || pkg.name!,
+      price: pkg.currentPrice || fallbackPlan?.currentPrice || fallbackPlan?.price || pkg.name!,
+      referencePrice: pkg.referencePrice || fallbackPlan?.referencePrice,
+      currentPrice: pkg.currentPrice || fallbackPlan?.currentPrice || fallbackPlan?.price,
       savings: pkg.savings || fallbackPlan?.savings || (index === 0 ? "Core package" : "Premium package"),
       bestFor: pkg.bestFor || fallbackPlan?.bestFor,
       outcome: pkg.outcome || fallbackPlan?.outcome,

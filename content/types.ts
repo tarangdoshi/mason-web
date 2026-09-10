@@ -164,6 +164,8 @@ export interface PackagePlanContent {
   id: string;
   name: PackagePlanName;
   price: string;
+  referencePrice?: string;
+  currentPrice?: string;
   savings: string;
   bestFor?: string;
   outcome?: string;

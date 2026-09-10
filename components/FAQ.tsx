@@ -10,7 +10,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 const FAQS = [
   {
     q: "What does Mason Company do?",
-    a: "Mason Company upgrades existing bathrooms with safety components such as grab bars, anti-slip solutions, support accessories, lighting, drainage support, corner protection, and package-specific senior-friendly additions.",
+    a: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support.",
   },
   {
     q: "Who is Mason Company for?",
@@ -26,15 +26,15 @@ const FAQS = [
   },
   {
     q: "What packages do you offer?",
-    a: "Mason currently offers two packages: Standard and Advanced. Both install exactly the same complete kit. Advanced adds a safety check-up visit a year after installation.",
+    a: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install exactly the same complete kit. Advanced adds one technician safety check-up visit during the first year.",
   },
   {
     q: "What is included in Standard?",
-    a: "The complete kit - 12 upgrades in all: PVD-coated grab bars, anti-slip coating and mats, toilet / raised-seat / commode support, shower seating, sensor lighting, a two-way lock, corner safety, drainage solutions, and bathroom slippers.",
+    a: "The complete 12-part kit includes three vertical grab bars, an L / angled bar, a folding support bar, anti-slip treatment, two anti-slip mats, shower seating, a two-way lock, edge and corner protection, drainage support, bathroom slippers, and reinforced fixture support. Toilet-seat support, sensor lighting, and SOS hardware are not included.",
   },
   {
     q: "What is included in Advanced?",
-    a: "Exactly the same 12 upgrades as Standard - nothing is held back. Advanced adds a one-year safety check-up visit, where we return to inspect the fittings and tighten or replace anything that has worn.",
+    a: "Exactly the same 12-part installation kit as Standard. Advanced adds one technician follow-up visit within the first year: we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit.",
   },
   {
     q: "Can I buy only one product, like a grab bar?",

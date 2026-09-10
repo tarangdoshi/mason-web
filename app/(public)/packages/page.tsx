@@ -9,7 +9,8 @@ import VisitForm from "@/components/VisitForm";
 import PackageCard from "@/components/PackageCard";
 import PackageAdvisor from "@/components/PackageAdvisor";
 import { KIT } from "@/components/kit";
-import { PACKAGES } from "@/components/packages-data";
+import { getHomepageContentData } from "@/lib/site-content";
+import { packageCardFromPlan } from "@/components/packages-data";
 
 export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/packages"},
@@ -31,7 +32,9 @@ export const metadata: Metadata = {
    Surfaces alternate - sunken, paper, sunken - so each hand-off is a colour
    change rather than a gap, and nothing bottoms out on empty paper. */
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const content = await getHomepageContentData();
+  const packages = content.packagesSection.plans.map(packageCardFromPlan);
   return (
     <>
       <Nav />
@@ -53,7 +56,7 @@ export default function PackagesPage() {
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-cream-dim sm:text-lg">
                 We walk the bathroom with you first, then recommend Standard or
-                Advanced. Full refund any time before installation.
+                Advanced. Full refund before the technician arrives or starts implementation.
               </p>
 
               {/* Directly under the sentence it answers, not under the photo.
@@ -108,7 +111,7 @@ export default function PackagesPage() {
 
           <Reveal className="mt-8">
             <div className="grid gap-6 lg:grid-cols-2">
-              {PACKAGES.map((p) => (
+              {packages.map((p) => (
                 <PackageCard
                   key={p.name}
                   pkg={p}

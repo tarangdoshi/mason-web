@@ -473,6 +473,8 @@ export const homepageContent: HomepageContent = {
         bestFor: "Families who want the essential support and slip-risk upgrades for everyday bathroom use.",
         outcome: "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
         price: "Standard",
+        referencePrice: "₹35,000",
+        currentPrice: "₹30,000",
         savings: "Core package",
         visual: {
           src: "/images/hero/transformed-bathroom-desktop.jpg",
@@ -505,6 +507,8 @@ export const homepageContent: HomepageContent = {
         bestFor: "Families who want the full Mason safety setup with added comfort, premium finishes, and stronger sit-stand support.",
         outcome: "A more complete and premium bathroom safety upgrade, with stronger support for higher-risk daily routines.",
         price: "Advanced",
+        referencePrice: "₹44,000",
+        currentPrice: "₹37,000",
         savings: "Premium package",
         visual: {
           src: "/images/stock-web/upgrades/upgrade-shower-support.jpg",

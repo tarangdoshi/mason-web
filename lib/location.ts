@@ -36,6 +36,9 @@ declare global {
     google?: any;
     __aegisGooglePlaces__?: Promise<any | null>;
     __aegisGooglePlacesReady__?: () => void;
+    __aegisGooglePlacesFailed__?: boolean;
+    __aegisGoogleAuthHandler__?: boolean;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -45,6 +48,16 @@ export function getGoogleMapsApiKey(): string {
 
 export function loadGooglePlaces(): Promise<any | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
+  if (window.__aegisGooglePlacesFailed__) return Promise.resolve(null);
+  if (!window.__aegisGoogleAuthHandler__) {
+    const previous = window.gm_authFailure;
+    window.gm_authFailure = () => {
+      window.__aegisGooglePlacesFailed__ = true;
+      window.dispatchEvent(new Event("mason:places-unavailable"));
+      try { previous?.(); } catch { /* Other integrations must not block fallback. */ }
+    };
+    window.__aegisGoogleAuthHandler__ = true;
+  }
   const key = getGoogleMapsApiKey();
   if (!key) return Promise.resolve(null);
   if (window.google?.maps?.places) return Promise.resolve(window.google);
@@ -56,6 +69,10 @@ export function loadGooglePlaces(): Promise<any | null> {
       if (settled) return;
       settled = true;
       window.clearTimeout(timeout);
+      if (!value) {
+        window.__aegisGooglePlacesFailed__ = true;
+        window.dispatchEvent(new Event("mason:places-unavailable"));
+      }
       resolve(value);
     };
     const resolveReady = () => {

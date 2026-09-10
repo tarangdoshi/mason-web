@@ -42,22 +42,7 @@ export const comparePackagesContent: HomepageContent = {
     title: "Compare package options",
     subtitle: "Use this page for clarity on scope and pricing. Most families should start with a free assessment before choosing.",
     features: homepageContent.packagesSection.features,
-    addOnFeatures: [
-      {
-        id: "amc-recheck",
-        label: "AMC care plan",
-        description: "Optional follow-up support to keep installed safety components reliable after handover.",
-        benefits: [
-          "Periodic post-installation health check",
-          "Re-tightening and alignment review",
-          "Wear-and-tear inspection of installed support points",
-          "Priority support follow-up scheduling"
-        ]
-      }
-    ],
-    plans: homepageContent.packagesSection.plans.map((plan) => ({
-      ...plan,
-      availableAddOnIds: ["amc-recheck"]
-    }))
+    addOnFeatures: [],
+    plans: homepageContent.packagesSection.plans
   }
 };

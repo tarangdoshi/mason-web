@@ -64,6 +64,11 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
   const [value, setValue] = useState("");
   const [geoState, setGeoState] = useState<GeoState>("idle");
   const [hint, setHint] = useState<string | null>(null);
+  const [manualOnly, setManualOnly] = useState(false);
+  const valueRef = useRef(value);
+  const disabledRef = useRef(disabled);
+  valueRef.current = value;
+  disabledRef.current = disabled;
 
   useEffect(() => {
     onMetaRef.current = onMeta;
@@ -75,25 +80,43 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
 
   // Progressive enhancement: attach Google Places autocomplete when a key is set.
   useEffect(() => {
+    if (manualOnly) return;
     if (!getGoogleMapsApiKey()) {
       return; // no key → manual entry + geolocation only
     }
     let cancelled = false;
     let autocomplete: any;
     let listener: any;
+    let observer: MutationObserver | undefined;
+    const fallback = () => {
+      if (cancelled) return;
+      lastEnrichedRef.current = "";
+      onMetaRef.current?.(manualLocationMeta(valueRef.current));
+      setHint("You can enter your address manually and continue.");
+      // A new DOM input detaches Google's mutations/listeners completely.
+      setManualOnly(true);
+    };
+    window.addEventListener("mason:places-unavailable", fallback);
     ensurePacStyle();
 
     loadGooglePlaces().then((google) => {
-      if (cancelled || !google || !inputRef.current) {
+      if (cancelled || !inputRef.current) {
         return;
       }
+      if (!google || window.__aegisGooglePlacesFailed__) { fallback(); return; }
       try {
+        const input = inputRef.current;
+        observer = new MutationObserver(() => {
+          if (!disabledRef.current && (input.disabled || input.readOnly || input.placeholder !== "Start typing your full address")) fallback();
+        });
+        observer.observe(input, { attributes: true, attributeFilter: ["disabled", "readonly", "placeholder"] });
         autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
           fields: ["formatted_address", "geometry", "place_id", "address_components", "name"]
         });
         listener = autocomplete.addListener("place_changed", async () => {
           const place = autocomplete.getPlace();
           const resolved = await resolveSelectedGooglePlace(place);
+          if (cancelled || window.__aegisGooglePlacesFailed__) { fallback(); return; }
           const formatted = resolved.formattedAddress || inputRef.current?.value || "";
           setValue(formatted);
           lastEnrichedRef.current = formatted;
@@ -105,12 +128,14 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
           });
         });
       } catch {
-        // Autocomplete unavailable (e.g. legacy API disabled) → manual fallback.
+        fallback();
       }
-    });
+    }).catch(fallback);
 
     return () => {
       cancelled = true;
+      observer?.disconnect();
+      window.removeEventListener("mason:places-unavailable", fallback);
       try {
         listener?.remove?.();
         window.google?.maps?.event?.clearInstanceListeners?.(autocomplete);
@@ -118,7 +143,7 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
         /* noop */
       }
     };
-  }, [formSource]);
+  }, [formSource, manualOnly]);
 
   async function useMyLocation() {
     if (disabled || geoState === "locating") {
@@ -154,6 +179,7 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
     <label className={styles.fullWidth}>
       <span>Location / Area</span>
       <input
+        key={manualOnly ? "manual" : "places"}
         ref={inputRef}
         type="text"
         name="locationText"

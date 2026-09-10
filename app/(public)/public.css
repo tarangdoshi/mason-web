@@ -111,6 +111,11 @@ dialog:focus-visible {
   outline: none;
 }
 
+/* The integrated dialog uses a div so Places can appear above it. */
+[role="dialog"]:focus-visible { outline: none; }
+/* Prerna's buttons have no inherited legacy orange elevation. */
+button { box-shadow: none; }
+
 /* Default hairline colour for anything with a border but no explicit one.
    MUST stay inside @layer base: unlayered, this beats every border-* utility
    in @layer utilities no matter how specific, so border-sand-200,

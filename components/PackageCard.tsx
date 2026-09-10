@@ -112,6 +112,13 @@ export default function PackageCard({
         {pkg.bestFor}
       </p>
 
+      {(pkg.referencePrice || pkg.currentPrice) && (
+        <div className="mt-5 flex items-baseline gap-3" aria-label={`${pkg.name} price`}>
+          {pkg.referencePrice ? <span className={`text-sm line-through ${light ? "text-sand-100/60" : "text-sand-500"}`}>{pkg.referencePrice}</span> : null}
+          {pkg.currentPrice ? <span className={`font-display text-2xl font-bold ${light ? "text-sand-100" : "text-forest-700"}`}>{pkg.currentPrice}</span> : null}
+        </div>
+      )}
+
       {/* The first row and the one that differs carry the emphasis, the middle
           rows recede, an absence is muted rather than struck through. */}
       <ul className={`mt-7 space-y-3 border-t pt-7 ${s.rule}`}>

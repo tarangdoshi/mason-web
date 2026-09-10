@@ -1,8 +1,11 @@
 import Reveal from "./Reveal";
 import PackageCard from "./PackageCard";
-import { PACKAGES } from "./packages-data";
+import { packageCardFromPlan } from "./packages-data";
+import { getHomepageContentData } from "../lib/site-content";
 
-export default function Packages() {
+export default async function Packages() {
+  const content = await getHomepageContentData();
+  const packages = content.packagesSection.plans.map(packageCardFromPlan);
   return (
     <section
       id="packages"
@@ -20,8 +23,8 @@ export default function Packages() {
             <span className="accent-word on-dark">cover</span>.
           </h2>
           <p className="reveal mt-3 text-base leading-relaxed text-sand-100/75">
-            Both packages install everything, fitted by Mason-trained experts.
-            Advanced simply keeps looking after it for a year.
+            Both packages install the same complete kit, fitted by Mason-trained experts.
+            Advanced includes one safety check-up visit during the first year.
           </p>
         </div>
 
@@ -35,7 +38,7 @@ export default function Packages() {
             only, not the data: /packages renders the same two cards from the
             same array. */}
         <div className="mt-8 grid gap-6 lg:mt-6 lg:min-h-0 lg:flex-1 lg:grid-cols-2">
-          {PACKAGES.map((p) => (
+          {packages.map((p) => (
             <PackageCard
               key={p.name}
               pkg={p}

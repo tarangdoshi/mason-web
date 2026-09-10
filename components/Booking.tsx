@@ -3,7 +3,7 @@ import Reveal from "./Reveal";
 import Cta from "./Cta";
 
 const chips = [
-  "Full refund before installation",
+  "Full refund before technician arrival",
   "Doctor-informed planning",
   "Trained Mason experts",
 ];

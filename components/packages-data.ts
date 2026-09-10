@@ -39,6 +39,8 @@ export type Package = {
   bestFor: string;
   outcome: string;
   cta: string;
+  referencePrice?: string;
+  currentPrice?: string;
 };
 
 /* Lives here rather than in Packages.tsx because /packages describes the same
@@ -53,17 +55,36 @@ export const PACKAGES: Package[] = [
       "The full safety upgrade, installed, inspected and handed over in one go.",
     outcome:
       "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
+    referencePrice: "₹35,000",
+    currentPrice: "₹30,000",
     cta: "Book Standard",
   },
   {
     name: "Advanced",
-    badge: "The complete kit, plus a year of cover",
+    badge: "The complete kit + 1-Year Safety Check-Up Included",
     advanced: true,
     popular: false,
     bestFor:
-      "The same installation, with a safety check-up a year on to catch anything that has worked loose.",
+      "The same installation, with one included safety check-up during the first year.",
     outcome:
-      "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
+      "One technician visit within the first year to inspect the work, identify issues or additional support needs, and complete necessary corrective work covered by the package.",
+    referencePrice: "₹44,000",
+    currentPrice: "₹37,000",
     cta: "Book Advanced",
   },
 ];
+
+export function packageCardFromPlan(plan: { name: string; badge?: string; isFeatured?: boolean; bestFor?: string; outcome?: string; ctaLabel?: string; price?: string; referencePrice?: string; currentPrice?: string }, index: number): Package {
+  const fallback = PACKAGES[index] || PACKAGES[0];
+  return {
+    name: plan.name as Package["name"],
+    badge: plan.badge || fallback.badge,
+    advanced: plan.name === "Advanced",
+    popular: Boolean(plan.isFeatured ?? fallback.popular),
+    bestFor: plan.bestFor || fallback.bestFor,
+    outcome: plan.outcome || fallback.outcome,
+    cta: plan.ctaLabel || `Continue with ${plan.name}`,
+    referencePrice: plan.referencePrice || fallback.referencePrice,
+    currentPrice: plan.currentPrice || plan.price || fallback.currentPrice
+  };
+}

@@ -89,7 +89,7 @@ export default function Hero() {
               <span className="lg:block">
                 Most <span className="accent-word on-dark">falls</span> happen here.
               </span>{" "}
-              <span className="lg:block">We make sure yours don&rsquo;t.</span>
+              <span className="lg:block">We help make yours less likely.</span>
             </h1>
 
             <p className="hero-rise mx-auto mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mt-6 sm:text-lg lg:mx-0">
