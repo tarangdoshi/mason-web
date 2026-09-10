@@ -38,15 +38,17 @@ This audit compares the integrated Mason frontend with Prerna's implementation-l
 
 Sanity remains the publishing source of truth. The existing schemas and queries were extended only additively: `evidenceSection.cards[].prefix` is now available for the `Up to 38%` presentation. No published document was overwritten and no schema migration was run in this task.
 
-The read-only migration plan is [scripts/migrate-prerna-content.ts](../scripts/migrate-prerna-content.ts). It preflights the expected `homepage`, package and testimonial document IDs, prints the exact patch, and exits without writes by default. It requires both `--execute` and `SANITY_API_WRITE_TOKEN` before making a transaction. Before execution, export the target documents and review the printed patch. The planned patch restores the rows in the table above, while retaining the founder-approved package answers and package metadata.
+The migration plan is [scripts/migrate-prerna-content.ts](../scripts/migrate-prerna-content.ts). It resolves the package feature references from the two existing package documents, verifies the exact approved 12-item set and document types, prints document ID/field path/current/proposed values, and exits without writes by default. It uses leaf paths, preserves unknown fields, and reports deliberate array replacements. `--apply` is explicit, requires `SANITY_API_WRITE_TOKEN` and `--backup-dir`, writes and verifies a timestamped export first, then commits only changed fields. Draft IDs, missing documents, mismatched package references, unknown feature keys and incompatible array shapes fail closed. The former `migrate-package-catalog.ts` is retired so its create-if-missing/reference-replacement behavior cannot be used accidentally.
 
 Dry-run command:
 
 ```bash
 pnpm exec tsx scripts/migrate-prerna-content.ts --dry-run
+# after founder review and an external backup:
+pnpm exec tsx scripts/migrate-prerna-content.ts --apply --backup-dir /tmp/mason-sanity-backup
 ```
 
-No Sanity write command has been run. Existing published content is therefore still unchanged until the founder-approved CMS migration is separately executed.
+No Sanity read or write command completed in this environment because the configured Sanity endpoint was unreachable. Existing published content is therefore unchanged; the apply command remains gated for founder review and a verified backup.
 
 ## Functional and legal preservation
 
