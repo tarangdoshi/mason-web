@@ -30,6 +30,7 @@ export default function PackageCheckoutLink({
       className={className}
       data-analytics-event="package_cta_click"
       data-analytics-package={packageCode}
+      data-analytics-package-name={packageName}
       data-analytics-cta-location={entryPoint}
       data-analytics-section={pageSection}
       onClick={() =>

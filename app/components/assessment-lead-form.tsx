@@ -2,7 +2,8 @@
 
 import { useId, useRef, useState } from "react";
 import Link from "next/link";
-import { trackAnalyticsEvent } from "../../lib/analytics";
+import { setAnalyticsMarket, trackAnalyticsEvent } from "../../lib/analytics";
+import { createLeadFunnelTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../lib/lead-funnel";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
 import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../../lib/lead-submission";
 import { EMAIL_ERROR, toCanonicalEmail } from "../../lib/email";
@@ -20,7 +21,7 @@ type SubmissionState = "idle" | "submitting" | "success" | "error";
 // stays field-agnostic.
 const INLINE_ERROR_FIELD_ORDER = ["phone", "email"] as const;
 
-export default function AssessmentLeadForm() {
+export default function AssessmentLeadForm({ packageName }: { packageName?: string } = {}) {
   const formId = useId();
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -28,6 +29,8 @@ export default function AssessmentLeadForm() {
   const [email, setEmail] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const hasTrackedFormStartRef = useRef(false);
+  const funnelRef = useRef<LeadFunnelTracker | null>(null);
+  funnelRef.current ??= createLeadFunnelTracker(FORM_NAMES.safetyVisit);
   const gateRef = useRef(createSubmissionGate());
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -54,10 +57,12 @@ export default function AssessmentLeadForm() {
       cta_location: "assessment-form",
       section: "free-assessment"
     });
+    funnelRef.current?.start({ packageName });
   }
 
   function handleLocationMeta(meta: LocationMeta) {
     setLocationMeta(meta);
+    setAnalyticsMarket(meta.serviceability.locationMarket);
   }
 
   function handlePhoneChange(nationalDigits: string) {
@@ -86,6 +91,12 @@ export default function AssessmentLeadForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    // form_submit is every attempt, including ones the checks below stop;
+    // generate_lead fires only once the API has confirmed the lead.
+    if (!gateRef.current.isCompleted && !gateRef.current.isInFlight) {
+      funnelRef.current?.submitAttempt({ packageName });
+    }
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -158,6 +169,7 @@ export default function AssessmentLeadForm() {
 
     if (result.ok) {
       gateRef.current.complete();
+      funnelRef.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket, packageName });
       form.reset();
       setPhoneDigits("");
       setEmail("");
@@ -196,7 +208,12 @@ export default function AssessmentLeadForm() {
   const isSubmitting = submissionState === "submitting";
 
   return (
-    <form className={styles.form} onFocusCapture={trackFormStart} onChange={trackFormStart} onSubmit={handleSubmit}>
+    <form
+      className={styles.form}
+      onFocusCapture={(event) => isFormFieldEvent(event) && trackFormStart()}
+      onChange={(event) => isFormFieldEvent(event) && trackFormStart()}
+      onSubmit={handleSubmit}
+    >
       <div className={styles.grid}>
         <label>
           <span>

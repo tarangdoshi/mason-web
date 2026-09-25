@@ -1,4 +1,5 @@
 import Cta from "./Cta";
+import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
 import { PACKAGE_ROWS, type Package } from "./packages-data";
 
 /* One package, stated as a card. Shared by the homepage section and /packages
@@ -88,6 +89,7 @@ export default function PackageCard({
     <div
       className={`flex flex-col rounded-3xl p-7 lg:p-9 ${s.card} ${className}`}
     >
+      <AnalyticsViewTracker event="view_package" packageName={pkg.name} packagePrice={pkg.currentPrice} />
       {/* items-center, not items-baseline: the pill has its own padding, so
           sitting it on the display type's baseline drops it visibly low.
           leading-none keeps its box tight around the label. */}
@@ -175,7 +177,7 @@ export default function PackageCard({
 
       {/* mt-auto so the buttons sit on one line however the copy above wraps */}
       <div className="mt-auto pt-8">
-        <Cta packageName={pkg.name} href="#book" size="block" variant={s.cta}>
+        <Cta packageName={pkg.name} packagePrice={pkg.currentPrice} href="#book" size="block" variant={s.cta}>
           {pkg.cta}
         </Cta>
       </div>

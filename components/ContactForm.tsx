@@ -9,6 +9,7 @@ import { createSubmissionGate, submitGuidanceLead } from "../lib/lead-submission
 import { getLeadAttributionContext, getQuizContext } from "../lib/lead-context";
 import { manualLocationMeta } from "../lib/location";
 import { trackAnalyticsEvent } from "../lib/analytics";
+import { createLeadFunnelTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../lib/lead-funnel";
 import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
 import ServiceArea from "./ServiceArea";
 
@@ -66,6 +67,11 @@ export default function ContactForm() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const gate = useRef(createSubmissionGate());
+  const funnel = useRef<LeadFunnelTracker | null>(null);
+  funnel.current ??= createLeadFunnelTracker(FORM_NAMES.contact);
+  const trackStart = (event: React.SyntheticEvent) => {
+    if (isFormFieldEvent(event)) funnel.current?.start({ packageName: values.packageInterest });
+  };
 
   // Nothing is flagged until the first submit attempt — validating on blur
   // scolds people for fields they have simply not finished yet. Derived rather
@@ -77,6 +83,11 @@ export default function ContactForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Every attempt counts as form_submit, including one stopped by the
+    // checks below; generate_lead waits for the API's confirmation.
+    if (!gate.current.isCompleted && !gate.current.isInFlight) {
+      funnel.current?.submitAttempt({ packageName: values.packageInterest });
+    }
     setSubmitted(true);
     if (Object.keys(validate(values)).length > 0) return;
 
@@ -94,6 +105,7 @@ export default function ContactForm() {
     setBusy(false);
     if (result.ok) {
       gate.current.complete(); setDone(true);
+      funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket, packageName: values.packageInterest });
       trackAnalyticsEvent("guidance_lead_submit_success", {cta_location:"contact-form", section:"contact"});
     } else {gate.current.release(); setError(result.message);}
 
@@ -123,6 +135,8 @@ export default function ContactForm() {
     <div className="grid rounded-3xl border border-line bg-ink-raised p-6 sm:p-8 lg:p-10">
       <form
         onSubmit={onSubmit}
+        onFocusCapture={trackStart}
+        onChangeCapture={trackStart}
         noValidate
         className={`col-start-1 row-start-1 ${done ? "invisible" : ""}`}
       >

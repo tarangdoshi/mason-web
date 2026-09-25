@@ -5,6 +5,8 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Cta from "./Cta";
+import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
+import { SERVICE_NAMES } from "../lib/analytics";
 import type { ProcessSectionContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -170,6 +172,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
       ref={ref}
       className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-0"
     >
+      <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyInstallation} />
       <div className="mx-auto grid h-full max-w-7xl gap-12 px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-14 lg:px-10 lg:py-24">
         {/* left — heading + live progress */}
         <div>

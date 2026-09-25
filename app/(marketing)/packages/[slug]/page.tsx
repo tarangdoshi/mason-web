@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AssessmentLeadForm from "../../../components/assessment-lead-form";
+import AnalyticsViewTracker from "../../../components/analytics-view-tracker";
 import CmsImage from "../../../components/cms-image";
 import {
   getAvailableAddOnsFromEntry,
@@ -131,6 +132,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
         </nav>
 
         <section className={styles.hero}>
+          <AnalyticsViewTracker event="view_package" packageName={plan.name} packagePrice={plan.price} />
           <div className={styles.heroCopy}>
             {plan.badge ? <span className={styles.badge}>{plan.badge}</span> : null}
             <h1 className={styles.title}>{plan.name} bathroom safety package</h1>
@@ -146,6 +148,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 className={styles.secondaryCta}
                 data-analytics-event="package_cta_click"
                 data-analytics-package={plan.id}
+                data-analytics-package-name={plan.name}
+                data-analytics-package-price={plan.price}
                 data-analytics-cta-location="package-detail-hero"
                 data-analytics-section="package-detail"
               >
@@ -255,7 +259,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
             Share a few details and Mason will contact you to schedule a home visit or video assessment before you
             choose a package.
           </p>
-          <AssessmentLeadForm />
+          <AssessmentLeadForm packageName={plan.name} />
         </section>
 
         <nav className={styles.crossLinks} aria-label="More packages">
@@ -266,6 +270,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
             className={styles.secondaryCta}
             data-analytics-event="package_cta_click"
             data-analytics-package={plan.id}
+            data-analytics-package-name={plan.name}
+            data-analytics-package-price={plan.price}
             data-analytics-cta-location="package-detail-crosslinks"
             data-analytics-section="package-detail"
           >

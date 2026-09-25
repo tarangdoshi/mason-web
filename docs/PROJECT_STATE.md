@@ -68,3 +68,12 @@ Launch hardening — clearing go-live conditions and stabilising the Git-backed 
 - Public design integrated into canonical Next 15 app; existing API, CRM, package checkout and database contracts retained.
 - Production remains unchanged. See `FRONTEND_INTEGRATION_AUDIT.md` and `FRONTEND_HANDOFF.md` for scope, checks and remaining review gates.
 - Founder direction: do not repair the legacy staging API or create database/Redis infrastructure. Backend-dependent verification is recorded separately. Preview with no configured API returns an explicit unavailable response; no fake success and no Production test leads.
+
+## Marketing tracking — 25 September 2026 (branch `feature/marketing-tracking`, not deployed)
+
+- Implements the website events of Events Requirement.xlsx through the existing `lib/analytics.ts` abstraction: `page_view`, `view_service`, `view_package`, `select_package`, `form_start`, `form_submit`, `generate_lead`. Existing custom events are kept.
+- `generate_lead` fires only after the Mason API confirms the lead (`lib/lead-funnel.ts`); `form_submit` is every attempt. `lead_id` is the id returned by the API (the Zoho lead id on the zoho_direct path).
+- Attribution (`lib/lead-context.ts`): utm_source/medium/campaign/term/content, gclid, gbraid, wbraid, fbclid, captured from the landing URL, kept for the browser session in sessionStorage as one set (first campaign landing wins, never mixed), sent with every lead in `metadata.attribution`.
+- Destinations, each off until its variable is set: GA4 `NEXT_PUBLIC_GA_MEASUREMENT_ID` (existing); Google Ads lead conversion `NEXT_PUBLIC_GOOGLE_ADS_ID` + `NEXT_PUBLIC_GOOGLE_ADS_LEAD_CONVERSION_LABEL`; Meta Pixel `NEXT_PUBLIC_META_PIXEL_ID`.
+- No contact details are sent to analytics; values that look like an email or phone number are dropped.
+- Downstream funnel events (lead_contacted … installation_completed) are not implemented: their states live in Zoho or do not exist yet.

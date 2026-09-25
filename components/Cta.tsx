@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { getPackageCodeFromName } from "../lib/crm-contract";
 import { storeLeadCtaContext } from "../lib/lead-context";
-import { trackAnalyticsEvent } from "../lib/analytics";
+import { parsePackagePrice, trackAnalyticsEvent } from "../lib/analytics";
 import { ArrowForward } from "./Icon";
 import { useBooking } from "./BookingDialog";
 
@@ -59,6 +59,7 @@ const BOOKING_HREFS = new Set(["#book", "/#book"]);
 export default function Cta({
   href,
   packageName,
+  packagePrice,
   children,
   variant = "solid",
   size = "default",
@@ -67,6 +68,8 @@ export default function Cta({
 }: {
   href: string;
   packageName?: string;
+  /** Listed price, e.g. "₹30,000"; reported with select_package. */
+  packagePrice?: string;
   children: React.ReactNode;
   variant?: Variant;
   size?: Size;
@@ -97,8 +100,11 @@ export default function Cta({
         const section = event.currentTarget.closest("section")?.id || "navigation";
         storeLeadCtaContext({entryPoint:"assessment-form", ctaId:"book-free-safety-assessment", pageSection:section, packageName, packageCode:packageName ? getPackageCodeFromName(packageName) || undefined : undefined});
         trackAnalyticsEvent("homepage_cta_click", {cta_location:"public-cta",section});
-        if (packageName) trackAnalyticsEvent("package_cta_click", {package:packageName,cta_location:"public-package",section});
-        booking.open();
+        if (packageName) {
+          trackAnalyticsEvent("package_cta_click", {package:packageName,cta_location:"public-package",section});
+          trackAnalyticsEvent("select_package", {package_name:packageName,package_price:parsePackagePrice(packagePrice)});
+        }
+        booking.open(packageName);
       }} className={classes}>
         {label}
       </button>

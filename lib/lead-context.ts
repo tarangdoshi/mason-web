@@ -19,8 +19,29 @@ type AttributionContext = {
   utmTerm?: string;
   utmContent?: string;
   gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
   fbclid?: string;
 };
+
+/** Landing-URL parameter → stored attribution key. */
+const CAMPAIGN_PARAMS = {
+  utm_source: "utmSource",
+  utm_medium: "utmMedium",
+  utm_campaign: "utmCampaign",
+  utm_term: "utmTerm",
+  utm_content: "utmContent",
+  gclid: "gclid",
+  gbraid: "gbraid",
+  wbraid: "wbraid",
+  fbclid: "fbclid"
+} as const;
+
+export type CampaignAttribution = Partial<Record<(typeof CAMPAIGN_PARAMS)[keyof typeof CAMPAIGN_PARAMS], string>>;
+
+// Campaign URLs are outside Mason's control, so values are bounded here as
+// well as by the API before they reach Zoho.
+const MAX_CAMPAIGN_VALUE_LENGTH = 255;
 
 type QuizContext = {
   quizVersion: string;
@@ -65,9 +86,53 @@ function writeJsonToSessionStorage(key: string, value: unknown) {
   }
 }
 
-function getUrlParam(searchParams: URLSearchParams, key: string) {
-  const value = searchParams.get(key);
-  return value || undefined;
+function cleanCampaignValue(value: string | null | undefined) {
+  const cleaned = value?.replace(/[\u0000-\u001f\u007f]/g, "").trim();
+  return cleaned ? cleaned.slice(0, MAX_CAMPAIGN_VALUE_LENGTH) : undefined;
+}
+
+/** Campaign parameters on a landing URL, or null when it carries none. */
+export function readCampaignFromSearch(search: string): CampaignAttribution | null {
+  let searchParams: URLSearchParams;
+  try {
+    searchParams = new URLSearchParams(search);
+  } catch {
+    return null;
+  }
+
+  const campaign: CampaignAttribution = {};
+  for (const [param, key] of Object.entries(CAMPAIGN_PARAMS)) {
+    const value = cleanCampaignValue(searchParams.get(param));
+    if (value) {
+      campaign[key] = value;
+    }
+  }
+  return Object.keys(campaign).length > 0 ? campaign : null;
+}
+
+/** The campaign fields already held in a stored context, or null. */
+function storedCampaign(context: Partial<AttributionContext> | null): CampaignAttribution | null {
+  if (!context) {
+    return null;
+  }
+
+  const campaign: CampaignAttribution = {};
+  for (const key of Object.values(CAMPAIGN_PARAMS)) {
+    const value = cleanCampaignValue(typeof context[key] === "string" ? context[key] : undefined);
+    if (value) {
+      campaign[key] = value;
+    }
+  }
+  return Object.keys(campaign).length > 0 ? campaign : null;
+}
+
+/**
+ * The original campaign for this browser session. The first campaign landing
+ * is kept as one set: a later URL never mixes its parameters into it, so the
+ * source, medium, campaign and click ids always describe the same visit.
+ */
+function resolveCampaign(previous: Partial<AttributionContext> | null): CampaignAttribution {
+  return storedCampaign(previous) ?? readCampaignFromSearch(window.location.search) ?? {};
 }
 
 export function getLeadCaptureSessionId() {
@@ -91,7 +156,6 @@ export function storeLeadCtaContext(context: Partial<AttributionContext>) {
     return;
   }
 
-  const searchParams = new URLSearchParams(window.location.search);
   const previous = readJsonFromSessionStorage<AttributionContext>(ctaStorageKey);
 
   writeJsonToSessionStorage(ctaStorageKey, {
@@ -103,13 +167,7 @@ export function storeLeadCtaContext(context: Partial<AttributionContext>) {
     ctaId: context.ctaId || previous?.ctaId,
     packageCode: context.packageCode || previous?.packageCode,
     packageName: context.packageName || previous?.packageName,
-    utmSource: getUrlParam(searchParams, "utm_source") || previous?.utmSource,
-    utmMedium: getUrlParam(searchParams, "utm_medium") || previous?.utmMedium,
-    utmCampaign: getUrlParam(searchParams, "utm_campaign") || previous?.utmCampaign,
-    utmTerm: getUrlParam(searchParams, "utm_term") || previous?.utmTerm,
-    utmContent: getUrlParam(searchParams, "utm_content") || previous?.utmContent,
-    gclid: getUrlParam(searchParams, "gclid") || previous?.gclid,
-    fbclid: getUrlParam(searchParams, "fbclid") || previous?.fbclid
+    ...resolveCampaign(previous)
   } satisfies AttributionContext);
 }
 
@@ -119,7 +177,6 @@ export function getLeadAttributionContext(overrides: Partial<AttributionContext>
   }
 
   const storedCtaContext = readJsonFromSessionStorage<AttributionContext>(ctaStorageKey);
-  const searchParams = new URLSearchParams(window.location.search);
 
   return {
     sessionId: getLeadCaptureSessionId(),
@@ -130,13 +187,7 @@ export function getLeadAttributionContext(overrides: Partial<AttributionContext>
     ctaId: overrides.ctaId || storedCtaContext?.ctaId,
     packageCode: overrides.packageCode || storedCtaContext?.packageCode,
     packageName: overrides.packageName || storedCtaContext?.packageName,
-    utmSource: getUrlParam(searchParams, "utm_source") || storedCtaContext?.utmSource,
-    utmMedium: getUrlParam(searchParams, "utm_medium") || storedCtaContext?.utmMedium,
-    utmCampaign: getUrlParam(searchParams, "utm_campaign") || storedCtaContext?.utmCampaign,
-    utmTerm: getUrlParam(searchParams, "utm_term") || storedCtaContext?.utmTerm,
-    utmContent: getUrlParam(searchParams, "utm_content") || storedCtaContext?.utmContent,
-    gclid: getUrlParam(searchParams, "gclid") || storedCtaContext?.gclid,
-    fbclid: getUrlParam(searchParams, "fbclid") || storedCtaContext?.fbclid
+    ...resolveCampaign(storedCtaContext)
   };
 }
 
