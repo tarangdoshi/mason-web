@@ -3,46 +3,61 @@
 import { useRef, useState } from "react";
 import { ctaClass } from "./Cta";
 import { ArrowForward } from "./Icon";
-import { toCanonicalEmail } from "../lib/email";
-import { isValidNationalMobile, sanitizePhoneInput } from "../lib/phone";
-import { createSubmissionGate, submitGuidanceLead } from "../lib/lead-submission";
+import { EMAIL_ERROR, toCanonicalEmail } from "../lib/email";
+import { INDIAN_MOBILE_ERROR, formatNationalMobile, isValidNationalMobile, sanitizePhoneInput } from "../lib/phone";
+import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../lib/lead-submission";
 import { getLeadAttributionContext, getQuizContext } from "../lib/lead-context";
-import { manualLocationMeta } from "../lib/location";
-import { trackAnalyticsEvent } from "../lib/analytics";
+import { manualLocationMeta, type LocationMeta } from "../lib/location";
+import { setAnalyticsMarket, trackAnalyticsEvent } from "../lib/analytics";
 import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../lib/lead-funnel";
 import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
+import LocationField from "./LocationField";
 import ServiceArea from "./ServiceArea";
 
 type Values = {
   name: string;
   mobile: string;
   email: string;
-  packageInterest: string;
 };
 
 const EMPTY: Values = {
   name: "",
   mobile: "",
   email: "",
-  packageInterest: "",
 };
 
-/* Only these three block submission. The package is a nice-to-have, and
-   pressing someone to commit to one before they have spoken to us is the
-   fastest way to lose the enquiry. */
+/* These three block submission. Location is optional — see LocationField,
+   which mirrors the home page assessment form's address capture (Google
+   Places autocomplete + "use my location"). There is deliberately no
+   package selector here: the home page's assessment form has none either,
+   and this form now matches it field-for-field. */
 type Required = "name" | "mobile" | "email";
 type Errors = Partial<Record<Required, string>>;
+
+// In visual/tab order, so the first invalid field is the one focused — same
+// convention as the home page assessment form.
+const FIELD_ORDER: Required[] = ["name", "email", "mobile"];
+
+// Maps the API's field-error keys (public-leads schema: customerName/phone/
+// email) onto this form's own field names, so a server-side validation error
+// (e.g. a duplicate-enquiry check the client can't run) lands on the right
+// input the same way a client-side error does.
+const SERVER_FIELD_TO_LOCAL: Record<string, Required> = {
+  customerName: "name",
+  phone: "mobile",
+  email: "email",
+};
+const INLINE_ERROR_FIELD_ORDER = ["customerName", "email", "phone"] as const;
 
 function validate(v: Values): Errors {
   const errors: Errors = {};
   if (v.name.trim().length < 2) errors.name = "Please enter your full name.";
-  if (!isValidNationalMobile(v.mobile)) errors.mobile = "Enter a 10-digit mobile number.";
-  if (!toCanonicalEmail(v.email)) errors.email = "Enter a valid email address.";
+  if (!isValidNationalMobile(v.mobile)) errors.mobile = INDIAN_MOBILE_ERROR;
+  if (!toCanonicalEmail(v.email)) errors.email = EMAIL_ERROR;
   return errors;
 }
 
 const LABEL = "block text-sm font-semibold text-cream";
-const OPTIONAL = "ml-1.5 text-xs font-normal text-sand-400";
 
 /* The card is white, so fields go one step DOWN the elevation ladder into
    sand-100 — the inverse of the booking dialog, where a sand-50 dialog holds
@@ -58,61 +73,140 @@ const GROUP = `${FIELD} flex items-center gap-2.5`;
    each grid row the same height and stops the card growing on submit. */
 const ERROR = "mt-1.5 min-h-4 text-xs leading-4 text-brick";
 
-const PACKAGES = ["Standard", "Advanced", "Not sure yet"];
-
 export default function ContactForm() {
   const [values, setValues] = useState<Values>(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Field errors the server caught that our own client-side checks don't
+  // (e.g. a duplicate-enquiry rule). Kept separate from the derived `errors`
+  // below so a stale server message doesn't linger once the field is edited.
+  const [serverFieldErrors, setServerFieldErrors] = useState<Errors>({});
+  const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
+  // Bumped on "Send another enquiry" to remount LocationField, clearing its
+  // internal address text/hint — that state lives inside the field, not here.
+  const [formGeneration, setFormGeneration] = useState(0);
   const gate = useRef(createSubmissionGate());
   const funnel = useRef<LeadFunnelTracker | null>(null);
   funnel.current ??= createLeadFunnelTracker(FORM_NAMES.contact);
   const submitAttempt = useRef(createSubmitAttemptTracker());
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const fieldRefs: Record<Required, React.RefObject<HTMLInputElement | null>> = {
+    name: nameInputRef,
+    email: emailInputRef,
+    mobile: mobileInputRef,
+  };
   const trackStart = (event: React.SyntheticEvent) => {
-    if (isFormFieldEvent(event)) funnel.current?.start({ packageName: values.packageInterest });
+    if (isFormFieldEvent(event)) funnel.current?.start();
   };
 
   // Nothing is flagged until the first submit attempt — validating on blur
   // scolds people for fields they have simply not finished yet. Derived rather
   // than stored, so once errors ARE showing they clear live as you fix them.
-  const errors: Errors = submitted ? validate(values) : {};
+  // Server-side field errors are merged in on top, and cleared per-field as
+  // soon as the visitor edits that field again (see `set` below).
+  const errors: Errors = submitted ? { ...validate(values), ...serverFieldErrors } : {};
 
-  const set = <K extends keyof Values>(key: K, value: Values[K]) =>
+  const set = <K extends keyof Values>(key: K, value: Values[K]) => {
     setValues((v) => ({ ...v, [key]: value }));
+    if (key === "name" || key === "email" || key === "mobile") {
+      setServerFieldErrors((current) => {
+        if (!current[key as Required]) return current;
+        const next = { ...current };
+        delete next[key as Required];
+        return next;
+      });
+    }
+  };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  function handleLocationMeta(meta: LocationMeta) {
+    setLocationMeta(meta);
+    setAnalyticsMarket(meta.serviceability.locationMarket);
+  }
+
+  function focusField(ref: React.RefObject<HTMLInputElement | null> | undefined) {
+    ref?.current?.focus();
+    ref?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function focusFirstInvalid(errs: Errors) {
+    const first = FIELD_ORDER.find((field) => errs[field]);
+    if (first) focusField(fieldRefs[first]);
+  }
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     // Every attempt counts as form_submit, including one stopped by the
     // checks below; generate_lead waits for the API's confirmation.
     submitAttempt.current.submitEvent(trackSubmitAttempt);
     setSubmitted(true);
-    if (Object.keys(validate(values)).length > 0) return;
+    const clientErrors = validate(values);
+    if (Object.keys(clientErrors).length > 0) {
+      focusFirstInvalid(clientErrors);
+      return;
+    }
 
     if (!gate.current.tryBegin()) return;
     setBusy(true);
     setError(null);
-    const location = manualLocationMeta("");
+    setServerFieldErrors({});
+
+    // The location field manages its own typed text internally (see
+    // LocationField/useLocationAutocomplete); read the current value straight
+    // off the form the same way the assessment form does.
+    const formData = new FormData(form);
+    const locationText = String(formData.get("locationText") || "");
+    const resolvedLocationMeta = locationMeta ?? manualLocationMeta(locationText);
+
+    if (resolvedLocationMeta.source === "manual") {
+      trackAnalyticsEvent("location_picker_fallback", {
+        market: "UNKNOWN",
+        form_source: "contact_form",
+      });
+    }
+
     const result = await submitGuidanceLead({
       customerName: values.name.trim(), phone: `+91${values.mobile}`, email: toCanonicalEmail(values.email),
-      locationText: "Address not provided", enquiryTopic: values.packageInterest ? `Package enquiry - ${values.packageInterest}` : "Contact enquiry",
-      metadata: { source: "contact-form", intentCategory: "guidance", packageInterest: values.packageInterest,
-        location, locationMarket: "UNKNOWN", serviceability: location.serviceability,
-        attribution: getLeadAttributionContext({entryPoint:"contact-form", packageName: values.packageInterest || undefined}), quiz: getQuizContext() }
+      locationText: locationText.trim().length >= 2 ? locationText : "Address not provided",
+      enquiryTopic: "Contact enquiry",
+      metadata: { source: "contact-form", intentCategory: "guidance",
+        location: resolvedLocationMeta, locationMarket: resolvedLocationMeta.serviceability.locationMarket, serviceability: resolvedLocationMeta.serviceability,
+        attribution: getLeadAttributionContext({entryPoint:"contact-form"}), quiz: getQuizContext() }
     });
     setBusy(false);
     if (result.ok) {
       gate.current.complete(); setDone(true);
-      funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket, packageName: values.packageInterest });
+      funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket });
       trackAnalyticsEvent("guidance_lead_submit_success", {cta_location:"contact-form", section:"contact"});
-    } else {gate.current.release(); setError(result.message);}
+      return;
+    }
 
+    gate.current.release();
+
+    if (result.kind === "validation") {
+      const feedback = resolveValidationFeedback(result, INLINE_ERROR_FIELD_ORDER);
+      const mapped: Errors = {};
+      for (const [field, message] of Object.entries(feedback.fieldErrors)) {
+        const local = SERVER_FIELD_TO_LOCAL[field];
+        if (local) mapped[local] = message;
+      }
+      setServerFieldErrors(mapped);
+      setError(feedback.bannerMessage);
+      const localFocus = feedback.focusField ? SERVER_FIELD_TO_LOCAL[feedback.focusField] : null;
+      if (localFocus) focusField(fieldRefs[localFocus]);
+      return;
+    }
+
+    setError(result.message);
   };
 
   function trackSubmitAttempt() {
     if (!gate.current.isCompleted && !gate.current.isInFlight) {
-      funnel.current?.submitAttempt({ packageName: values.packageInterest });
+      funnel.current?.submitAttempt();
     }
   }
 
@@ -156,6 +250,7 @@ export default function ContactForm() {
             <input
               id="contact-name"
               name="name"
+              ref={nameInputRef}
               autoComplete="name"
               required
               value={values.name}
@@ -180,6 +275,7 @@ export default function ContactForm() {
             <input
               id="contact-email"
               name="email"
+              ref={emailInputRef}
               type="email"
               autoComplete="email"
               required
@@ -213,11 +309,12 @@ export default function ContactForm() {
               <input
                 id="contact-mobile"
                 name="mobile"
+                ref={mobileInputRef}
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel"
                 required
-                value={values.mobile}
+                value={formatNationalMobile(values.mobile)}
                 onChange={(e) => set("mobile", sanitizePhoneInput(e.target.value))}
                 aria-invalid={!!errors.mobile}
                 aria-describedby={describedBy("mobile")}
@@ -230,49 +327,12 @@ export default function ContactForm() {
             </p>
           </div>
 
-          <div>
-            <label htmlFor="contact-package" className={LABEL}>
-              Package you&rsquo;re considering
-              <span className={OPTIONAL}>optional</span>
-            </label>
-            {/* appearance-none + our own chevron: the native arrow is a different
-                grey on every platform and sat outside the design system. */}
-            <div className="relative">
-              <select
-                id="contact-package"
-                name="package"
-                value={values.packageInterest}
-                onChange={(e) => set("packageInterest", e.target.value)}
-                className={`${FIELD} appearance-none border-sand-200 pr-11 focus:border-forest-700 focus:outline-none ${
-                  values.packageInterest ? "" : "text-sand-400"
-                }`}
-              >
-                <option value="">Choose a package</option>
-                {PACKAGES.map((p) => (
-                  <option key={p} value={p} className="text-cream">
-                    {p}
-                  </option>
-                ))}
-              </select>
-              {/* mt-2 on the field means the chevron centres on the field, not
-                  the label + field box. */}
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                className="pointer-events-none absolute right-4 top-2 h-[calc(100%-0.5rem)] w-4 text-sand-400"
-                fill="none"
-              >
-                <path
-                  d="M7 10l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <p className={ERROR} />
-          </div>
+          <LocationField
+            key={formGeneration}
+            disabled={busy || done}
+            onMeta={handleLocationMeta}
+            className="sm:col-span-2"
+          />
         </div>
 
       {/* col-reverse, so the DOM order that gives text-left / button-right on
@@ -328,6 +388,9 @@ export default function ContactForm() {
                 setValues(EMPTY);
                 setSubmitted(false);
                 setDone(false); gate.current = createSubmissionGate(); setError(null);
+                setServerFieldErrors({});
+                setLocationMeta(null);
+                setFormGeneration((g) => g + 1);
               }}
               className={ctaClass({ variant: "outline" })}
             >
