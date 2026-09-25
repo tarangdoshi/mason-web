@@ -18,21 +18,19 @@ type Values = {
   name: string;
   mobile: string;
   email: string;
-  packageInterest: string;
 };
 
 const EMPTY: Values = {
   name: "",
   mobile: "",
   email: "",
-  packageInterest: "",
 };
 
-/* Only these three block submission. The package is a nice-to-have, and
-   pressing someone to commit to one before they have spoken to us is the
-   fastest way to lose the enquiry. Location is likewise optional — see
-   LocationField, which mirrors the home page assessment form's address
-   capture (Google Places autocomplete + "use my location"). */
+/* These three block submission. Location is optional — see LocationField,
+   which mirrors the home page assessment form's address capture (Google
+   Places autocomplete + "use my location"). There is deliberately no
+   package selector here: the home page's assessment form has none either,
+   and this form now matches it field-for-field. */
 type Required = "name" | "mobile" | "email";
 type Errors = Partial<Record<Required, string>>;
 
@@ -60,7 +58,6 @@ function validate(v: Values): Errors {
 }
 
 const LABEL = "block text-sm font-semibold text-cream";
-const OPTIONAL = "ml-1.5 text-xs font-normal text-sand-400";
 
 /* The card is white, so fields go one step DOWN the elevation ladder into
    sand-100 — the inverse of the booking dialog, where a sand-50 dialog holds
@@ -75,8 +72,6 @@ const GROUP = `${FIELD} flex items-center gap-2.5`;
 /* Reserved under EVERY field, not just the three that can error — it keeps
    each grid row the same height and stops the card growing on submit. */
 const ERROR = "mt-1.5 min-h-4 text-xs leading-4 text-brick";
-
-const PACKAGES = ["Standard", "Advanced", "Not sure yet"];
 
 export default function ContactForm() {
   const [values, setValues] = useState<Values>(EMPTY);
@@ -105,7 +100,7 @@ export default function ContactForm() {
     mobile: mobileInputRef,
   };
   const trackStart = (event: React.SyntheticEvent) => {
-    if (isFormFieldEvent(event)) funnel.current?.start({ packageName: values.packageInterest });
+    if (isFormFieldEvent(event)) funnel.current?.start();
   };
 
   // Nothing is flagged until the first submit attempt — validating on blur
@@ -177,15 +172,15 @@ export default function ContactForm() {
     const result = await submitGuidanceLead({
       customerName: values.name.trim(), phone: `+91${values.mobile}`, email: toCanonicalEmail(values.email),
       locationText: locationText.trim().length >= 2 ? locationText : "Address not provided",
-      enquiryTopic: values.packageInterest ? `Package enquiry - ${values.packageInterest}` : "Contact enquiry",
-      metadata: { source: "contact-form", intentCategory: "guidance", packageInterest: values.packageInterest,
+      enquiryTopic: "Contact enquiry",
+      metadata: { source: "contact-form", intentCategory: "guidance",
         location: resolvedLocationMeta, locationMarket: resolvedLocationMeta.serviceability.locationMarket, serviceability: resolvedLocationMeta.serviceability,
-        attribution: getLeadAttributionContext({entryPoint:"contact-form", packageName: values.packageInterest || undefined}), quiz: getQuizContext() }
+        attribution: getLeadAttributionContext({entryPoint:"contact-form"}), quiz: getQuizContext() }
     });
     setBusy(false);
     if (result.ok) {
       gate.current.complete(); setDone(true);
-      funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket, packageName: values.packageInterest });
+      funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket });
       trackAnalyticsEvent("guidance_lead_submit_success", {cta_location:"contact-form", section:"contact"});
       return;
     }
@@ -211,7 +206,7 @@ export default function ContactForm() {
 
   function trackSubmitAttempt() {
     if (!gate.current.isCompleted && !gate.current.isInFlight) {
-      funnel.current?.submitAttempt({ packageName: values.packageInterest });
+      funnel.current?.submitAttempt();
     }
   }
 
@@ -330,50 +325,6 @@ export default function ContactForm() {
             <p id="contact-mobile-error" aria-live="polite" className={ERROR}>
               {errors.mobile}
             </p>
-          </div>
-
-          <div>
-            <label htmlFor="contact-package" className={LABEL}>
-              Package you&rsquo;re considering
-              <span className={OPTIONAL}>optional</span>
-            </label>
-            {/* appearance-none + our own chevron: the native arrow is a different
-                grey on every platform and sat outside the design system. */}
-            <div className="relative">
-              <select
-                id="contact-package"
-                name="package"
-                value={values.packageInterest}
-                onChange={(e) => set("packageInterest", e.target.value)}
-                className={`${FIELD} appearance-none border-sand-200 pr-11 focus:border-forest-700 focus:outline-none ${
-                  values.packageInterest ? "" : "text-sand-400"
-                }`}
-              >
-                <option value="">Choose a package</option>
-                {PACKAGES.map((p) => (
-                  <option key={p} value={p} className="text-cream">
-                    {p}
-                  </option>
-                ))}
-              </select>
-              {/* mt-2 on the field means the chevron centres on the field, not
-                  the label + field box. */}
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                className="pointer-events-none absolute right-4 top-2 h-[calc(100%-0.5rem)] w-4 text-sand-400"
-                fill="none"
-              >
-                <path
-                  d="M7 10l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <p className={ERROR} />
           </div>
 
           <LocationField
