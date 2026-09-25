@@ -7,7 +7,7 @@ import CmsImage from "../../../components/cms-image";
 import type { PackageFeatureItem } from "../../../../content/types";
 import { trackAnalyticsEvent } from "../../../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../../../lib/lead-context";
-import { createLeadFunnelTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../../../lib/lead-funnel";
+import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../../../lib/lead-funnel";
 import styles from "../checkout.module.css";
 
 type CheckoutExperienceProps = {
@@ -232,6 +232,13 @@ export default function CheckoutExperience({
   const checkoutLeadSuccessTrackedRef = useRef(false);
   const funnelRef = useRef<LeadFunnelTracker | null>(null);
   funnelRef.current ??= createLeadFunnelTracker(FORM_NAMES.checkout);
+  const submitAttemptRef = useRef(createSubmitAttemptTracker());
+
+  function trackSubmitAttempt() {
+    if (!checkoutLeadIdRef.current && !isSubmittingReview) {
+      funnelRef.current?.submitAttempt({ packageName: entry.plan.name });
+    }
+  }
 
   const basePrice = useMemo(() => parsePriceAmount(entry.plan.price), [entry.plan.price]);
   const installationFee = paymentChoice === "installation" ? PAY_ON_INSTALLATION_SURCHARGE : 0;
@@ -571,9 +578,7 @@ export default function CheckoutExperience({
             event.preventDefault();
             // Attempts count until the booking lead exists; later submits only
             // refresh the review and are not new lead attempts.
-            if (!checkoutLeadIdRef.current && !isSubmittingReview) {
-              funnelRef.current?.submitAttempt({ packageName: entry.plan.name });
-            }
+            submitAttemptRef.current.submitEvent(trackSubmitAttempt);
             setFormError(null);
 
             if (!serviceableLocation) {
@@ -667,14 +672,9 @@ export default function CheckoutExperience({
                   throw new Error(payload?.error || "We could not prepare your booking request.");
                 }
 
-                const payload = (await response.json()) as { data?: { id?: string; locationMarket?: string } };
+                const payload = (await response.json()) as { data?: { id?: string } };
                 if (!checkoutLeadSuccessTrackedRef.current) {
                   checkoutLeadSuccessTrackedRef.current = true;
-                  funnelRef.current?.leadCreated({
-                    leadId: payload.data?.id,
-                    locationMarket: payload.data?.locationMarket,
-                    packageName: entry.plan.name
-                  });
                   trackAnalyticsEvent("checkout_lead_submit_success", {
                     package: entry.plan.id,
                     cta_location: "checkout-review",
@@ -863,7 +863,7 @@ export default function CheckoutExperience({
                   <div className={styles.finalActionCta}>
                     <p className={styles.reviewTitle}>{paymentChoice === "online" ? "Online payment link requested" : "Pay on installation selected"}</p>
                     <p className={styles.reviewCopy}>{stickySummary}</p>
-                    <button type="submit" className={styles.primaryButton} disabled={isSubmittingReview}>
+                    <button type="submit" className={styles.primaryButton} disabled={isSubmittingReview} onClick={() => submitAttemptRef.current.submitClick(trackSubmitAttempt)}>
                       {isSubmittingReview ? "Preparing booking..." : "Review booking details"}
                     </button>
                     <LeadPrivacyNotice className={styles.privacyNotice} />

@@ -144,6 +144,7 @@ export default function ComparePackagesView({
                     ctaId={`book-${plan.id}`}
                     packageCode={plan.id}
                     packageName={plan.name}
+                    packagePrice={plan.currentPrice || plan.price}
                   >
                     {`Continue with ${plan.name}`}
                   </PackageCheckoutLink>

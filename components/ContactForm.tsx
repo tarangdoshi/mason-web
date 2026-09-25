@@ -9,7 +9,7 @@ import { createSubmissionGate, submitGuidanceLead } from "../lib/lead-submission
 import { getLeadAttributionContext, getQuizContext } from "../lib/lead-context";
 import { manualLocationMeta } from "../lib/location";
 import { trackAnalyticsEvent } from "../lib/analytics";
-import { createLeadFunnelTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../lib/lead-funnel";
+import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../lib/lead-funnel";
 import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
 import ServiceArea from "./ServiceArea";
 
@@ -69,6 +69,7 @@ export default function ContactForm() {
   const gate = useRef(createSubmissionGate());
   const funnel = useRef<LeadFunnelTracker | null>(null);
   funnel.current ??= createLeadFunnelTracker(FORM_NAMES.contact);
+  const submitAttempt = useRef(createSubmitAttemptTracker());
   const trackStart = (event: React.SyntheticEvent) => {
     if (isFormFieldEvent(event)) funnel.current?.start({ packageName: values.packageInterest });
   };
@@ -85,9 +86,7 @@ export default function ContactForm() {
     e.preventDefault();
     // Every attempt counts as form_submit, including one stopped by the
     // checks below; generate_lead waits for the API's confirmation.
-    if (!gate.current.isCompleted && !gate.current.isInFlight) {
-      funnel.current?.submitAttempt({ packageName: values.packageInterest });
-    }
+    submitAttempt.current.submitEvent(trackSubmitAttempt);
     setSubmitted(true);
     if (Object.keys(validate(values)).length > 0) return;
 
@@ -110,6 +109,12 @@ export default function ContactForm() {
     } else {gate.current.release(); setError(result.message);}
 
   };
+
+  function trackSubmitAttempt() {
+    if (!gate.current.isCompleted && !gate.current.isInFlight) {
+      funnel.current?.submitAttempt({ packageName: values.packageInterest });
+    }
+  }
 
   /* Active state is the border itself going green — same 1px stroke as at
      rest, so nothing thickens or shifts. The global 2px offset outline is
@@ -280,6 +285,7 @@ export default function ContactForm() {
 
           <button
             type="submit"
+            onClick={() => submitAttempt.current.submitClick(trackSubmitAttempt)}
             disabled={busy || done}
             /* justify-center: stacked, this is a flex item in a column, so it
                stretches to the full width while its own justify-content stays

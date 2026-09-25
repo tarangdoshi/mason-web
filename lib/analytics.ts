@@ -182,6 +182,7 @@ const campaignQueryParams = [
   "wbraid",
   "fbclid"
 ];
+const analyticsCampaignTextKeys = new Set(["utm_source", "utm_medium", "utm_campaign", "utm_content"]);
 
 /* Meta receives only the events the tracking spreadsheet assigns to it; the
    successful lead is sent as Meta's standard Lead event. */
@@ -244,7 +245,41 @@ function sanitizeContextValue(value: string | undefined) {
    campaigns, never people. A value that looks like an email address or a phone
    number is dropped rather than sent. */
 function looksLikeContactDetail(value: string) {
-  return value.includes("@") || /\d{10,}/.test(value.replace(/[\s()+-]/g, ""));
+  let decoded = value;
+  try {
+    decoded = decodeURIComponent(value);
+  } catch {
+    // An invalid escape is still checked as written.
+  }
+  return decoded.includes("@") || /\d{10,}/.test(decoded.replace(/[\s()+._-]/g, ""));
+}
+
+/** Campaign values in analytics are identifiers, not arbitrary free text. */
+function safeAnalyticsCampaignValue(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  return trimmed && /^[A-Za-z0-9._~:/=-]+$/.test(trimmed) && !looksLikeContactDetail(trimmed)
+    ? trimmed.slice(0, 255)
+    : undefined;
+}
+
+function safeAnalyticsPath(pathname: string) {
+  return looksLikeContactDetail(pathname) || /%20|\s/i.test(pathname) ? "/" : pathname;
+}
+
+function sanitizePageLocation(raw: string) {
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (url.origin !== window.location.origin) return undefined;
+    const kept = new URLSearchParams();
+    for (const param of campaignQueryParams) {
+      const value = safeAnalyticsCampaignValue(url.searchParams.get(param));
+      if (value) kept.set(param, value);
+    }
+    const query = kept.toString();
+    return `${url.origin}${safeAnalyticsPath(url.pathname)}${query ? `?${query}` : ""}`;
+  } catch {
+    return undefined;
+  }
 }
 
 /* Lead ids are opaque record ids (for example a Zoho CRM record id), which are
@@ -259,7 +294,7 @@ export function getCurrentAnalyticsPage() {
     return "/";
   }
 
-  return sanitizeContextValue(window.location.pathname) || "/";
+  return safeAnalyticsPath(window.location.pathname);
 }
 
 /** The current URL with only campaign parameters kept on the query string. */
@@ -268,20 +303,7 @@ export function getAnalyticsPageLocation() {
     return undefined;
   }
 
-  try {
-    const url = new URL(window.location.href);
-    const kept = new URLSearchParams();
-    for (const param of campaignQueryParams) {
-      const value = url.searchParams.get(param);
-      if (value) {
-        kept.set(param, value.slice(0, 255));
-      }
-    }
-    const query = kept.toString();
-    return `${url.origin}${url.pathname}${query ? `?${query}` : ""}`;
-  } catch {
-    return undefined;
-  }
+  return sanitizePageLocation(window.location.href);
 }
 
 const marketCityLabels: Record<string, string> = {
@@ -340,7 +362,7 @@ function buildSafePayload(eventName: AnalyticsEventName, payload: AnalyticsPaylo
   for (const key of allowedTextKeys) {
     const raw = payload[key];
     const safeValue = typeof raw === "string" ? sanitizeContextValue(raw) : undefined;
-    if (safeValue && !looksLikeContactDetail(safeValue)) {
+    if (safeValue && !looksLikeContactDetail(safeValue) && (!analyticsCampaignTextKeys.has(key) || safeAnalyticsCampaignValue(safeValue))) {
       safePayload[key] = safeValue;
     }
   }
@@ -358,7 +380,7 @@ function buildSafePayload(eventName: AnalyticsEventName, payload: AnalyticsPaylo
   }
 
   if (typeof payload.page_location === "string" && payload.page_location) {
-    safePayload.page_location = payload.page_location;
+    safePayload.page_location = sanitizePageLocation(payload.page_location);
   }
 
   if (!safePayload.page) {
@@ -484,14 +506,25 @@ export function trackAnalyticsEvent<EventName extends AnalyticsEventName>(
     return;
   }
 
+  let safePayload: AnalyticsPayload;
   try {
-    const safePayload = buildSafePayload(eventName, payload as AnalyticsPayload);
-
+    safePayload = buildSafePayload(eventName, payload as AnalyticsPayload);
+  } catch {
+    return;
+  }
+  try {
     if (getAnalyticsMeasurementId() && ensureGoogleTag()) {
       window.gtag?.("event", eventName, safePayload);
     }
-
+  } catch {
+    // One destination must not prevent another from receiving the event.
+  }
+  try {
     sendToGoogleAds(eventName, safePayload);
+  } catch {
+    // Google Ads is independent of GA4 and Meta.
+  }
+  try {
     sendToMeta(eventName, safePayload);
   } catch {
     // Analytics must never affect navigation, forms, checkout, or lead creation.
@@ -499,13 +532,12 @@ export function trackAnalyticsEvent<EventName extends AnalyticsEventName>(
 }
 
 /* ---------------------------------------------------------------------------
-   Once-per-page-view guards. React Strict Mode, hydration and remounting can
-   run an effect or observer callback more than once for a single real view;
-   these keep page_view and the view_* events to one per page view. */
+   Page and route-scoped view guards. React Strict Mode, hydration and
+   remounting can repeat effects or observer callbacks for the same route. */
 
 const PAGE_VIEW_REPEAT_WINDOW_MS = 2000;
 let lastPageView: { key: string; at: number } | null = null;
-const viewedOnCurrentPage = new Set<string>();
+const viewedByRoute = new Set<string>();
 
 /** Tracks page_view unless this exact location was just tracked. */
 export function trackPageView(now: number = Date.now()) {
@@ -519,10 +551,6 @@ export function trackPageView(now: number = Date.now()) {
     return false;
   }
 
-  const pathChanged = !lastPageView || new URL(lastPageView.key, window.location.origin).pathname !== window.location.pathname;
-  if (pathChanged) {
-    viewedOnCurrentPage.clear();
-  }
   lastPageView = { key, at: now };
 
   let pageTitle: string | undefined;
@@ -533,24 +561,24 @@ export function trackPageView(now: number = Date.now()) {
   }
 
   trackAnalyticsEvent("page_view", {
-    page: window.location.pathname || "/",
+    page: getCurrentAnalyticsPage(),
     page_location: pageLocation,
     page_title: pageTitle
   });
   return true;
 }
 
-/** True the first time `key` is seen on the current page view. */
+/** True the first time a route-scoped key is seen, even across remounts. */
 export function markViewedOnce(key: string) {
-  if (viewedOnCurrentPage.has(key)) {
+  if (viewedByRoute.has(key)) {
     return false;
   }
-  viewedOnCurrentPage.add(key);
+  viewedByRoute.add(key);
   return true;
 }
 
 /** Test seam: forget page-view and view history. */
 export function resetAnalyticsViewState() {
   lastPageView = null;
-  viewedOnCurrentPage.clear();
+  viewedByRoute.clear();
 }

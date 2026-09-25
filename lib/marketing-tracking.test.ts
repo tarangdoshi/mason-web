@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   markViewedOnce,
   parsePackagePrice,
@@ -11,8 +13,15 @@ import {
   trackPageView
 } from "./analytics";
 import { getLeadAttributionContext, readCampaignFromSearch, storeLeadCtaContext } from "./lead-context";
-import { createLeadFunnelTracker, FORM_NAMES, isFormFieldEvent } from "./lead-funnel";
+import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent } from "./lead-funnel";
 import { submitGuidanceLead } from "./lead-submission";
+import { homepageContent } from "../content/homepage.content";
+import PackageCheckoutLink from "../app/components/package-checkout-link";
+import { trackElementClick } from "../app/components/launch-analytics";
+
+// jsdom executes native form constraint validation, including the case where
+// an invalid form never receives a submit event.
+const { JSDOM } = require("jsdom");
 
 /* A minimal browser: location, sessionStorage, document, and a gtag/fbq that
    record what they were given. */
@@ -253,6 +262,75 @@ test("forms wire each funnel step to the right moment", () => {
   }
 });
 
+test("browser submit clicks count once with native validation, and retries count again", () => {
+  const forms = [
+    "app/components/assessment-lead-form.tsx",
+    "components/ContactForm.tsx",
+    "app/(marketing)/checkout/components/checkout-experience.tsx"
+  ];
+  for (const file of forms) {
+    const source = readFileSync(resolve(process.cwd(), file), "utf8");
+    assert.match(source, /submitClick\(trackSubmitAttempt\)/, `${file} must count button clicks`);
+    assert.match(source, /submitEvent\(trackSubmitAttempt\)/, `${file} must deduplicate submit events`);
+  }
+
+  for (const [caseName, name, email, expectedSubmitEvent] of [
+    ["valid", "Asha Nair", "asha@example.test", true],
+    ["missing required field", "", "asha@example.test", false],
+    ["invalid email", "Asha Nair", "not-an-email", false]
+  ] as const) {
+    withBrowser("https://www.masoncompany.in/contact", GA, (_browser, gtagCalls) => {
+      const dom = new JSDOM('<form><input name="name" required><input name="email" type="email" required><button type="submit">Send</button></form>');
+      const form = dom.window.document.querySelector("form") as HTMLFormElement;
+      const button = form.querySelector("button") as HTMLButtonElement;
+      (form.elements.namedItem("name") as HTMLInputElement).value = name;
+      (form.elements.namedItem("email") as HTMLInputElement).value = email;
+      const intent = createSubmitAttemptTracker();
+      const funnel = createLeadFunnelTracker(FORM_NAMES.contact);
+      let submitEvents = 0;
+      form.addEventListener("click", (event: Event) => {
+        if (event.target === button) intent.submitClick(() => funnel.submitAttempt());
+      });
+      form.addEventListener("submit", (event: Event) => {
+        event.preventDefault();
+        submitEvents += 1;
+        intent.submitEvent(() => funnel.submitAttempt());
+      });
+
+      form.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+      assert.equal(events(gtagCalls, "form_submit").length, 0, `${caseName}: field interaction is not a submit`);
+      button.click();
+      assert.equal(submitEvents, expectedSubmitEvent ? 1 : 0, caseName);
+      assert.equal(events(gtagCalls, "form_submit").length, 1, `${caseName}: exactly one attempt`);
+      if (expectedSubmitEvent) {
+        button.click(); // The first network request failed; the user retries.
+        assert.equal(events(gtagCalls, "form_submit").length, 2);
+      }
+      dom.window.close();
+    });
+  }
+});
+
+test("checkout DB success keeps review UX without a paid lead conversion", () => {
+  const checkout = readFileSync(resolve(process.cwd(), "app/(marketing)/checkout/components/checkout-experience.tsx"), "utf8");
+  assert.doesNotMatch(checkout, /leadCreated\(/);
+  assert.match(checkout, /trackAnalyticsEvent\("checkout_lead_submit_success"/);
+  assert.match(checkout, /checkoutLeadIdRef\.current = payload\.data\?\.id \|\| "captured"/);
+  assert.match(checkout, /setReviewState\(reviewPayload\)/);
+
+  withBrowser("https://www.masoncompany.in/checkout/package-standard", {
+    ...GA, NEXT_PUBLIC_GOOGLE_ADS_ID: "AW-1", NEXT_PUBLIC_GOOGLE_ADS_LEAD_CONVERSION_LABEL: "lead", NEXT_PUBLIC_META_PIXEL_ID: "123"
+  }, (_browser, gtagCalls, fbqCalls) => {
+    createLeadFunnelTracker(FORM_NAMES.checkout).submitAttempt({ packageName: "Standard" });
+    trackAnalyticsEvent("checkout_lead_submit_success", { package: "package-standard", cta_location: "checkout-review", section: "checkout" });
+    assert.equal(events(gtagCalls, "form_submit").length, 1);
+    assert.equal(events(gtagCalls, "checkout_lead_submit_success").length, 1);
+    assert.equal(events(gtagCalls, "generate_lead").length, 0);
+    assert.equal(events(gtagCalls, "conversion").length, 0);
+    assert.equal(fbqCalls.filter((call) => call[1] === "Lead").length, 0);
+  });
+});
+
 // ------------------------------------------------------ page and view events
 
 test("page_view fires once per navigation, not per effect re-run", () => {
@@ -294,6 +372,56 @@ test("each package or service view counts once per page view", () => {
   });
 });
 
+test("a view recorded before deferred page_view survives navigation timing and remounts", () => {
+  withBrowser("https://www.masoncompany.in/", GA, (browser) => {
+    trackPageView(1000);
+    setUrl(browser, "https://www.masoncompany.in/packages/standard");
+    assert.equal(markViewedOnce("/packages/standard:view_package:Standard"), true);
+    trackPageView(2000);
+    assert.equal(markViewedOnce("/packages/standard:view_package:Standard"), false);
+    assert.equal(markViewedOnce("/packages/standard:view_service:Safety Assessment"), true);
+    assert.equal(markViewedOnce("/packages/standard:view_service:Safety Assessment"), false);
+    setUrl(browser, "https://www.masoncompany.in/packages/advanced");
+    trackPageView(3000);
+    assert.equal(markViewedOnce("/packages/advanced:view_package:Standard"), true);
+    setUrl(browser, "https://www.masoncompany.in/packages/standard");
+    trackPageView(4000);
+    assert.equal(markViewedOnce("/packages/standard:view_package:Standard"), false);
+  });
+});
+
+test("homepage and comparison package CTAs emit current Standard and Advanced prices", () => {
+  for (const file of ["app/home-page-view.tsx", "app/(marketing)/compare-packages/compare-packages-view.tsx"]) {
+    const source = readFileSync(resolve(process.cwd(), file), "utf8");
+    assert.match(source, /packagePrice=\{plan\.currentPrice \|\| plan\.price\}/);
+  }
+  for (const [name, expectedPrice] of [["Standard", 30000], ["Advanced", 37000]] as const) {
+    const plan = homepageContent.packagesSection.plans.find((item) => item.name === name);
+    assert.ok(plan);
+    const sellingPrice = plan.currentPrice || plan.price;
+    assert.equal(parsePackagePrice(sellingPrice), expectedPrice);
+    Object.defineProperty(globalThis, "React", { value: React, configurable: true });
+    const markup = renderToStaticMarkup(React.createElement(PackageCheckoutLink, {
+      href: `/checkout/${plan.id}`, entryPoint: "package-card", pageSection: "packages", ctaId: `book-${plan.id}`,
+      packageCode: plan.id, packageName: plan.name, packagePrice: sellingPrice
+    } as React.ComponentProps<typeof PackageCheckoutLink>, `Continue with ${name}`));
+    const dom = new JSDOM(markup);
+    const anchor = dom.window.document.querySelector("a") as HTMLAnchorElement;
+    assert.equal(anchor.dataset.analyticsPackagePrice, sellingPrice);
+    Object.defineProperty(globalThis, "HTMLAnchorElement", { value: dom.window.HTMLAnchorElement, configurable: true });
+    try {
+      withBrowser("https://www.masoncompany.in/", GA, (_browser, gtagCalls) => {
+        trackElementClick(anchor);
+        assert.deepEqual(events(gtagCalls, "select_package").map((event) => [event.package_name, event.package_price]), [[name, expectedPrice]]);
+      });
+    } finally {
+      Reflect.deleteProperty(globalThis, "HTMLAnchorElement");
+      Reflect.deleteProperty(globalThis, "React");
+      dom.window.close();
+    }
+  }
+});
+
 test("city is attached once the market is known, and omitted before", () => {
   withBrowser("https://www.masoncompany.in/", GA, (_browser, gtagCalls) => {
     trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 30000 });
@@ -333,6 +461,33 @@ test("contact details never reach analytics parameters", () => {
   });
 });
 
+test("campaign URL and event values keep safe attribution but exclude contact details", () => {
+  withBrowser("https://www.masoncompany.in/?utm_source=asha%40example.test&utm_medium=cpc&utm_campaign=98765-43210&utm_content=launch_01&unapproved=drop", GA, (_browser, gtagCalls) => {
+    trackPageView(1000);
+    const page = events(gtagCalls, "page_view")[0];
+    assert.equal(page.page_location, "https://www.masoncompany.in/?utm_medium=cpc&utm_content=launch_01");
+    assert.equal(JSON.stringify(page).includes("asha"), false);
+    assert.equal(JSON.stringify(page).includes("98765"), false);
+    assert.equal(JSON.stringify(page).includes("unapproved"), false);
+
+    trackAnalyticsEvent("generate_lead", {
+      form_name: "Safety Visit Form", utm_source: "asha@example.test", utm_campaign: "98765-43210", utm_medium: "cpc",
+      utm_content: "123 Main Street", lead_id: "zoho-id"
+    });
+    const lead = events(gtagCalls, "generate_lead")[0];
+    assert.equal(lead.utm_source, undefined);
+    assert.equal(lead.utm_campaign, undefined);
+    assert.equal(lead.utm_content, undefined);
+    assert.equal(lead.utm_medium, "cpc");
+
+    trackAnalyticsEvent("page_view", {
+      page: "/", page_location: "https://www.masoncompany.in/?utm_source=another%40example.test&utm_campaign=98765.43210&utm_medium=cpc"
+    });
+    const directPage = events(gtagCalls, "page_view")[1];
+    assert.equal(directPage.page_location, "https://www.masoncompany.in/?utm_medium=cpc");
+  });
+});
+
 test("a failing analytics destination cannot break the caller", () => {
   withBrowser("https://www.masoncompany.in/", { ...GA, NEXT_PUBLIC_META_PIXEL_ID: "123" }, (browser) => {
     browser.gtag = () => {
@@ -344,6 +499,24 @@ test("a failing analytics destination cannot break the caller", () => {
     assert.doesNotThrow(() => createLeadFunnelTracker(FORM_NAMES.safetyVisit).leadCreated({ leadId: "1", locationMarket: "GOA" }));
     assert.doesNotThrow(() => trackPageView(1000));
   });
+});
+
+test("GA4 or Google Ads failure still attempts the other destinations", () => {
+  for (const failingEvent of ["generate_lead", "conversion"]) {
+    withBrowser("https://www.masoncompany.in/", {
+      ...GA, NEXT_PUBLIC_GOOGLE_ADS_ID: "AW-1", NEXT_PUBLIC_GOOGLE_ADS_LEAD_CONVERSION_LABEL: "lead", NEXT_PUBLIC_META_PIXEL_ID: "123"
+    }, (browser, _gtagCalls, fbqCalls) => {
+      const attempts: string[] = [];
+      browser.__masonGoogleTagConfigured = true;
+      browser.gtag = (...args: unknown[]) => {
+        if (args[0] === "event") attempts.push(String(args[1]));
+        if (args[1] === failingEvent) throw new Error(`${failingEvent} failed`);
+      };
+      assert.doesNotThrow(() => createLeadFunnelTracker(FORM_NAMES.safetyVisit).leadCreated({ leadId: "zoho-id" }));
+      assert.deepEqual(attempts, ["generate_lead", "conversion"]);
+      assert.equal(fbqCalls.filter((call) => call[1] === "Lead").length, 1);
+    });
+  }
 });
 
 test("nothing is sent when no destination is configured", () => {

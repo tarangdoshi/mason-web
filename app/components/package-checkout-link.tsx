@@ -12,6 +12,7 @@ type PackageCheckoutLinkProps = LinkProps & {
   ctaId: string;
   packageCode: string;
   packageName: string;
+  packagePrice: string;
 };
 
 export default function PackageCheckoutLink({
@@ -22,6 +23,7 @@ export default function PackageCheckoutLink({
   ctaId,
   packageCode,
   packageName,
+  packagePrice,
   ...props
 }: PackageCheckoutLinkProps) {
   return (
@@ -31,6 +33,7 @@ export default function PackageCheckoutLink({
       data-analytics-event="package_cta_click"
       data-analytics-package={packageCode}
       data-analytics-package-name={packageName}
+      data-analytics-package-price={packagePrice}
       data-analytics-cta-location={entryPoint}
       data-analytics-section={pageSection}
       onClick={() =>

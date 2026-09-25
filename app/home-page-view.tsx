@@ -458,6 +458,7 @@ export default async function HomePageView({
                     ctaId={`continue-${plan.id}`}
                     packageCode={plan.id}
                     packageName={plan.name}
+                    packagePrice={plan.currentPrice || plan.price}
                   >
                     Continue with {plan.name}
                   </PackageCheckoutLink>

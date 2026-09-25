@@ -35,7 +35,7 @@ function getContactEventName(element: HTMLAnchorElement): AnalyticsEventName | n
   return null;
 }
 
-function trackElementClick(element: HTMLElement) {
+export function trackElementClick(element: HTMLElement) {
   const explicitEvent = element.dataset.analyticsEvent;
   const eventName =
     explicitEvent && isAllowedAnalyticsEventName(explicitEvent)
@@ -140,9 +140,13 @@ export default function LaunchAnalytics() {
     // Queue gtag/fbq configuration before any event, whichever loads first.
     try {
       ensureGoogleTag();
-      ensureMetaPixel();
     } catch {
       // Analytics must never affect rendering.
+    }
+    try {
+      ensureMetaPixel();
+    } catch {
+      // Google tag failure must not prevent Meta initialization.
     }
   }, []);
 

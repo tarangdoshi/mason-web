@@ -3,7 +3,7 @@
 import { useId, useRef, useState } from "react";
 import Link from "next/link";
 import { setAnalyticsMarket, trackAnalyticsEvent } from "../../lib/analytics";
-import { createLeadFunnelTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../lib/lead-funnel";
+import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../lib/lead-funnel";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
 import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../../lib/lead-submission";
 import { EMAIL_ERROR, toCanonicalEmail } from "../../lib/email";
@@ -31,6 +31,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
   const hasTrackedFormStartRef = useRef(false);
   const funnelRef = useRef<LeadFunnelTracker | null>(null);
   funnelRef.current ??= createLeadFunnelTracker(FORM_NAMES.safetyVisit);
+  const submitAttemptRef = useRef(createSubmitAttemptTracker());
   const gateRef = useRef(createSubmissionGate());
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -94,9 +95,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
 
     // form_submit is every attempt, including ones the checks below stop;
     // generate_lead fires only once the API has confirmed the lead.
-    if (!gateRef.current.isCompleted && !gateRef.current.isInFlight) {
-      funnelRef.current?.submitAttempt({ packageName });
-    }
+    submitAttemptRef.current.submitEvent(trackSubmitAttempt);
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -204,6 +203,12 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
     setErrorMessage(result.message);
   }
 
+  function trackSubmitAttempt() {
+    if (!gateRef.current.isCompleted && !gateRef.current.isInFlight) {
+      funnelRef.current?.submitAttempt({ packageName });
+    }
+  }
+
   const isLocked = submissionState === "submitting" || submissionState === "success";
   const isSubmitting = submissionState === "submitting";
 
@@ -258,7 +263,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
       </div>
 
       <div className={styles.actions}>
-        <button type="submit" disabled={isLocked} aria-busy={isSubmitting}>
+        <button type="submit" disabled={isLocked} aria-busy={isSubmitting} onClick={() => submitAttemptRef.current.submitClick(trackSubmitAttempt)}>
           {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Request my visit"}
         </button>
       </div>

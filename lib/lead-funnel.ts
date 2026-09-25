@@ -30,6 +30,33 @@ export function isFormFieldEvent(event: { target: EventTarget | null }) {
   return tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA";
 }
 
+/** Count a submit-button click even when native validation blocks `submit`. */
+export function createSubmitAttemptTracker() {
+  let clickPending = false;
+  let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  return {
+    submitClick(track: () => void) {
+      if (clickPending) return;
+      clickPending = true;
+      track();
+      resetTimer = setTimeout(() => {
+        clickPending = false;
+        resetTimer = null;
+      }, 0);
+    },
+    submitEvent(track: () => void) {
+      if (clickPending) {
+        clickPending = false;
+        if (resetTimer) clearTimeout(resetTimer);
+        resetTimer = null;
+        return;
+      }
+      track();
+    }
+  };
+}
+
 function packageParam(packageName: string | null | undefined) {
   return packageName === "Standard" || packageName === "Advanced" ? packageName : undefined;
 }
