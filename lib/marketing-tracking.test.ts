@@ -9,6 +9,7 @@ import {
   parsePackagePrice,
   resetAnalyticsViewState,
   setAnalyticsMarket,
+  syncAnalyticsRouteVisit,
   trackAnalyticsEvent,
   trackPageView
 } from "./analytics";
@@ -372,21 +373,62 @@ test("each package or service view counts once per page view", () => {
   });
 });
 
-test("a view recorded before deferred page_view survives navigation timing and remounts", () => {
+test("an observer view before deferred page_view remains deduplicated on the same visit", () => {
   withBrowser("https://www.masoncompany.in/", GA, (browser) => {
     trackPageView(1000);
     setUrl(browser, "https://www.masoncompany.in/packages/standard");
     assert.equal(markViewedOnce("/packages/standard:view_package:Standard"), true);
+    syncAnalyticsRouteVisit("/packages/standard"); // Navigation effect runs after the observer.
     trackPageView(2000);
     assert.equal(markViewedOnce("/packages/standard:view_package:Standard"), false);
-    assert.equal(markViewedOnce("/packages/standard:view_service:Safety Assessment"), true);
-    assert.equal(markViewedOnce("/packages/standard:view_service:Safety Assessment"), false);
+  });
+});
+
+test("A to B to A creates a new view on the return visit", () => {
+  withBrowser("https://www.masoncompany.in/packages/standard", GA, (browser, gtagCalls) => {
+    const view = (name: string) => {
+      if (markViewedOnce(`${browser.location.pathname}:view_package:${name}`)) {
+        trackAnalyticsEvent("view_package", { package_name: name });
+      }
+    };
+    syncAnalyticsRouteVisit("/packages/standard");
+    view("Standard");
+    trackPageView(1000);
     setUrl(browser, "https://www.masoncompany.in/packages/advanced");
-    trackPageView(3000);
-    assert.equal(markViewedOnce("/packages/advanced:view_package:Standard"), true);
+    syncAnalyticsRouteVisit("/packages/advanced");
+    view("Advanced");
+    trackPageView(2000);
     setUrl(browser, "https://www.masoncompany.in/packages/standard");
-    trackPageView(4000);
-    assert.equal(markViewedOnce("/packages/standard:view_package:Standard"), false);
+    syncAnalyticsRouteVisit("/packages/standard");
+    trackPageView(3000);
+    view("Standard");
+    assert.deepEqual(events(gtagCalls, "view_package").map((event) => event.package_name), ["Standard", "Advanced", "Standard"]);
+    assert.equal(events(gtagCalls, "page_view").length, 3);
+    assert.match(readFileSync(resolve(process.cwd(), "app/components/launch-analytics.tsx"), "utf8"), /syncAnalyticsRouteVisit\(pathname\)/);
+  });
+});
+
+test("same-route remount without navigation does not create another view", () => {
+  withBrowser("https://www.masoncompany.in/packages/standard", GA, () => {
+    syncAnalyticsRouteVisit("/packages/standard");
+    assert.equal(markViewedOnce("/packages/standard:view_service:Safety Assessment"), true);
+    trackPageView(1000);
+    syncAnalyticsRouteVisit("/packages/standard"); // Remounted navigation effect.
+    trackPageView(5000);
+    assert.equal(markViewedOnce("/packages/standard:view_service:Safety Assessment"), false);
+  });
+});
+
+test("the same entity can be viewed once on each different route", () => {
+  withBrowser("https://www.masoncompany.in/", GA, (browser) => {
+    syncAnalyticsRouteVisit("/");
+    assert.equal(markViewedOnce("/:view_package:Standard"), true);
+    assert.equal(markViewedOnce("/:view_package:Standard"), false);
+    setUrl(browser, "https://www.masoncompany.in/packages");
+    // The observer may run before the navigation effect and must still advance.
+    assert.equal(markViewedOnce("/packages:view_package:Standard"), true);
+    syncAnalyticsRouteVisit("/packages");
+    assert.equal(markViewedOnce("/packages:view_package:Standard"), false);
   });
 });
 

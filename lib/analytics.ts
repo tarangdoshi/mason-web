@@ -532,12 +532,20 @@ export function trackAnalyticsEvent<EventName extends AnalyticsEventName>(
 }
 
 /* ---------------------------------------------------------------------------
-   Page and route-scoped view guards. React Strict Mode, hydration and
-   remounting can repeat effects or observer callbacks for the same route. */
+   Page and route-visit view guards. React Strict Mode, hydration and
+   remounting can repeat effects or observer callbacks during one visit. */
 
 const PAGE_VIEW_REPEAT_WINDOW_MS = 2000;
 let lastPageView: { key: string; at: number } | null = null;
-const viewedByRoute = new Set<string>();
+let activeViewPath: string | null = null;
+const viewedOnRouteVisit = new Set<string>();
+
+/** Advance view history only when navigation reaches a different pathname. */
+export function syncAnalyticsRouteVisit(pathname: string) {
+  if (activeViewPath === pathname) return;
+  activeViewPath = pathname;
+  viewedOnRouteVisit.clear();
+}
 
 /** Tracks page_view unless this exact location was just tracked. */
 export function trackPageView(now: number = Date.now()) {
@@ -568,17 +576,19 @@ export function trackPageView(now: number = Date.now()) {
   return true;
 }
 
-/** True the first time a route-scoped key is seen, even across remounts. */
+/** True the first time a key is seen during the current route visit. */
 export function markViewedOnce(key: string) {
-  if (viewedByRoute.has(key)) {
+  if (isBrowser()) syncAnalyticsRouteVisit(window.location.pathname);
+  if (viewedOnRouteVisit.has(key)) {
     return false;
   }
-  viewedByRoute.add(key);
+  viewedOnRouteVisit.add(key);
   return true;
 }
 
 /** Test seam: forget page-view and view history. */
 export function resetAnalyticsViewState() {
   lastPageView = null;
-  viewedByRoute.clear();
+  activeViewPath = null;
+  viewedOnRouteVisit.clear();
 }

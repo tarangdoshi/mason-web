@@ -11,6 +11,7 @@ import {
   getMetaPixelId,
   isAllowedAnalyticsEventName,
   parsePackagePrice,
+  syncAnalyticsRouteVisit,
   trackAnalyticsEvent,
   trackPageView,
   type AnalyticsEventName
@@ -115,6 +116,7 @@ function ManualPageViews() {
   const pathname = usePathname();
 
   useEffect(() => {
+    syncAnalyticsRouteVisit(pathname);
     storeLeadCtaContext({});
     // Deferred a tick so document.title reflects the new route; the timer is
     // cleared if Strict Mode or a remount re-runs this effect, and
