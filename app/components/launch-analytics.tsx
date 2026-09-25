@@ -5,9 +5,15 @@ import { storeLeadCtaContext } from "../../lib/lead-context";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
-  getAnalyticsMeasurementId,
+  ensureGoogleTag,
+  ensureMetaPixel,
+  getGoogleTagLoaderId,
+  getMetaPixelId,
   isAllowedAnalyticsEventName,
+  parsePackagePrice,
+  syncAnalyticsRouteVisit,
   trackAnalyticsEvent,
+  trackPageView,
   type AnalyticsEventName
 } from "../../lib/analytics";
 
@@ -30,7 +36,7 @@ function getContactEventName(element: HTMLAnchorElement): AnalyticsEventName | n
   return null;
 }
 
-function trackElementClick(element: HTMLElement) {
+export function trackElementClick(element: HTMLElement) {
   const explicitEvent = element.dataset.analyticsEvent;
   const eventName =
     explicitEvent && isAllowedAnalyticsEventName(explicitEvent)
@@ -53,6 +59,13 @@ function trackElementClick(element: HTMLElement) {
       cta_location: ctaLocation || "package-cta",
       section: section || "packages"
     });
+    // Package CTAs that name the package are also a select_package.
+    if (element.dataset.analyticsPackageName) {
+      trackAnalyticsEvent("select_package", {
+        package_name: element.dataset.analyticsPackageName,
+        package_price: parsePackagePrice(element.dataset.analyticsPackagePrice)
+      });
+    }
     return;
   }
 
@@ -103,45 +116,55 @@ function ManualPageViews() {
   const pathname = usePathname();
 
   useEffect(() => {
+    syncAnalyticsRouteVisit(pathname);
     storeLeadCtaContext({});
-    trackAnalyticsEvent("page_view", {
-      page: pathname || "/"
-    });
+    // Deferred a tick so document.title reflects the new route; the timer is
+    // cleared if Strict Mode or a remount re-runs this effect, and
+    // trackPageView ignores an immediate repeat of the same location.
+    const timer = window.setTimeout(() => {
+      try {
+        trackPageView();
+      } catch {
+        // Analytics must never affect navigation.
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [pathname]);
 
   return null;
 }
 
 export default function LaunchAnalytics() {
-  const measurementId = getAnalyticsMeasurementId();
+  const googleTagId = getGoogleTagLoaderId();
+  const metaPixelId = getMetaPixelId();
+
+  useEffect(() => {
+    // Queue gtag/fbq configuration before any event, whichever loads first.
+    try {
+      ensureGoogleTag();
+    } catch {
+      // Analytics must never affect rendering.
+    }
+    try {
+      ensureMetaPixel();
+    } catch {
+      // Google tag failure must not prevent Meta initialization.
+    }
+  }, []);
 
   return (
     <>
       <AnalyticsClickListener />
       <ManualPageViews />
-      {measurementId ? (
-        <>
-          <Script
-            id="mason-ga4-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){window.dataLayer.push(arguments);}
-                window.gtag = window.gtag || gtag;
-                window.gtag('js', new Date());
-                window.gtag('config', ${JSON.stringify(measurementId)}, {
-                  send_page_view: false
-                });
-              `
-            }}
-          />
-          <Script
-            id="mason-ga4-src"
-            src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`}
-            strategy="afterInteractive"
-          />
-        </>
+      {googleTagId ? (
+        <Script
+          id="mason-google-tag-src"
+          src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(googleTagId)}`}
+          strategy="afterInteractive"
+        />
+      ) : null}
+      {metaPixelId ? (
+        <Script id="mason-meta-pixel-src" src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" />
       ) : null}
     </>
   );

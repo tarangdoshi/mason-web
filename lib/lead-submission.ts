@@ -133,6 +133,9 @@ export function createSubmissionGate() {
     },
     get isCompleted() {
       return completed;
+    },
+    get isInFlight() {
+      return inFlight;
     }
   };
 }

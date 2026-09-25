@@ -10,6 +10,8 @@ import PackageCard from "@/components/PackageCard";
 import { KIT } from "@/components/kit";
 import { getHomepageContentData } from "@/lib/site-content";
 import { packageCardFromPlan } from "@/components/packages-data";
+import AnalyticsViewTracker from "@/app/components/analytics-view-tracker";
+import { SERVICE_NAMES } from "@/lib/analytics";
 
 export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/packages"},
@@ -50,6 +52,7 @@ export default async function PackagesPage() {
             card lifts off it. Text before form in the DOM and in both layouts:
             the headline is what earns the form. */}
         <section className="border-b border-line bg-sand-100 px-6 pt-24 pb-14 lg:px-10 lg:pt-28 lg:pb-20">
+          <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />
           <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
               <p className="eyebrow mb-4">Request your visit</p>

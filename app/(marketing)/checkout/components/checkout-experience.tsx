@@ -7,6 +7,7 @@ import CmsImage from "../../../components/cms-image";
 import type { PackageFeatureItem } from "../../../../content/types";
 import { trackAnalyticsEvent } from "../../../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../../../lib/lead-context";
+import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../../../lib/lead-funnel";
 import styles from "../checkout.module.css";
 
 type CheckoutExperienceProps = {
@@ -229,6 +230,15 @@ export default function CheckoutExperience({
   const checkoutLeadIdRef = useRef<string | null>(null);
   const checkoutStartTrackedRef = useRef(false);
   const checkoutLeadSuccessTrackedRef = useRef(false);
+  const funnelRef = useRef<LeadFunnelTracker | null>(null);
+  funnelRef.current ??= createLeadFunnelTracker(FORM_NAMES.checkout);
+  const submitAttemptRef = useRef(createSubmitAttemptTracker());
+
+  function trackSubmitAttempt() {
+    if (!checkoutLeadIdRef.current && !isSubmittingReview) {
+      funnelRef.current?.submitAttempt({ packageName: entry.plan.name });
+    }
+  }
 
   const basePrice = useMemo(() => parsePriceAmount(entry.plan.price), [entry.plan.price]);
   const installationFee = paymentChoice === "installation" ? PAY_ON_INSTALLATION_SURCHARGE : 0;
@@ -555,13 +565,20 @@ export default function CheckoutExperience({
         <form
           ref={formRef}
           className={styles.formStack}
-          onChange={() => {
+          onFocusCapture={(event) => {
+            if (isFormFieldEvent(event)) funnelRef.current?.start({ packageName: entry.plan.name });
+          }}
+          onChange={(event) => {
+            if (isFormFieldEvent(event)) funnelRef.current?.start({ packageName: entry.plan.name });
             if (reviewState) {
               setReviewState(null);
             }
           }}
           onSubmit={async (event) => {
             event.preventDefault();
+            // Attempts count until the booking lead exists; later submits only
+            // refresh the review and are not new lead attempts.
+            submitAttemptRef.current.submitEvent(trackSubmitAttempt);
             setFormError(null);
 
             if (!serviceableLocation) {
@@ -846,7 +863,7 @@ export default function CheckoutExperience({
                   <div className={styles.finalActionCta}>
                     <p className={styles.reviewTitle}>{paymentChoice === "online" ? "Online payment link requested" : "Pay on installation selected"}</p>
                     <p className={styles.reviewCopy}>{stickySummary}</p>
-                    <button type="submit" className={styles.primaryButton} disabled={isSubmittingReview}>
+                    <button type="submit" className={styles.primaryButton} disabled={isSubmittingReview} onClick={() => submitAttemptRef.current.submitClick(trackSubmitAttempt)}>
                       {isSubmittingReview ? "Preparing booking..." : "Review booking details"}
                     </button>
                     <LeadPrivacyNotice className={styles.privacyNotice} />

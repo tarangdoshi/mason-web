@@ -6,6 +6,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import PhotoSlot from "./PhotoSlot";
 import VisitForm from "./VisitForm";
+import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
+import { SERVICE_NAMES } from "../lib/analytics";
 import type { WhatWeDoSectionContent } from "../content/types";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -77,6 +79,7 @@ export default function Safer({ content }: { content?: WhatWeDoSectionContent })
       ref={container}
       className="flex items-center justify-center bg-forest-700 px-6 py-14 sm:py-20 lg:py-24"
     >
+      <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />
       {/* Text first, form second — in the DOM and in both layouts. The headline
           is what earns the form, so it leads whether the two are side by side
           or stacked, and nothing has to be moved out of source order to get
