@@ -6,7 +6,7 @@ Status: feature branch / Preview review. Production is unchanged. Backend-depend
 
 Prerna's forest-green, sand and photographic public design is integrated into canonical Mason Next.js. New home, about, packages, why and contact views retain responsive layout, motion, fonts, logos and images. Existing CRM, admin, checkout, package detail, evidence, communications, policies, and CMS tools remain accessible.
 
-The inline booking card and booking dialog use the real assessment form/transport: name, validated Indian mobile and email, optional location, assessment type, notes, privacy notice, error feedback and duplicate-submit protection. The dialog retains form state on close/reopen. Contact sends real guidance enquiries with package interest. No form logs customer data or claims success without an API success response.
+The inline booking card and booking dialog use the real assessment form/transport: name, validated Indian mobile and email, optional location, assessment type, notes, privacy notice, error feedback and duplicate-submit protection. The dialog retains form state on close/reopen. Contact sends real guidance enquiries with the same name/email/mobile/location fields as the assessment form (no package selector, no assessment type/notes) — see "Contact form location parity" in `PROJECT_STATE.md` and ADR-012 in `DECISIONS.md`. No form logs customer data or claims success without an API success response.
 
 ## Repositories and files
 

@@ -68,3 +68,10 @@
 - **Impact:** Add GSAP/Lenis/Tailwind, new public routes and source assets. Form surfaces retain assessment type and notes. Empty locations use an explicit address-not-provided value with UNKNOWN metadata to satisfy the existing API schema. The new public editorial presentation is code-managed; existing Sanity Studio, draft rendering and CMS-driven retained routes remain available. CMS mapping for all new homepage sections is a remaining review item, not a backend migration.
 - **Release:** PR and Preview only. No Production API/database/Redis modifications; no new infrastructure. Backend-dependent checks are separately gated.
 - **Status:** Implemented on feature branch; release review pending.
+
+## ADR-012 — Contact form matches the home page assessment form field-for-field
+- **Date:** 2026-09-25
+- **Decision:** `/contact` page's form carries the same fields as the home page "Book a Safety Visit" assessment form — Name, Email, Mobile, Location — and no more. The contact form's own "Package you're considering" selector is removed; location capture (Google Places autocomplete + "Use my location") is added to the contact form, shared with the home page form via `lib/use-location-autocomplete.ts`.
+- **Reason:** The two lead-capture forms had drifted (contact form had a package selector and no location capture; home page form had the reverse). Product direction: the two forms should be consistent, both in fields and in behaviour.
+- **Impact:** `components/ContactForm.tsx` no longer sends `packageInterest`/`packageName` in the lead payload; `enquiryTopic` is always `"Contact enquiry"`. `components/LocationField.tsx` (Tailwind) added alongside the existing `app/components/location-autocomplete-field.tsx` (CSS module) as two styled consumers of the same hook. The contact form's own "We'll be in touch" success panel is kept as-is (not an inconsistency — home page uses an inline success message inside its dialog, a different UI context).
+- **Status:** ✅ Accepted — merged to `main` at `ad17756`, live in Production.

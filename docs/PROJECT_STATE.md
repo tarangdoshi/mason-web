@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 > Canonical state of Mason Company. **Read this first.** Living document — keep current.
-> Last updated: 2026-06-25
+> Last updated: 2026-09-25
 
 ## Executive Dashboard
 
@@ -11,7 +11,7 @@
 | **Production URL** | https://www.masoncompany.in |
 | **GitHub repo** | https://github.com/tarangdoshi/mason-web |
 | **Branch (source of truth)** | `main` |
-| **Current production commit** | `3bfab7e` |
+| **Current production commit** | `ad17756` |
 | **Deployment** | GitHub → Vercel → Production (auto-deploy on push to `main`) |
 
 ## Deployment Pipeline
@@ -77,3 +77,11 @@ Launch hardening — clearing go-live conditions and stabilising the Git-backed 
 - Destinations, each off until its variable is set: GA4 `NEXT_PUBLIC_GA_MEASUREMENT_ID` (existing); Google Ads lead conversion `NEXT_PUBLIC_GOOGLE_ADS_ID` + `NEXT_PUBLIC_GOOGLE_ADS_LEAD_CONVERSION_LABEL`; Meta Pixel `NEXT_PUBLIC_META_PIXEL_ID`.
 - No contact details are sent to analytics; values that look like an email or phone number are dropped.
 - Downstream funnel events (lead_contacted … installation_completed) are not implemented: their states live in Zoho or do not exist yet.
+
+## Contact form location parity — 25 September 2026 (merged to `main`, live in Production)
+
+- The `/contact` page form (`components/ContactForm.tsx`) now matches the home page "Book a Safety Visit" assessment form field-for-field: Name, Email, Mobile, Location. The Package selector previously unique to the contact form has been removed — see ADR-012 in `DECISIONS.md`.
+- Location capture (Google Places autocomplete + "Use my location") is shared between both forms via a new hook, `lib/use-location-autocomplete.ts`, consumed by `app/components/location-autocomplete-field.tsx` (home page, CSS-module styling) and the new `components/LocationField.tsx` (contact page, Tailwind styling). No behaviour change to the home page form.
+- Server-side validation field errors now map onto the right contact-form input with auto-focus, matching the assessment form's `resolveValidationFeedback` flow, instead of the previous generic-banner-only handling.
+- PR: `https://github.com/tarangdoshi/mason-web/pull/3`, branch `feature/contact-form-location-parity` (merged as `ad17756`). Verified: `tsc --noEmit`, `next lint`, `npm test` (89/89) all clean before merge.
+- Preview-only backend-submission block (`lib/api.ts`, `VERCEL_ENV === "preview"` without `NEXT_PUBLIC_API_URL`) is pre-existing and unrelated to this change; Production is unaffected and was smoke-tested live post-merge.
