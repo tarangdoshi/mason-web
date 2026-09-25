@@ -3,14 +3,15 @@
 import { useRef, useState } from "react";
 import { ctaClass } from "./Cta";
 import { ArrowForward } from "./Icon";
-import { toCanonicalEmail } from "../lib/email";
-import { isValidNationalMobile, sanitizePhoneInput } from "../lib/phone";
-import { createSubmissionGate, submitGuidanceLead } from "../lib/lead-submission";
+import { EMAIL_ERROR, toCanonicalEmail } from "../lib/email";
+import { INDIAN_MOBILE_ERROR, formatNationalMobile, isValidNationalMobile, sanitizePhoneInput } from "../lib/phone";
+import { createSubmissionGate, resolveValidationFeedback, submitGuidanceLead } from "../lib/lead-submission";
 import { getLeadAttributionContext, getQuizContext } from "../lib/lead-context";
-import { manualLocationMeta } from "../lib/location";
-import { trackAnalyticsEvent } from "../lib/analytics";
+import { manualLocationMeta, type LocationMeta } from "../lib/location";
+import { setAnalyticsMarket, trackAnalyticsEvent } from "../lib/analytics";
 import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../lib/lead-funnel";
 import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
+import LocationField from "./LocationField";
 import ServiceArea from "./ServiceArea";
 
 type Values = {
@@ -29,15 +30,32 @@ const EMPTY: Values = {
 
 /* Only these three block submission. The package is a nice-to-have, and
    pressing someone to commit to one before they have spoken to us is the
-   fastest way to lose the enquiry. */
+   fastest way to lose the enquiry. Location is likewise optional — see
+   LocationField, which mirrors the home page assessment form's address
+   capture (Google Places autocomplete + "use my location"). */
 type Required = "name" | "mobile" | "email";
 type Errors = Partial<Record<Required, string>>;
+
+// In visual/tab order, so the first invalid field is the one focused — same
+// convention as the home page assessment form.
+const FIELD_ORDER: Required[] = ["name", "email", "mobile"];
+
+// Maps the API's field-error keys (public-leads schema: customerName/phone/
+// email) onto this form's own field names, so a server-side validation error
+// (e.g. a duplicate-enquiry check the client can't run) lands on the right
+// input the same way a client-side error does.
+const SERVER_FIELD_TO_LOCAL: Record<string, Required> = {
+  customerName: "name",
+  phone: "mobile",
+  email: "email",
+};
+const INLINE_ERROR_FIELD_ORDER = ["customerName", "email", "phone"] as const;
 
 function validate(v: Values): Errors {
   const errors: Errors = {};
   if (v.name.trim().length < 2) errors.name = "Please enter your full name.";
-  if (!isValidNationalMobile(v.mobile)) errors.mobile = "Enter a 10-digit mobile number.";
-  if (!toCanonicalEmail(v.email)) errors.email = "Enter a valid email address.";
+  if (!isValidNationalMobile(v.mobile)) errors.mobile = INDIAN_MOBILE_ERROR;
+  if (!toCanonicalEmail(v.email)) errors.email = EMAIL_ERROR;
   return errors;
 }
 
@@ -66,10 +84,26 @@ export default function ContactForm() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Field errors the server caught that our own client-side checks don't
+  // (e.g. a duplicate-enquiry rule). Kept separate from the derived `errors`
+  // below so a stale server message doesn't linger once the field is edited.
+  const [serverFieldErrors, setServerFieldErrors] = useState<Errors>({});
+  const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
+  // Bumped on "Send another enquiry" to remount LocationField, clearing its
+  // internal address text/hint — that state lives inside the field, not here.
+  const [formGeneration, setFormGeneration] = useState(0);
   const gate = useRef(createSubmissionGate());
   const funnel = useRef<LeadFunnelTracker | null>(null);
   funnel.current ??= createLeadFunnelTracker(FORM_NAMES.contact);
   const submitAttempt = useRef(createSubmitAttemptTracker());
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const fieldRefs: Record<Required, React.RefObject<HTMLInputElement | null>> = {
+    name: nameInputRef,
+    email: emailInputRef,
+    mobile: mobileInputRef,
+  };
   const trackStart = (event: React.SyntheticEvent) => {
     if (isFormFieldEvent(event)) funnel.current?.start({ packageName: values.packageInterest });
   };
@@ -77,28 +111,75 @@ export default function ContactForm() {
   // Nothing is flagged until the first submit attempt — validating on blur
   // scolds people for fields they have simply not finished yet. Derived rather
   // than stored, so once errors ARE showing they clear live as you fix them.
-  const errors: Errors = submitted ? validate(values) : {};
+  // Server-side field errors are merged in on top, and cleared per-field as
+  // soon as the visitor edits that field again (see `set` below).
+  const errors: Errors = submitted ? { ...validate(values), ...serverFieldErrors } : {};
 
-  const set = <K extends keyof Values>(key: K, value: Values[K]) =>
+  const set = <K extends keyof Values>(key: K, value: Values[K]) => {
     setValues((v) => ({ ...v, [key]: value }));
+    if (key === "name" || key === "email" || key === "mobile") {
+      setServerFieldErrors((current) => {
+        if (!current[key as Required]) return current;
+        const next = { ...current };
+        delete next[key as Required];
+        return next;
+      });
+    }
+  };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  function handleLocationMeta(meta: LocationMeta) {
+    setLocationMeta(meta);
+    setAnalyticsMarket(meta.serviceability.locationMarket);
+  }
+
+  function focusField(ref: React.RefObject<HTMLInputElement | null> | undefined) {
+    ref?.current?.focus();
+    ref?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function focusFirstInvalid(errs: Errors) {
+    const first = FIELD_ORDER.find((field) => errs[field]);
+    if (first) focusField(fieldRefs[first]);
+  }
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     // Every attempt counts as form_submit, including one stopped by the
     // checks below; generate_lead waits for the API's confirmation.
     submitAttempt.current.submitEvent(trackSubmitAttempt);
     setSubmitted(true);
-    if (Object.keys(validate(values)).length > 0) return;
+    const clientErrors = validate(values);
+    if (Object.keys(clientErrors).length > 0) {
+      focusFirstInvalid(clientErrors);
+      return;
+    }
 
     if (!gate.current.tryBegin()) return;
     setBusy(true);
     setError(null);
-    const location = manualLocationMeta("");
+    setServerFieldErrors({});
+
+    // The location field manages its own typed text internally (see
+    // LocationField/useLocationAutocomplete); read the current value straight
+    // off the form the same way the assessment form does.
+    const formData = new FormData(form);
+    const locationText = String(formData.get("locationText") || "");
+    const resolvedLocationMeta = locationMeta ?? manualLocationMeta(locationText);
+
+    if (resolvedLocationMeta.source === "manual") {
+      trackAnalyticsEvent("location_picker_fallback", {
+        market: "UNKNOWN",
+        form_source: "contact_form",
+      });
+    }
+
     const result = await submitGuidanceLead({
       customerName: values.name.trim(), phone: `+91${values.mobile}`, email: toCanonicalEmail(values.email),
-      locationText: "Address not provided", enquiryTopic: values.packageInterest ? `Package enquiry - ${values.packageInterest}` : "Contact enquiry",
+      locationText: locationText.trim().length >= 2 ? locationText : "Address not provided",
+      enquiryTopic: values.packageInterest ? `Package enquiry - ${values.packageInterest}` : "Contact enquiry",
       metadata: { source: "contact-form", intentCategory: "guidance", packageInterest: values.packageInterest,
-        location, locationMarket: "UNKNOWN", serviceability: location.serviceability,
+        location: resolvedLocationMeta, locationMarket: resolvedLocationMeta.serviceability.locationMarket, serviceability: resolvedLocationMeta.serviceability,
         attribution: getLeadAttributionContext({entryPoint:"contact-form", packageName: values.packageInterest || undefined}), quiz: getQuizContext() }
     });
     setBusy(false);
@@ -106,8 +187,26 @@ export default function ContactForm() {
       gate.current.complete(); setDone(true);
       funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket, packageName: values.packageInterest });
       trackAnalyticsEvent("guidance_lead_submit_success", {cta_location:"contact-form", section:"contact"});
-    } else {gate.current.release(); setError(result.message);}
+      return;
+    }
 
+    gate.current.release();
+
+    if (result.kind === "validation") {
+      const feedback = resolveValidationFeedback(result, INLINE_ERROR_FIELD_ORDER);
+      const mapped: Errors = {};
+      for (const [field, message] of Object.entries(feedback.fieldErrors)) {
+        const local = SERVER_FIELD_TO_LOCAL[field];
+        if (local) mapped[local] = message;
+      }
+      setServerFieldErrors(mapped);
+      setError(feedback.bannerMessage);
+      const localFocus = feedback.focusField ? SERVER_FIELD_TO_LOCAL[feedback.focusField] : null;
+      if (localFocus) focusField(fieldRefs[localFocus]);
+      return;
+    }
+
+    setError(result.message);
   };
 
   function trackSubmitAttempt() {
@@ -156,6 +255,7 @@ export default function ContactForm() {
             <input
               id="contact-name"
               name="name"
+              ref={nameInputRef}
               autoComplete="name"
               required
               value={values.name}
@@ -180,6 +280,7 @@ export default function ContactForm() {
             <input
               id="contact-email"
               name="email"
+              ref={emailInputRef}
               type="email"
               autoComplete="email"
               required
@@ -213,11 +314,12 @@ export default function ContactForm() {
               <input
                 id="contact-mobile"
                 name="mobile"
+                ref={mobileInputRef}
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel"
                 required
-                value={values.mobile}
+                value={formatNationalMobile(values.mobile)}
                 onChange={(e) => set("mobile", sanitizePhoneInput(e.target.value))}
                 aria-invalid={!!errors.mobile}
                 aria-describedby={describedBy("mobile")}
@@ -273,6 +375,13 @@ export default function ContactForm() {
             </div>
             <p className={ERROR} />
           </div>
+
+          <LocationField
+            key={formGeneration}
+            disabled={busy || done}
+            onMeta={handleLocationMeta}
+            className="sm:col-span-2"
+          />
         </div>
 
       {/* col-reverse, so the DOM order that gives text-left / button-right on
@@ -328,6 +437,9 @@ export default function ContactForm() {
                 setValues(EMPTY);
                 setSubmitted(false);
                 setDone(false); gate.current = createSubmissionGate(); setError(null);
+                setServerFieldErrors({});
+                setLocationMeta(null);
+                setFormGeneration((g) => g + 1);
               }}
               className={ctaClass({ variant: "outline" })}
             >
