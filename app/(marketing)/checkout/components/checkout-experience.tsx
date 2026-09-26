@@ -549,14 +549,14 @@ export default function CheckoutExperience({
                     setManualLocation(event.target.value);
                     setReviewState(null);
                   }}
-                  placeholder="For example: Andheri West, Mumbai or Panaji, Goa"
+                  placeholder="For example: Panaji, Goa"
                 />
               </label>
               <div className={styles.manualLocationActions}>
                 <button type="button" className={styles.secondaryButton} onClick={handleManualLocationCheck}>
                   Check serviceability
                 </button>
-                <p className={styles.fieldHint}>We currently serve Mumbai metro and Goa.</p>
+                <p className={styles.fieldHint}>Mason is currently available in Goa.</p>
               </div>
             </div>
           ) : null}

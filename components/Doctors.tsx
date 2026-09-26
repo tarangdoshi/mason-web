@@ -40,6 +40,7 @@ const DOCTORS: {
   },
   {
     initials: "PG",
+    photo: "/prerna/images/dr-prerna-goyal.jpg",
     name: "Dr. Prerna Goyal",
     creds: "MBBS, DMRD, DNB",
     meta: "Radiologist · MAMC, Delhi University",
@@ -53,10 +54,12 @@ export default function Doctors({ items }: { items?: DoctorAttestationContent[] 
   const displayDoctors = items?.length
     ? items.slice(0, 3).map((item) => ({
         initials: item.doctorName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
-        photo: item.photo?.src,
+        photo: item.photo?.src?.startsWith("/images/proof/doctor-")
+          ? DOCTORS.find((doctor) => doctor.name === item.doctorName)?.photo
+          : item.photo?.src || DOCTORS.find((doctor) => doctor.name === item.doctorName)?.photo,
         name: item.doctorName,
-        creds: item.registration,
-        meta: item.specialty,
+        creds: item.specialty,
+        meta: item.registration,
         quote: item.quote
       }))
     : DOCTORS;
@@ -152,7 +155,7 @@ export default function Doctors({ items }: { items?: DoctorAttestationContent[] 
                        is exactly right for a 1x screen and mush on every other
                        one. Left to width/height it builds a 1x/2x srcset off
                        the 96 instead, so the disc stays sharp on retina. */
-                    className="h-12 w-12 shrink-0 rounded-full object-cover"
+                    className={`h-12 w-12 shrink-0 rounded-full object-cover ${doc.name === "Dr. Prerna Goyal" ? "object-[50%_22%]" : ""}`}
                   />
                 ) : (
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-forest-700 font-display text-sm font-bold text-sand-100">

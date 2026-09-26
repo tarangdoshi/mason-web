@@ -103,7 +103,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
     name: `${plan.name} Bathroom Safety Package`,
     serviceType: "Bathroom safety installation",
     provider: { "@type": "Organization", name: "Mason Company", url: SITE_URL },
-    areaServed: ["Mumbai", "Goa"],
+    areaServed: ["Goa"],
     description: plan.summary || plan.outcome || `Mason ${plan.name} bathroom safety package.`,
     url: pageUrl
   };

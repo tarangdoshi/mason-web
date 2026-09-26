@@ -12,7 +12,7 @@ const TESTIMONIALS = [
   {
     name: "Anita Mehra",
     role: "Daughter",
-    city: "Bengaluru",
+    city: "Goa",
     quote:
       "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
     tag: "Safer movement, premium finish",
@@ -28,7 +28,7 @@ const TESTIMONIALS = [
   {
     name: "Neha Shah",
     role: "Daughter-in-law",
-    city: "Bengaluru",
+    city: "Goa",
     quote:
       "The biggest relief was not having to coordinate multiple vendors. Mason handled the planning, products, installation, and walkthrough as one complete solution.",
     tag: "One accountable team",
@@ -46,7 +46,7 @@ const TESTIMONIALS = [
 export default function Testimonials({ items }: { items?: TestimonialContent[] }) {
   const container = useRef<HTMLElement>(null);
   const displayTestimonials = items?.length
-    ? items.slice(0, 4).map((item) => ({ name: item.author, role: item.relation, city: item.city, quote: item.quote, tag: item.outcomeLine || null }))
+    ? items.slice(0, 4).map((item) => ({ name: item.author, role: item.relation, city: "Goa", quote: item.quote }))
     : TESTIMONIALS;
 
   useGSAP(
@@ -115,7 +115,7 @@ export default function Testimonials({ items }: { items?: TestimonialContent[] }
                 {t.quote}
               </blockquote>
 
-              <figcaption className="mt-5 flex items-center justify-between gap-4 border-t border-sand-200 pt-5">
+              <figcaption className="mt-5 flex items-center gap-3 border-t border-sand-200 pt-5">
                 <div className="flex items-center gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-700 font-display text-sm font-bold text-sand-100">
                     {t.name.charAt(0)}
@@ -129,11 +129,6 @@ export default function Testimonials({ items }: { items?: TestimonialContent[] }
                     </p>
                   </div>
                 </div>
-                {t.tag && (
-                  <span className="hidden shrink-0 rounded-full bg-forest-50 px-3 py-1 text-xs font-semibold text-forest-700 sm:inline-block">
-                    {t.tag}
-                  </span>
-                )}
               </figcaption>
             </figure>
           ))}

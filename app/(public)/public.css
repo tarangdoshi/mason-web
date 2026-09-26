@@ -435,3 +435,4 @@ html.lenis body {
 .mason-assessment { --line:#e5e3dd; --surface-paper:#fff; --surface-container-low:#f2f1ec; --brand-brown:#1a1a18; }
 .mason-assessment form { padding:0; border:0; border-radius:0; background:transparent; }
 .mason-assessment button[type=submit] { width:100%; justify-content:center; }
+.mason-assessment form > div:first-child > label:first-child { grid-column: 1 / -1; }

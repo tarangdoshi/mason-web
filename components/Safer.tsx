@@ -84,8 +84,8 @@ export default function Safer({ content }: { content?: WhatWeDoSectionContent })
           is what earns the form, so it leads whether the two are side by side
           or stacked, and nothing has to be moved out of source order to get
           there. */}
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
-        <div className="text-center lg:text-left">
+      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-9">
+        <div className="text-left lg:col-start-1 lg:row-start-1">
           {/* Below sm the clamp bottomed out at 32px, where neither sentence
               fit its line — so "safer" and "home" each dropped onto a line of
               their own and the block zigzagged long-tiny-long-tiny. Those two
@@ -115,34 +115,25 @@ export default function Safer({ content }: { content?: WhatWeDoSectionContent })
 
           {/* white/90 rather than the sand-100 of the headline: a step back
               from it, and still clear of the 4.5:1 floor on forest-700. */}
-          <p className="safer-rise mx-auto mt-6 max-w-md text-base leading-relaxed text-white/90 lg:mx-0">
+          <p className="safer-rise mt-3 max-w-md text-base leading-relaxed text-white/90 lg:mt-6">
             {content?.description || "Leave your details and a Mason advisor will call to arrange the visit. Full refund any time before installation."}
           </p>
-
-          {/* The column is two short blocks against a form that runs to ~590px,
-              so without this the left half is mostly empty green. A person
-              rather than a bathroom: every other photo on the page is the work,
-              and this is the one section that is about who it is for.
-
-              object-[50%_70%] because the source is a 2:3 portrait and the
-              hands — the whole subject — sit low in it. Centred, a wide box
-              crops to the forearm and cuts the fingers off. */}
-          <PhotoSlot
-            src="/prerna/images/care-2.jpg"
-            label="An older person at ease at home"
-            alt="An older person's hands resting in their lap"
-            sizes="(min-width: 1024px) 45vw, (min-width: 640px) 36rem, 100vw"
-            position="object-[50%_70%]"
-            className="safer-rise mx-auto mt-9 aspect-[16/10] w-full max-w-xl lg:mx-0 lg:max-w-none"
-          />
         </div>
 
         {/* Capped and centred until lg. Below the breakpoint this card has the
             whole 1152px to itself, and a stack of three inputs run to that
             width reads as a page, not a form. */}
-        <div className="safer-rise mx-auto w-full max-w-xl lg:max-w-none">
+        <div className="safer-rise mx-auto w-full max-w-xl lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-none lg:self-center">
           <VisitForm />
         </div>
+        <PhotoSlot
+          src="/prerna/images/care-2.jpg"
+          label="An older person at ease at home"
+          alt="An older person's hands resting in their lap"
+          sizes="(min-width: 1024px) 45vw, (min-width: 640px) 36rem, 100vw"
+          position="object-[50%_70%]"
+          className="safer-rise mx-auto aspect-[16/10] w-full max-w-xl lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-none"
+        />
       </div>
     </section>
   );

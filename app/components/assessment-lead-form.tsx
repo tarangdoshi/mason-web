@@ -268,7 +268,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
         </button>
       </div>
       <p className={styles.privacyNotice}>
-        By submitting, you agree to our <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms</Link>.
+        <Link href="/terms">T&amp;C apply</Link>
       </p>
 
       {submissionState === "success" ? (

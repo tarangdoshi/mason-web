@@ -37,8 +37,8 @@ test("editing a selected address clears stale verified location metadata", () =>
   assert.equal(replacement.serviceability.locationMarket, "UNKNOWN");
 });
 
-test("assessment form renders the static Goa and Bangalore availability copy", () => {
-  assert.equal(ASSESSMENT_AVAILABILITY_COPY, "Mason is currently available in Goa and Bangalore.");
+test("assessment form renders the Goa-only public launch copy", () => {
+  assert.equal(ASSESSMENT_AVAILABILITY_COPY, "Mason is currently available in Goa.");
   const formSource = readFileSync(resolve(process.cwd(), "app/components/assessment-lead-form.tsx"), "utf8");
   assert.match(formSource, /ASSESSMENT_AVAILABILITY_COPY/);
 });

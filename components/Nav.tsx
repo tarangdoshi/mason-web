@@ -156,19 +156,23 @@ export default function Nav() {
           </Link>
 
           <div className="hidden items-center gap-8 lg:flex">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`text-sm transition-colors ${EASE} ${
-                  overHero
-                    ? "text-white/75 hover:text-white"
-                    : "text-cream-dim hover:text-cream"
-                }`}
-              >
-                {l.label}
-              </Link>
-            ))}
+            {links.map((l) => {
+              const current = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-current={current ? "page" : undefined}
+                  className={`text-sm transition-colors ${EASE} ${current ? "font-semibold" : ""} ${
+                    overHero
+                      ? current ? "text-white" : "text-white/75 hover:text-white"
+                      : current ? "text-accent" : "text-cream-dim hover:text-cream"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
 

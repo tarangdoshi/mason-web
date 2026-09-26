@@ -36,7 +36,7 @@ export const comparePackagesContent: HomepageContent = {
   },
   processSection: {
     ...homepageContent.processSection,
-    addOnDisclosure: "Advanced includes one technician safety check-up visit during the first year."
+    addOnDisclosure: "Advanced includes a safety check-up visit two years after installation."
   },
   packagesSection: {
     title: "Compare package options",

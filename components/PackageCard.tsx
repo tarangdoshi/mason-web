@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Cta from "./Cta";
 import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
 import { PACKAGE_ROWS, type Package } from "./packages-data";
@@ -84,6 +85,7 @@ export default function PackageCard({
   const Heading = `h${headingLevel}` as "h2" | "h3";
   const s = skin(tone, pkg.popular);
   const light = tone === "green" && !pkg.popular;
+  const onHome = tone === "green";
 
   return (
     <div
@@ -108,18 +110,16 @@ export default function PackageCard({
         )}
       </div>
 
-      <p
-        className={`mt-4 max-w-md text-base leading-relaxed sm:text-lg ${s.lede}`}
-      >
-        {pkg.bestFor}
-      </p>
-
       {(pkg.referencePrice || pkg.currentPrice) && (
-        <div className="mt-5 flex items-baseline gap-3" aria-label={`${pkg.name} price`}>
-          {pkg.referencePrice ? <span className={`text-sm line-through ${light ? "text-sand-100/60" : "text-sand-500"}`}>{pkg.referencePrice}</span> : null}
-          {pkg.currentPrice ? <span className={`font-display text-2xl font-bold ${light ? "text-sand-100" : "text-forest-700"}`}>{pkg.currentPrice}</span> : null}
+        <div className="mt-4 flex items-baseline gap-2.5" aria-label={`${pkg.name} price`}>
+          {pkg.currentPrice ? <span className={`h-display text-3xl sm:text-4xl ${light ? "text-sand-100" : "text-cream"}`}>{pkg.currentPrice}</span> : null}
+          {pkg.referencePrice ? <span className={`text-lg line-through ${s.rowOff}`}>{pkg.referencePrice}</span> : null}
         </div>
       )}
+
+      <p className={`mt-4 max-w-md text-base leading-relaxed sm:text-lg ${s.lede}`}>
+        {pkg.bestFor}
+      </p>
 
       {/* The first row and the one that differs carry the emphasis, the middle
           rows recede, an absence is muted rather than struck through. */}
@@ -161,10 +161,15 @@ export default function PackageCard({
                       : s.rowMid
                 }
               >
-                {row.label}{differentiator && on ? " Included" : ""}
+                {row.label}
+                {onHome && i === 0 && (
+                  <Link href="/packages" className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
+                    Learn more <span aria-hidden="true">&rarr;</span>
+                  </Link>
+                )}
               </span>
               <span className="sr-only">
-                {on ? (differentiator ? "" : "Included") : "Not included"}
+                {on ? "Included" : "Not included"}
               </span>
             </li>
           );

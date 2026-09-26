@@ -1,4 +1,5 @@
 import { draftMode } from "next/headers";
+import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_URL } from "../components/contact-details";
 import { homepageContent } from "../content/homepage.content";
 import { comparePackagesContent } from "../content/compare-packages.content";
 import { packageCatalog, type PackageCatalogEntry } from "../content/package-catalog";
@@ -234,10 +235,10 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
       ...next.brand,
       name: settings.brandName || next.brand.name,
       serviceLine: settings.serviceLine || next.brand.serviceLine,
-      phoneDisplay: settings.phoneDisplay || next.brand.phoneDisplay,
-      phoneTel: settings.phoneTel || next.brand.phoneTel,
+      phoneDisplay: PHONE_DISPLAY,
+      phoneTel: PHONE_HREF.replace(/^tel:/, ""),
       whatsappLabel: settings.whatsappLabel || next.brand.whatsappLabel,
-      whatsappUrl: settings.whatsappUrl || next.brand.whatsappUrl,
+      whatsappUrl: WHATSAPP_URL,
       trustBadges: settings.trustBadges?.length ? settings.trustBadges : next.brand.trustBadges
     };
   }
@@ -345,6 +346,11 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
     ...next.faqSection,
     items: mergedFaqItems
   };
+  // The two-year Advanced cover is a founder-approved offer. A previously
+  // published CMS subtitle must not put retired first-year copy back on the
+  // public cards while the editor updates the document.
+  next.packagesSection.subtitle = base.packagesSection.subtitle;
+  next.finalCtaSection.secondaryLabel = `Call ${PHONE_DISPLAY}`;
 
   return next;
 }
@@ -387,7 +393,7 @@ export function applySanityPackages(content: HomepageContent, packages: SanityPa
       summary: fallbackPlan?.summary || fallbackPlan?.outcome,
       badge: fallbackPlan?.badge || pkg.badge || undefined,
       titleDescriptor: fallbackPlan?.titleDescriptor || pkg.titleDescriptor || undefined,
-      isFeatured: pkg.isFeatured ?? fallbackPlan?.isFeatured ?? index === 1,
+      isFeatured: pkg.name === "Standard",
       visual: toVisualAsset(pkg.visual, pkg.name || "Package visual", imageTransformSpecs.package) || fallbackPlan?.visual,
       visualHighlights: fallbackPlan?.visualHighlights,
       includedFeatureIds,

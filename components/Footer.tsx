@@ -28,7 +28,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Company",
     links: [
-      { label: "Why Mason Company", href: "/why" },
+      { label: "Why Mason Company", href: "/#why-mason" },
       { label: "About Mason Company", href: "/about" },
       { label: "Doctor Recommendations", href: "/#doctors" },
       { label: "Customer Testimonials", href: "/#testimonials" },
@@ -100,7 +100,7 @@ export default function Footer() {
             variant="light"
             className="w-full shrink-0 justify-center sm:w-auto"
           >
-            Request a visit
+            Book a free visit
           </Cta>
         </div>
 
@@ -160,7 +160,7 @@ export default function Footer() {
             reserved.
           </p>
           {/* Was "Serving major cities across India" - we install in two. */}
-          <p>Installing in {CITIES}, with more cities on the way</p>
+          <p>Currently available in {CITIES}</p>
         </div>
       </div>
     </footer>

@@ -12,7 +12,7 @@ interface Props {
 const LABEL = "block text-sm font-semibold text-cream";
 const OPTIONAL = "ml-1.5 text-xs font-normal text-sand-400";
 const FIELD =
-  "mt-2 w-full rounded-xl border bg-sand-100 px-4 py-3 text-base text-cream transition-colors duration-150";
+  "mt-2 w-full rounded-xl border bg-white px-4 py-3 text-base text-cream transition-colors duration-150";
 const INPUT = `${FIELD} placeholder:text-sand-400 focus:outline-none border-sand-200 focus:border-forest-700`;
 
 /**
@@ -53,7 +53,7 @@ export default function LocationField({ disabled, className, onMeta }: Props) {
         type="button"
         onClick={useMyLocation}
         disabled={disabled || geoState === "locating"}
-        className="mt-2 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-sand-200 bg-sand-100 px-3.5 py-2.5 text-sm font-semibold text-forest-700 transition-colors duration-150 disabled:opacity-70"
+        className="mt-2 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-sand-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-forest-700 transition-colors duration-150 disabled:opacity-70"
       >
         {geoState === "locating" ? "Locating…" : "📍 Use my location"}
       </button>

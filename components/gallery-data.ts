@@ -8,8 +8,8 @@
 export type GalleryItem = { img: string; label: string };
 
 export const GALLERY: GalleryItem[] = [
-  { img: "/prerna/images/bath-2.jpg", label: "Guest bathroom · Bengaluru" },
+  { img: "/prerna/images/bath-2.jpg", label: "Guest bathroom after safety upgrade" },
   { img: "/prerna/images/shower-2.jpg", label: "Walk-in shower · Goa" },
-  { img: "/prerna/images/bath-4.jpg", label: "Master bathroom · Bengaluru" },
+  { img: "/prerna/images/bath-4.jpg", label: "Master bathroom after safety upgrade" },
   { img: "/prerna/images/shower-3.jpg", label: "Ensuite shower · Goa" },
 ];

@@ -1,15 +1,7 @@
-"use client";
-
-import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Cta from "./Cta";
 import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
 import { SERVICE_NAMES } from "../lib/analytics";
 import type { ProcessSectionContent } from "../content/types";
-
-gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const steps = [
   {
@@ -17,182 +9,50 @@ const steps = [
     copy: "Leave your details and a Mason advisor will call to arrange the visit.",
   },
   {
-    title: "Mason follow-up",
-    copy: "Our team reviews your request and contacts you to confirm the visit, package details, and next steps.",
-  },
-  {
     title: "Inspection",
-    copy: "We schedule a virtual or physical bathroom inspection depending on location and logistics.",
-  },
-  {
-    title: "Technician visit",
-    copy: "Our trained technicians verify the site and finalise support placement.",
+    copy: "We schedule a virtual or physical bathroom inspection depending on location and logistics. Our trained technicians finalise support placement.",
   },
   {
     title: "Installation",
-    copy: "The selected package is installed with careful fitting, clean execution, and minimal disruption.",
-  },
-  {
-    title: "Success handover",
-    copy: "We complete a walkthrough and document the upgrade with before-and-after pictures.",
+    copy: "The selected package is installed with careful fitting, clean execution, and minimal disruption on a date scheduled with you.",
   },
 ];
 
 // each tread steps further right — a descending staircase on desktop.
-// kept as static strings so Tailwind emits them.
-const offset = [
-  "lg:ml-0",
-  "lg:ml-[7%]",
-  "lg:ml-[14%]",
-  "lg:ml-[21%]",
-  "lg:ml-[28%]",
-  "lg:ml-[35%]",
-];
-
-function renderTitle(title: string) {
-  if (title === "From booking to a safer bathroom.") {
-    return (
-      <>
-        From booking to a <span className="accent-word">safer</span> bathroom.
-      </>
-    );
-  }
-  return title;
-}
+// kept as static strings so Tailwind emits them. With three treads the
+// spread widens so the staircase still spans the column.
+const offset = ["lg:ml-0", "lg:ml-[19%]", "lg:ml-[38%]"];
 
 export default function Process({ content }: { content?: ProcessSectionContent }) {
-  const ref = useRef<HTMLElement>(null);
-  const displaySteps = content?.steps?.length
-    ? content.steps.map((step) => ({ title: step.title, copy: step.description }))
-    : steps;
-
-  useGSAP(
-    () => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      // heading fades in on approach (both breakpoints)
-      gsap.from(".proc-head", {
-        opacity: 0,
-        y: 24,
-        duration: 0.9,
-        ease: "power3.out",
-        stagger: 0.08,
-        scrollTrigger: { trigger: ref.current, start: "top 85%", once: true },
-      });
-
-      const mm = gsap.matchMedia();
-
-      // ---- desktop: pin, and build the staircase step-by-step on scroll ----
-      mm.add("(min-width: 1024px)", () => {
-        const treads = gsap.utils.toArray<HTMLElement>(".proc-step");
-        const countEl = ref.current!.querySelector<HTMLElement>(".proc-count");
-
-        gsap.set(treads, { opacity: 0, y: 36, x: -28 });
-
-        // one beat per step — the counter below reads the step number off it
-        const BEAT = 0.6;
-
-        // The flight is built by a paused timeline we drive by hand, rather
-        // than a scrubbed one. A scrub binds progress straight to scroll
-        // position, so scrolling back up runs the build in reverse; here the
-        // staircase is meant to assemble once and stay assembled.
-        const tl = gsap.timeline({ paused: true });
-
-        // progress bar spans the flight
-        tl.to(
-          ".proc-progress",
-            { scaleX: 1, ease: "none", duration: displaySteps.length * BEAT },
-          0
-        );
-
-        /* Each tread arrives and stays at full strength. Earlier this dimmed
-           the previous step so only "now" was bright, but the flight is meant
-           to be read as it builds — a step you have already passed is still
-           part of what the section is showing you, not backdrop. */
-        treads.forEach((t, i) => {
-          tl.to(
-            t,
-            { opacity: 1, y: 0, x: 0, duration: 0.5, ease: "power3.out" },
-            i * BEAT
-          );
-        });
-
-        // No pin: a pin holds the section in place for its whole scroll range
-        // in both directions, so scrolling back up gets trapped grinding through
-        // the pinned zone. Instead the build rides the section's own scroll-
-        // through, so scrolling up is just ordinary scrolling past a finished
-        // staircase.
-        //
-        // maxP only ever climbs: we set the timeline to the furthest point
-        // scroll has reached, never back. So scrolling down builds the flight,
-        // and scrolling back up holds it at its end state instead of undoing
-        // it. Fast scrolls still finish it because progress reaches 1.
-        let maxP = 0;
-        ScrollTrigger.create({
-          trigger: ref.current,
-          // maps the build across the section's own passage through the
-          // viewport, so it starts as the cards rise into view and finishes
-          // before they leave the top — no pin, no fixed scroll budget.
-          start: "top 80%",
-          end: "bottom 20%",
-          onUpdate: (self) => {
-            if (self.progress > maxP) maxP = self.progress;
-            tl.progress(maxP);
-            // one beat per step, so the furthest beat reached is the step number
-            const n = Math.min(
-              displaySteps.length,
-              Math.floor((maxP * tl.duration()) / BEAT) + 1
-            );
-            if (countEl) countEl.textContent = "0" + n;
-          },
-        });
-      });
-
-      // ---- mobile: no pin, simple staggered reveal ----
-      mm.add("(max-width: 1023px)", () => {
-        gsap.from(".proc-step", {
-          opacity: 0,
-          y: 24,
-          duration: 0.7,
-          ease: "power3.out",
-          stagger: 0.12,
-          scrollTrigger: {
-            trigger: ".proc-stair",
-            start: "top 82%",
-            once: true,
-          },
-        });
-      });
-    },
-    { scope: ref }
-  );
-
+  const displaySteps = steps.map((step) => {
+    const managed = content?.steps?.find((item) => item.title === step.title);
+    return { ...step, copy: managed?.description || step.copy };
+  });
   return (
     <section
       id="process"
-      ref={ref}
       className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-0"
     >
-      <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyInstallation} />
+      <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />
       <div className="mx-auto grid h-full max-w-7xl gap-12 px-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-14 lg:px-10 lg:py-24">
-        {/* left — heading + live progress */}
+        {/* left — heading + step count */}
         <div>
-          <p className="proc-head eyebrow mb-5">Our process</p>
-          <h2 className="proc-head h-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-            {renderTitle(content?.title || "From booking to a safer bathroom.")}
+          <p className="eyebrow mb-5">Our process</p>
+          <h2 className="h-display text-3xl text-cream sm:text-4xl lg:text-5xl">
+            From booking to a <span className="accent-word">safer</span>{" "}
+            bathroom.
           </h2>
-          <p className="proc-head mt-6 max-w-md text-base leading-relaxed text-cream-dim">
-            {content?.subtitle || "Six clear steps, handled by one accountable Mason team - from your visit request all the way to final handover."}
+          <p className="mt-3 max-w-md text-base leading-relaxed text-cream-dim lg:mt-6">
+            Three clear steps, handled by one accountable Mason team - from your
+            first request all the way to a finished installation.
           </p>
 
-          {/* Counter and progress rule are desktop instruments: they track the
-              pinned lg:h-screen layout as it scrolls. Below lg there is no pin,
-              so the count sat frozen at 01 beside a "/ 06" broken over two
-              lines, above a rule that never filled — directly on top of the
-              same 01–06 printed on every step card. Two readings of the same
-              number, one of them inert. */}
-          <div className="proc-head mt-8 hidden items-end gap-3 lg:flex">
-            <span className="proc-count font-display text-6xl font-bold leading-none text-cream">
-              01
+          {/* Desktop-only count. It used to tick up as the staircase built on
+              scroll; with the build removed it reads as a static summary — three
+              steps, all shown — rather than a stuck instrument. */}
+          <div className="mt-8 hidden items-end gap-3 lg:flex">
+            <span className="font-display text-6xl font-bold leading-none text-cream">
+              0{displaySteps.length}
             </span>
             <span className="pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-clay">
               / 0{displaySteps.length}
@@ -200,36 +60,33 @@ export default function Process({ content }: { content?: ProcessSectionContent }
               steps
             </span>
           </div>
-          <div className="proc-head relative mt-5 hidden h-px w-48 bg-line lg:block">
-            <span className="proc-progress absolute inset-y-0 left-0 w-full origin-left scale-x-0 bg-clay" />
-          </div>
+          <div className="mt-5 hidden h-px w-48 bg-clay lg:block" />
 
           {/* Desktop keeps the CTA in the left column, where it sits beside
               the staircase rather than before it. Stacked, that same position
-              puts "book now" between the promise of six clear steps and the
-              six steps themselves — asking for the decision before showing
+              puts "book now" between the promise of three clear steps and the
+              steps themselves — asking for the decision before showing
               the thing that earns it. */}
-          <div className="proc-head mt-8 hidden lg:block">
-            <Cta href="#book">{content?.primaryCta || "Book a Safety Visit"}</Cta>
+          <div className="mt-8 hidden lg:block">
+            <Cta href="#book">Book a Safety Visit</Cta>
           </div>
         </div>
 
-        {/* right — descending staircase */}
-        <div className="proc-stair flex flex-col gap-3 lg:gap-2.5">
+        {/* right — descending staircase. With three treads instead of six the
+            cards carry more padding and the gap widens, so the column stays
+            balanced against the left rather than collapsing to a short stub. */}
+        <div className="flex flex-col gap-4 lg:gap-5">
           {displaySteps.map((s, i) => (
-            <div
-              key={s.title}
-              className={`proc-step w-full lg:w-[62%] ${offset[i]}`}
-            >
-              <div className="flex items-start gap-4 rounded-2xl border border-line border-l-2 border-l-clay/50 bg-ink-raised p-4 lg:px-5 lg:py-3.5">
-                <span className="font-display text-3xl font-bold leading-none text-cream-dim">
+            <div key={s.title} className={`w-full lg:w-[62%] ${offset[i]}`}>
+              <div className="flex h-full items-start gap-4 rounded-2xl border border-line border-l-2 border-l-clay/50 bg-ink-raised p-4 lg:min-h-[8rem] lg:gap-5 lg:px-6 lg:py-4">
+                <span className="font-display text-3xl font-bold leading-none text-cream-dim lg:text-4xl">
                   0{i + 1}
                 </span>
                 <div>
-                  <h3 className="font-display text-base font-semibold text-cream lg:text-lg">
+                  <h3 className="font-display text-base font-semibold text-cream lg:text-xl">
                     {s.title}
                   </h3>
-                  <p className="mt-1 text-xs leading-snug text-cream-dim">
+                  <p className="mt-1.5 text-sm leading-relaxed text-cream-dim">
                     {s.copy}
                   </p>
                 </div>
@@ -245,7 +102,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
             of the staircase. */}
         <div className="lg:hidden">
           <Cta href="#book" className="w-full justify-center sm:w-auto">
-            {content?.primaryCta || "Book a Safety Visit"}
+            Book a Safety Visit
           </Cta>
         </div>
       </div>

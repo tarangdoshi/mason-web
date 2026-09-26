@@ -225,19 +225,19 @@ export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
   return (
     <section
       ref={ref}
-      className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:h-screen lg:overflow-hidden lg:py-0"
+      className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:min-h-screen lg:overflow-visible lg:py-0"
     >
       {/* lg padding lives here rather than on the section, because the section
           is the viewport and this is what sits inside it. Same py-24 as every
           other section — top equal to bottom. */}
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-6 lg:px-10 lg:py-24">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-6 lg:min-h-screen lg:px-10 lg:py-24">
         <div className="max-w-3xl">
           <p className="wm-reveal eyebrow mb-5">Why Mason Company</p>
           <h2 className="wm-reveal h-display text-3xl text-cream sm:text-4xl lg:text-[2.75rem]">
             A complete <span className="accent-word">solution</span> - not
             a pile of products.
           </h2>
-          <p className="wm-reveal mt-5 max-w-xl text-base leading-relaxed text-cream-dim">
+          <p className="wm-reveal mt-2 max-w-xl text-base leading-relaxed text-cream-dim">
             Six strengths that come together into one accountable outcome.
           </p>
         </div>

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/packages"},
   title: "Packages - Mason Company",
   description:
-    "Request a bathroom safety visit and explore Standard or Advanced. Both install the same 12 upgrades, fitted by trained Mason experts.",
+    "Book a free bathroom safety visit, or choose Standard or Advanced. Both install the same 12 upgrades, fitted by trained Mason experts.",
 };
 
 /* Three blocks, in the order the decision is actually made.
@@ -55,7 +55,7 @@ export default async function PackagesPage() {
           <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />
           <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className="eyebrow mb-4">Request your visit</p>
+              <p className="eyebrow mb-4">Free &amp; no obligation</p>
               {/* The lg step down from text-6xl is the column: the h1 has half
                   the page beside the form, and 60px there puts three words on
                   a line. */}
@@ -98,7 +98,7 @@ export default async function PackagesPage() {
                 forest green in the Safer strip, where a hairline would be
                 invisible. Same radius as the card it wraps, no padding, so the
                 stroke lands exactly on its edge. */}
-            <div className="mx-auto w-full max-w-xl rounded-3xl ring-1 ring-line lg:max-w-none">
+            <div className="mx-auto w-full max-w-xl lg:max-w-none">
               <VisitForm />
             </div>
           </div>

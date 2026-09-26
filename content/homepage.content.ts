@@ -10,7 +10,7 @@ export const homepageContent: HomepageContent = {
       { label: "FAQ", href: "#faq" }
     ],
     locationLabel: "City",
-    locationValue: "Mumbai & Goa",
+    locationValue: "Goa",
     searchPlaceholder: ""
   },
   brand: {
@@ -18,10 +18,10 @@ export const homepageContent: HomepageContent = {
     tagline: "",
     serviceLine: "Premium bathroom safety upgrades for ageing parents",
     trustBadges: ["Pre-priced safety packages", "Trained Mason experts", "Doctor-reviewed planning", "Full refund any time before installation."],
-    phoneDisplay: "+91 98765 43210",
-    phoneTel: "+919876543210",
+    phoneDisplay: "+91 81494 33383",
+    phoneTel: "+918149433383",
     whatsappLabel: "WhatsApp Support",
-    whatsappUrl: "https://wa.me/919876543210",
+    whatsappUrl: "https://wa.me/918149433383",
     headerStats: [
       { value: "2 Packages", label: "Standard and Advanced" },
       { value: "Doctor inputs", label: "Safety planning" },
@@ -446,7 +446,7 @@ export const homepageContent: HomepageContent = {
   },
   packagesSection: {
     title: "The same complete kit. You choose the cover.",
-    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes one safety check-up visit during the first year.",
+    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced adds a safety check-up visit two years after installation.",
     features: [
       { id: "vertical-grab-bars", label: "Vertical grab bars", description: "Support placed at key standing and movement points.", quantity: 3 },
       { id: "angled-grab-bar", label: "L / angled grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
@@ -499,11 +499,11 @@ export const homepageContent: HomepageContent = {
       {
         id: "package-advanced",
         name: "Advanced",
-        badge: "The complete kit + 1-Year Safety Check-Up Included",
+        badge: "The complete kit, plus two years of cover",
         titleDescriptor: "Full Mason safety setup",
         isFeatured: false,
-        bestFor: "The same installation, with one included safety check-up during the first year.",
-        outcome: "The complete installation kit, plus one technician visit within the first year to inspect the work and cover necessary corrective support identified during that visit.",
+        bestFor: "The same installation, with a safety check-up two years on to catch anything that has worked loose.",
+        outcome: "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
         price: "₹37,000",
         referencePrice: "₹44,000",
         currentPrice: "₹37,000",
@@ -513,7 +513,7 @@ export const homepageContent: HomepageContent = {
           alt: "Bathroom with broader safety support for the Advanced package",
           objectPosition: "50% 48%"
         },
-        visualHighlights: ["Same complete kit", "Home-first finish", "1-year safety check-up"],
+        visualHighlights: ["Same complete kit", "Home-first finish", "Two-year safety check-up"],
         includedFeatureIds: [
           "vertical-grab-bars",
           "angled-grab-bar",
@@ -572,7 +572,7 @@ export const homepageContent: HomepageContent = {
         quote: "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
         author: "Anita Mehra",
         relation: "Daughter",
-        city: "Bengaluru",
+        city: "Goa",
         outcomeLine: "Safer movement, premium finish",
         photo: {
           src: "/images/proof/testimonial-anita.jpg",
@@ -596,7 +596,7 @@ export const homepageContent: HomepageContent = {
         quote: "The biggest relief was not having to coordinate multiple vendors. Mason handled the planning, products, installation, and walkthrough as one complete solution.",
         author: "Neha Shah",
         relation: "Daughter-in-law",
-        city: "Bengaluru",
+        city: "Goa",
         outcomeLine: "One accountable team"
       },
       {
@@ -730,7 +730,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What packages do you offer?",
-        answer: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install the same complete kit. Advanced adds one technician safety check-up visit during the first year."
+        answer: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install the same complete kit. Advanced adds a safety check-up visit two years after installation."
       },
       {
         question: "What is included in Standard?",
@@ -738,7 +738,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What is included in Advanced?",
-        answer: "Advanced includes the same complete 12-item installation kit as Standard, plus one technician follow-up visit within the first year. During that visit we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit."
+        answer: "Advanced includes the same complete 12-item installation kit as Standard, plus a safety check-up visit two years after installation. During that visit we inspect the fittings and identify any support that needs attention."
       },
       {
         question: "Can I buy only one product, like a grab bar?",
@@ -775,6 +775,6 @@ export const homepageContent: HomepageContent = {
     title: "Book the visit. We'll handle the rest.",
     subtitle: "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest.",
     primaryCta: "Request a Callback",
-    secondaryLabel: "Call +91 98765 43210"
+    secondaryLabel: "Call +91 81494 33383"
   }
 };

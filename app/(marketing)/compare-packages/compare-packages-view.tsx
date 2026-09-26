@@ -73,7 +73,7 @@ export default function ComparePackagesView({
             <p>Most families start with a visit request. If you already know what you need, you can compare package scope and continue to checkout.</p>
             <ul>
               <li>A visit request requires no package selection</li>
-              <li>Advanced includes one technician safety check-up during the first year</li>
+              <li>Advanced includes a safety check-up visit two years after installation</li>
             </ul>
           </article>
         </div>
@@ -212,7 +212,7 @@ export default function ComparePackagesView({
                 <li>Start with an assessment if you need help choosing</li>
                 <li>Online payment keeps the current package total</li>
                 <li>Pay on installation adds ₹500 service fee</li>
-                <li>Advanced includes one first-year safety check-up visit</li>
+                <li>Advanced includes one two-year safety check-up visit</li>
               </ul>
             </div>
           </aside>
