@@ -68,7 +68,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
               steps themselves — asking for the decision before showing
               the thing that earns it. */}
           <div className="mt-8 hidden lg:block">
-            <Cta href="#book">Book a Safety Visit</Cta>
+            <Cta href="#book">Book Free Inspection</Cta>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export default function Process({ content }: { content?: ProcessSectionContent }
             of the staircase. */}
         <div className="lg:hidden">
           <Cta href="#book" className="w-full justify-center sm:w-auto">
-            Book a Safety Visit
+            Book Free Inspection
           </Cta>
         </div>
       </div>

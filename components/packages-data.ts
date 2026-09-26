@@ -38,7 +38,6 @@ export type Package = {
   popular: boolean;
   bestFor: string;
   outcome: string;
-  cta: string;
   referencePrice?: string;
   currentPrice?: string;
 };
@@ -56,8 +55,7 @@ export const PACKAGES: Package[] = [
     outcome:
       "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
     referencePrice: "₹35,000",
-    currentPrice: "₹30,000",
-    cta: "Book Standard",
+    currentPrice: "₹29,999",
   },
   {
     name: "Advanced",
@@ -69,12 +67,11 @@ export const PACKAGES: Package[] = [
     outcome:
       "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
     referencePrice: "₹44,000",
-    currentPrice: "₹37,000",
-    cta: "Book Advanced",
+    currentPrice: "₹36,999",
   },
 ];
 
-export function packageCardFromPlan(plan: { name: string; badge?: string; isFeatured?: boolean; bestFor?: string; outcome?: string; ctaLabel?: string; price?: string; referencePrice?: string; currentPrice?: string }, index: number): Package {
+export function packageCardFromPlan(plan: { name: string; badge?: string; isFeatured?: boolean; bestFor?: string; outcome?: string; price?: string; referencePrice?: string; currentPrice?: string }, index: number): Package {
   const fallback = PACKAGES[index] || PACKAGES[0];
   return {
     name: plan.name as Package["name"],
@@ -83,7 +80,6 @@ export function packageCardFromPlan(plan: { name: string; badge?: string; isFeat
     popular: Boolean(plan.isFeatured ?? fallback.popular),
     bestFor: plan.bestFor || fallback.bestFor,
     outcome: plan.outcome || fallback.outcome,
-    cta: plan.ctaLabel || `Continue with ${plan.name}`,
     referencePrice: plan.referencePrice || fallback.referencePrice,
     currentPrice: plan.currentPrice || plan.price || fallback.currentPrice
   };

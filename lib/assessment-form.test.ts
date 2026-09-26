@@ -15,7 +15,7 @@ test("public booking form matches the approved Prerna field set and copy", () =>
   assert.doesNotMatch(formSource, /assessmentType/);
   assert.doesNotMatch(formSource, /Optional notes \/ concern/);
   assert.doesNotMatch(formSource, /Book Free Safety Assessment/);
-  assert.doesNotMatch(formSource, /LeadPrivacyNotice/);
+  assert.match(formSource, /<LeadPrivacyNotice/);
   assert.match(formSource, /Visit request received/);
   assert.doesNotMatch(formSource, /Assessment received/);
 });

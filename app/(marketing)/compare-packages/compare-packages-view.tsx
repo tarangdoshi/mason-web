@@ -54,7 +54,7 @@ export default function ComparePackagesView({
                 data-analytics-cta-location="compare-hero-primary"
                 data-analytics-section="compare-hero"
               >
-                Request a Safety Visit
+                Book Free Inspection
               </a>
               <a href="#packages" className={styles.secondaryButton}>
                 Compare plans
@@ -101,7 +101,7 @@ export default function ComparePackagesView({
             data-analytics-cta-location="compare-packages-assessment-callout"
             data-analytics-section="packages"
           >
-            Request a Safety Visit
+            Book Free Inspection
           </a>
         </div>
 
@@ -234,7 +234,7 @@ export default function ComparePackagesView({
               data-analytics-cta-location="compare-final-primary"
               data-analytics-section={finalCtaSection.id || "compare-cta"}
             >
-              Request a Safety Visit
+              Book Free Inspection
             </a>
             <a
               href={phoneHref}

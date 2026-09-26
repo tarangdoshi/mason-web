@@ -14,7 +14,7 @@ Source: Mason UAT Google Doc `1BrkpoOgIvuNeWzX-h-nUudoLBFhAE57gS8nvDdffWQw`, inc
 | Home desktop: remove process-section animations | Yes | Code | Three-step process uses the current Prerna layout without the old step reveal animation. |
 | Doctor cards: name, qualifications, experience | Yes | Code | Corrected canonical CMS field mapping; Prerna photo fallback added without bypassing CMS images. |
 | Testimonial cards: updated presentation, no green tags, Goa | Yes | Local visual/code | CMS quotes/authors retained; visible city labels are Goa. |
-| FAQ: right side sticky while scrolling | No — interpretation needed | REQUIRES PREVIEW VISUAL VERIFICATION | UAT text says **right** side. Prerna's latest repository and canonical site both stick the **left heading** beside the scrolling right accordion. Keeping that behavior avoids trapping a long accordion in a viewport. Founder should confirm intended side in Preview. |
+| FAQ: heading sticky while questions scroll | APPROVED | Founder Preview #1 | Founder confirmed the **left heading** stays sticky and right Q&A scrolls normally. The older UAT right-side wording is superseded. |
 | Home mobile: assessment heading → form → image | Yes | Local 390×844 visual | Source and visual order match; canonical lead form retained. |
 | Home mobile: headings left-aligned | Yes | Local mobile visual | Updated assessment heading treatment. |
 | Home mobile: reduced heading/subheading spacing | Yes | Local mobile visual | Assessment and transformation spacing tightened. |
@@ -32,7 +32,7 @@ Source: Mason UAT Google Doc `1BrkpoOgIvuNeWzX-h-nUudoLBFhAE57gS8nvDdffWQw`, inc
 | Contact: updated desktop/mobile form presentation | Yes | Local desktop/mobile visual | Canonical shared Places picker, phone, validation, API errors, submission and no Package field retained. |
 | Privacy Policy: current Prerna content, 91 Ventures LLP | Yes | Local visual/code | Current Prerna text and legal layout ported; rendered placeholder grievance contacts removed. |
 | Terms: current Prerna content, 91 Ventures LLP | Yes | Local visual/code | Current Prerna text and legal layout ported without adding provisions. |
-| Packages page: updated text | Partial | Local visual/code; REQUIRES FOUNDER PRODUCT DECISION | Free-visit copy, plan cards and two-year Advanced copy ported. Prerna's kit list contradicts canonical locked 12-item kit and has placeholder quantities; canonical kit and CMS mapping preserved. |
+| Packages page: updated text | Yes | Founder Preview #1 product decision | Canonical kit now has 13 component categories, including Raised Toilet Seat without an assumed quantity. Existing component names remain unchanged. |
 | Package-card presentation on Packages page | Yes | Local visual/code | Shared card component matches the homepage presentation. |
 | Form footer: “T&C apply” | Yes | Local visual/code | Applied to assessment, contact, guidance and checkout lead forms using the Terms link. |
 | Goa-only launch copy | Yes | Local visual/code/tests | Visible launch, location, footer and SEO copy updated; backend market classification untouched. |
@@ -44,3 +44,20 @@ Source: Mason UAT Google Doc `1BrkpoOgIvuNeWzX-h-nUudoLBFhAE57gS8nvDdffWQw`, inc
 ## Preview review
 
 Review at mobile, tablet, standard desktop and large desktop, especially the large-screen Why Mason crop fix, FAQ sticky behavior, About sticky stop point, mobile form order/spacing, package cards and kit text, Contact form presentation, and legal copy. Do not submit a form on Preview because that environment may reach live lead infrastructure.
+
+## Founder Preview corrections #1 — approved product source of truth
+
+| Decision | Current branch value |
+| --- | --- |
+| Launch | Goa only |
+| Packages | Standard and Advanced |
+| Current selling prices | Standard ₹29,999; Advanced ₹36,999 |
+| Advanced cover | Two-year AMC / safety check-up |
+| Shared kit | 13 component categories; Raised Toilet Seat added without an invented quantity; original 12 names retained |
+| Legal entity | 91 Ventures LLP |
+| Form footer | “T&C apply”, smaller helper-text size |
+| FAQ layout | Left heading sticky; right Q&A scrollable |
+| Homepage package CTA | “View Details” to the corresponding package detail page |
+| Dedicated Packages-page CTA | “Book Free Inspection” using the existing booking flow |
+
+The branch pins these newly approved offer and copy fields when older published Sanity data is still present. Other CMS text, image and feature mappings remain in use. The legacy `scripts/migrate-prerna-content.ts` is a historical migration for the prior 12-component, older-price offer; it is not executed by the frontend or this correction pass and must not be re-applied to current content.

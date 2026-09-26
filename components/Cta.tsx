@@ -68,7 +68,7 @@ export default function Cta({
 }: {
   href: string;
   packageName?: string;
-  /** Listed price, e.g. "₹30,000"; reported with select_package. */
+  /** Current selling price, e.g. "₹29,999"; reported with select_package. */
   packagePrice?: string;
   children: React.ReactNode;
   variant?: Variant;

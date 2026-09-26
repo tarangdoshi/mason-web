@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.masoncompany.in"),
   title: "Mason Company - Safer bathrooms for ageing parents",
   description:
-    "Premium, doctor-informed, expert-installed bathroom safety upgrades that keep the home feeling like home. Book a Safety Visit.",
+    "Premium, doctor-informed, expert-installed bathroom safety upgrades that keep the home feeling like home. Book Free Inspection.",
 };
 
 export default function PublicLayout({children}: {children: React.ReactNode}) {

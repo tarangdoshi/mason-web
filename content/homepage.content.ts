@@ -30,9 +30,9 @@ export const homepageContent: HomepageContent = {
   },
   hero: {
     eyebrow: "Bathroom Safety for Ageing Parents",
-    heading: "Most falls happen here. We make sure yours don't.",
+    heading: "Most falls happen in the bathroom. We make sure yours don't.",
     subcopy: "You can't always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety.",
-    primaryCta: "Book a Safety Visit",
+    primaryCta: "Book Free Inspection",
     secondaryCta: "See Transformations",
     supportNote: "",
     supportPoints: ["Premium home-first finish", "Trained Mason experts", "Doctor-reviewed planning"],
@@ -349,7 +349,7 @@ export const homepageContent: HomepageContent = {
     subtitle: "Six clear steps, handled by one accountable Mason team - from your visit request all the way to final handover.",
     highlights: ["Clear steps", "Assisted support", "One accountable Mason team from booking to handover"],
     addOnDisclosure: "Clear steps. Assisted support. One accountable Mason team from booking to handover.",
-    primaryCta: "Book a Safety Visit",
+    primaryCta: "Book Free Inspection",
     secondaryCta: "Talk to a Mason Company specialist",
     steps: [
       {
@@ -459,7 +459,8 @@ export const homepageContent: HomepageContent = {
       { id: "corner-safety", label: "Edge & corner protection", description: "Protective cushioning for sharp edges and corners that could cause injury.", quantity: 1 },
       { id: "drainage-solution", label: "Drainage support", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
       { id: "slippers-one", label: "Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
-      { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 }
+      { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 },
+      { id: "raised-toilet-seat", label: "Raised Toilet Seat" }
     ],
     plans: [
       {
@@ -470,9 +471,9 @@ export const homepageContent: HomepageContent = {
         isFeatured: true,
         bestFor: "The full safety upgrade, installed, inspected and handed over in one go.",
         outcome: "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
-        price: "₹30,000",
+        price: "₹29,999",
         referencePrice: "₹35,000",
-        currentPrice: "₹30,000",
+        currentPrice: "₹29,999",
         savings: "Core package",
         visual: {
           src: "/images/hero/transformed-bathroom-desktop.jpg",
@@ -492,7 +493,8 @@ export const homepageContent: HomepageContent = {
           "corner-safety",
           "drainage-solution",
           "slippers-one",
-          "total-support-solution"
+          "total-support-solution",
+          "raised-toilet-seat"
         ],
         ctaLabel: "Book Standard"
       },
@@ -504,9 +506,9 @@ export const homepageContent: HomepageContent = {
         isFeatured: false,
         bestFor: "The same installation, with a safety check-up two years on to catch anything that has worked loose.",
         outcome: "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
-        price: "₹37,000",
+        price: "₹36,999",
         referencePrice: "₹44,000",
-        currentPrice: "₹37,000",
+        currentPrice: "₹36,999",
         savings: "Premium package",
         visual: {
           src: "/images/stock-web/upgrades/upgrade-shower-support.jpg",
@@ -526,7 +528,8 @@ export const homepageContent: HomepageContent = {
           "corner-safety",
           "drainage-solution",
           "slippers-one",
-          "total-support-solution"
+          "total-support-solution",
+          "raised-toilet-seat"
         ],
         ctaLabel: "Book Advanced"
       },
@@ -570,25 +573,25 @@ export const homepageContent: HomepageContent = {
       {
         id: "ts-1",
         quote: "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
-        author: "Anita Mehra",
+        author: "Maria Pereira",
         relation: "Daughter",
         city: "Goa",
         outcomeLine: "Safer movement, premium finish",
         photo: {
           src: "/images/proof/testimonial-anita.jpg",
-          alt: "Portrait of Anita Sharma"
+          alt: "Portrait of Maria Pereira"
         }
       },
       {
         id: "ts-2",
         quote: "The process was clear from the first call. The team explained the package, inspected the bathroom, and installed everything neatly. My mother now has support exactly where she needs it.",
-        author: "Rohan Kapoor",
+        author: "Rohan Naik",
         relation: "Son",
         city: "Goa",
         outcomeLine: "Clear process, confident handover",
         photo: {
           src: "/images/proof/testimonial-rohan.jpg",
-          alt: "Portrait of Rohan Desai"
+          alt: "Portrait of Rohan Naik"
         }
       },
       {
@@ -602,7 +605,7 @@ export const homepageContent: HomepageContent = {
       {
         id: "ts-4",
         quote: "The before-and-after difference was obvious. The bathroom feels safer, but it still looks like a well-designed home bathroom, not a medical facility.",
-        author: "Vikram Rao",
+        author: "Karl Fernandes",
         relation: "Son",
         city: "Goa",
         outcomeLine: "Visible upgrade, home-first design"
@@ -714,7 +717,7 @@ export const homepageContent: HomepageContent = {
     items: [
       {
         question: "What does Mason Company do?",
-        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support."
+        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support."
       },
       {
         question: "Who is Mason Company for?",
@@ -722,7 +725,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "Do you renovate the entire bathroom?",
-        answer: "No. Mason focuses on safety upgrades to the existing bathroom. Most installations do not require a major renovation."
+        answer: "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation."
       },
       {
         question: "Will the bathroom look clinical?",
@@ -730,15 +733,15 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What packages do you offer?",
-        answer: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install the same complete kit. Advanced adds a safety check-up visit two years after installation."
+        answer: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install the same complete kit. Advanced adds a safety check-up visit two years after installation."
       },
       {
         question: "What is included in Standard?",
-        answer: "Standard includes the complete 12-item kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting, SOS hardware, and toilet-seat support are not included."
+        answer: "Standard includes the complete 13-component kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, a Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included."
       },
       {
         question: "What is included in Advanced?",
-        answer: "Advanced includes the same complete 12-item installation kit as Standard, plus a safety check-up visit two years after installation. During that visit we inspect the fittings and identify any support that needs attention."
+        answer: "Advanced includes the same complete 13-component installation kit as Standard, plus a safety check-up visit two years after installation. During that visit we inspect the fittings and identify any support that needs attention."
       },
       {
         question: "Can I buy only one product, like a grab bar?",
@@ -774,7 +777,7 @@ export const homepageContent: HomepageContent = {
     id: "final-cta",
     title: "Book the visit. We'll handle the rest.",
     subtitle: "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest.",
-    primaryCta: "Request a Callback",
+    primaryCta: "Book Free Inspection",
     secondaryLabel: "Call +91 81494 33383"
   }
 };

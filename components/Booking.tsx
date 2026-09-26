@@ -66,7 +66,7 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
             grow and shrink as the phone's toolbars collapse. From sm it goes
             back to being sized by its own padding. */}
         <div className="relative flex min-h-svh flex-col justify-center px-6 py-12 text-center sm:block sm:min-h-0 sm:px-12 sm:py-14 lg:py-16">
-          <p className="reveal eyebrow on-dark mb-6">Book a Safety Visit</p>
+          <p className="reveal eyebrow on-dark mb-6">Book Free Inspection</p>
           <h2 className="reveal mx-auto max-w-3xl h-display text-4xl leading-[1.05] text-white sm:text-5xl lg:text-6xl">
             {renderTitle(content?.title)}
           </h2>
@@ -82,13 +82,13 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
           </p>
 
           {/* One button, because there was only ever one action. The pair here
-              read as a choice - a solid "Book a Safety Visit" beside an outline
+              read as a choice - a solid "Book Free Inspection" beside an outline
               "Request a Callback" - and both opened the identical sheet. A
               choice that resolves to the same screen either way costs the
               reader a decision and returns nothing for it. */}
           <div className="reveal mt-9 flex justify-center">
             <Cta href="#book" className="w-full justify-center sm:w-auto">
-              {content?.primaryCta || "Request a Callback"}
+              {content?.primaryCta || "Book Free Inspection"}
             </Cta>
           </div>
 

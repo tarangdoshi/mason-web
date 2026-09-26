@@ -10,7 +10,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const TESTIMONIALS = [
   {
-    name: "Anita Mehra",
+    name: "Maria Pereira",
     role: "Daughter",
     city: "Goa",
     quote:
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     tag: "Safer movement, premium finish",
   },
   {
-    name: "Rohan Kapoor",
+    name: "Rohan Naik",
     role: "Son",
     city: "Goa",
     quote:
@@ -34,7 +34,7 @@ const TESTIMONIALS = [
     tag: "One accountable team",
   },
   {
-    name: "Vikram Rao",
+    name: "Karl Fernandes",
     role: "Son",
     city: "Goa",
     quote:

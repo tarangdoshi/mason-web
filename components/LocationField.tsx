@@ -17,7 +17,7 @@ const INPUT = `${FIELD} placeholder:text-sand-400 focus:outline-none border-sand
 
 /**
  * Contact-page counterpart to `app/components/location-autocomplete-field.tsx`
- * (the home page "Book a Safety Visit" form's location field) — same Google
+ * (the home page inspection form's location field) — same Google
  * Places autocomplete + "use my location" behaviour via
  * `useLocationAutocomplete`, styled to match this form's own Tailwind field
  * system instead of the assessment form's CSS module.

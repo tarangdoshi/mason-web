@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import Link from "next/link";
+import LeadPrivacyNotice from "./lead-privacy-notice";
 import { setAnalyticsMarket, trackAnalyticsEvent } from "../../lib/analytics";
 import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../lib/lead-funnel";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
@@ -267,9 +267,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
           {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Request my visit"}
         </button>
       </div>
-      <p className={styles.privacyNotice}>
-        <Link href="/terms">T&amp;C apply</Link>
-      </p>
+      <LeadPrivacyNotice className={styles.privacyNotice} />
 
       {submissionState === "success" ? (
         <p className={styles.successMessage} role="status">

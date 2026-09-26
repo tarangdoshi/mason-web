@@ -11,7 +11,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 const FAQS = [
   {
     q: "What does Mason Company do?",
-    a: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support.",
+    a: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support.",
   },
   {
     q: "Who is Mason Company for?",
@@ -19,7 +19,7 @@ const FAQS = [
   },
   {
     q: "Do you renovate the entire bathroom?",
-    a: "No. Mason focuses on safety upgrades to the existing bathroom. Most installations do not require a major renovation.",
+    a: "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation.",
   },
   {
     q: "Will the bathroom look clinical?",
@@ -27,15 +27,15 @@ const FAQS = [
   },
   {
     q: "What packages do you offer?",
-    a: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install exactly the same complete kit. Advanced adds a safety check-up visit two years after installation.",
+    a: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install exactly the same complete kit. Advanced adds a safety check-up visit two years after installation.",
   },
   {
     q: "What is included in Standard?",
-    a: "The complete 12-item kit includes three vertical grab bars, one L / angled bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Toilet-seat support, sensor lighting, and SOS hardware are not included.",
+    a: "The complete 13-component kit includes three vertical grab bars, one L / angled bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, a Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included.",
   },
   {
     q: "What is included in Advanced?",
-    a: "Exactly the same 12-item installation kit as Standard. Advanced adds a safety check-up visit two years after installation, when we inspect the fittings and identify any support that needs attention.",
+    a: "Exactly the same 13-component installation kit as Standard. Advanced adds a safety check-up visit two years after installation, when we inspect the fittings and identify any support that needs attention.",
   },
   {
     q: "Can I buy only one product, like a grab bar?",

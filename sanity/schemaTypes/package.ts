@@ -8,8 +8,8 @@ const expectedPackageNamesByCode: Record<string, string> = {
   "package-advanced": "Advanced"
 };
 const lockedPricesByCode: Record<string, { referencePrice: string; currentPrice: string }> = {
-  "package-standard": { referencePrice: "₹35,000", currentPrice: "₹30,000" },
-  "package-advanced": { referencePrice: "₹44,000", currentPrice: "₹37,000" }
+  "package-standard": { referencePrice: "₹35,000", currentPrice: "₹29,999" },
+  "package-advanced": { referencePrice: "₹44,000", currentPrice: "₹36,999" }
 };
 
 export const packageSchema = defineType({
@@ -83,10 +83,10 @@ export const packageSchema = defineType({
         const code = context.document?.code;
         return typeof code === "string" && lockedPricesByCode[code]?.currentPrice === value
           ? true
-          : "Use ₹30,000 for Standard or ₹37,000 for Advanced.";
+          : "Use ₹29,999 for Standard or ₹36,999 for Advanced.";
       })
     }),
-    defineField({ name: "followUpLabel", title: "Included follow-up", type: "string", description: "For Advanced: the single included first-year safety check-up." }),
+    defineField({ name: "followUpLabel", title: "Included follow-up", type: "string", description: "For Advanced: the included two-year safety check-up." }),
     defineField({ name: "savings", title: "Savings / tier label", type: "string" }),
     defineField({ name: "isFeatured", title: "Featured", type: "boolean", initialValue: false }),
     defineField({ name: "sortOrder", title: "Sort order", type: "number", initialValue: 0 }),

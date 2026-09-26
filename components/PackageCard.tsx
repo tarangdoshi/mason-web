@@ -182,8 +182,8 @@ export default function PackageCard({
 
       {/* mt-auto so the buttons sit on one line however the copy above wraps */}
       <div className="mt-auto pt-8">
-        <Cta packageName={pkg.name} packagePrice={pkg.currentPrice} href="#book" size="block" variant={s.cta}>
-          {pkg.cta}
+        <Cta packageName={pkg.name} packagePrice={pkg.currentPrice} href={onHome ? `/packages/${pkg.name.toLowerCase()}` : "#book"} size="block" variant={s.cta}>
+          {onHome ? "View Details" : "Book Free Inspection"}
         </Cta>
       </div>
     </div>

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/packages"},
   title: "Packages - Mason Company",
   description:
-    "Book a free bathroom safety visit, or choose Standard or Advanced. Both install the same 12 upgrades, fitted by trained Mason experts.",
+    "Book a free bathroom inspection, or choose Standard or Advanced. Both include the same 13 component categories, fitted by trained Mason experts.",
 };
 
 /* Three blocks, in the order the decision is actually made.
@@ -200,10 +200,10 @@ export default async function PackagesPage() {
                     aria-hidden="true"
                     className="min-w-9 shrink-0 rounded-full bg-sand-200 px-2.5 py-1 text-center font-mono-label text-sm tabular-nums text-cream"
                   >
-                    {item.qty}
+                    {item.qty ?? "Included"}
                   </span>
                   <span className="sr-only">
-                    {item.qty} included
+                    {item.qty === undefined ? "Included" : `${item.qty} included`}
                   </span>
                 </li>
               ))}

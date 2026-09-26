@@ -60,7 +60,7 @@ export default function AboutPage() {
           </div>
 
           <Cta href="/#book" className="mt-10">
-            Book a Safety Visit
+            Book Free Inspection
           </Cta>
         </section>
 
@@ -405,7 +405,7 @@ export default function AboutPage() {
             </p>
             <div className="reveal mt-10">
               <Cta href="/#book" variant="light">
-                Book a Safety Visit
+                Book Free Inspection
               </Cta>
             </div>
           </Reveal>

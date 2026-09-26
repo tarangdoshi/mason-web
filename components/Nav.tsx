@@ -209,7 +209,7 @@ export default function Nav() {
           />
 
           <Cta href="/#book" size="compact">
-            Book a Safety Visit
+            Book Free Inspection
           </Cta>
         </div>
 
@@ -301,7 +301,7 @@ export default function Nav() {
                   on the screen after the links, and block's 14px label would
                   undersell it. w-full only adds the span block gave it. */}
               <Cta href="/#book" className="w-full justify-center">
-                Book a Safety Visit
+                Book Free Inspection
               </Cta>
             </div>
 

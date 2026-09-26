@@ -227,7 +227,7 @@ function uniqueFeatures(items: PackageFeatureItem[]) {
   return Array.from(map.values());
 }
 
-function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | null | undefined, settings: SanitySiteSettings | null | undefined) {
+export function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | null | undefined, settings: SanitySiteSettings | null | undefined) {
   const next: HomepageContent = structuredClone(base);
 
   if (settings) {
@@ -263,6 +263,10 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
     next.hero = {
       ...next.hero,
       ...heroFields,
+      // These founder-approved words must reach Preview even while the live
+      // Sanity document still contains the prior headline and CTA.
+      heading: base.hero.heading,
+      primaryCta: base.hero.primaryCta,
       visual: {
         ...next.hero.visual,
         image: heroAfterVisual?.src || legacyHeroVisual?.src || next.hero.visual.image,
@@ -323,6 +327,7 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
   // migration before the public page can render them.
   const lockedFaqQuestions = new Set([
     "What does Mason Company do?",
+    "Do you renovate the entire bathroom?",
     "What packages do you offer?",
     "What is included in Standard?",
     "What is included in Advanced?"
@@ -350,6 +355,8 @@ function applySanityHomepage(base: HomepageContent, homepage: SanityHomepage | n
   // published CMS subtitle must not put retired first-year copy back on the
   // public cards while the editor updates the document.
   next.packagesSection.subtitle = base.packagesSection.subtitle;
+  next.processSection.primaryCta = base.processSection.primaryCta;
+  next.finalCtaSection.primaryCta = base.finalCtaSection.primaryCta;
   next.finalCtaSection.secondaryLabel = `Call ${PHONE_DISPLAY}`;
 
   return next;
@@ -383,9 +390,9 @@ export function applySanityPackages(content: HomepageContent, packages: SanityPa
     return {
       id: pkg.code!,
       name: pkg.name as PackagePlanContent["name"],
-      price: pkg.currentPrice || fallbackPlan?.currentPrice || fallbackPlan?.price || pkg.name!,
+      price: fallbackPlan?.currentPrice || fallbackPlan?.price || pkg.currentPrice || pkg.name!,
       referencePrice: pkg.referencePrice || fallbackPlan?.referencePrice,
-      currentPrice: pkg.currentPrice || fallbackPlan?.currentPrice || fallbackPlan?.price,
+      currentPrice: fallbackPlan?.currentPrice || fallbackPlan?.price || pkg.currentPrice || undefined,
       savings: pkg.savings || fallbackPlan?.savings || (index === 0 ? "Core package" : "Premium package"),
       // Launch copy follows the approved shared kit while legacy CMS packages await cleanup.
       bestFor: fallbackPlan?.bestFor || pkg.bestFor || undefined,
@@ -409,9 +416,36 @@ export function applySanityPackages(content: HomepageContent, packages: SanityPa
     ...content,
     packagesSection: {
       ...content.packagesSection,
-      features: uniqueFeatures([...baseFeatures, ...planFeatures, ...content.packagesSection.features]),
+      features: uniqueFeatures([...baseFeatures, ...planFeatures, ...content.packagesSection.features]).map((feature) =>
+        feature.id === "raised-toilet-seat"
+          ? content.packagesSection.features.find((approved) => approved.id === feature.id) || feature
+          : feature
+      ),
       addOnFeatures: [],
       plans
+    }
+  };
+}
+
+export function applyFounderPackageOffer(content: HomepageContent): HomepageContent {
+  const approvedPlans = new Map(homepageContent.packagesSection.plans.map((plan) => [plan.id, plan]));
+  const raisedSeat = homepageContent.packagesSection.features.find((feature) => feature.id === "raised-toilet-seat")!;
+  return {
+    ...content,
+    packagesSection: {
+      ...content.packagesSection,
+      features: uniqueFeatures([...content.packagesSection.features, raisedSeat]).map((feature) =>
+        feature.id === raisedSeat.id ? raisedSeat : feature
+      ),
+      plans: content.packagesSection.plans.map((plan) => {
+        const approved = approvedPlans.get(plan.id);
+        return approved ? {
+          ...plan,
+          price: approved.currentPrice || approved.price,
+          currentPrice: approved.currentPrice,
+          includedFeatureIds: approved.includedFeatureIds
+        } : plan;
+      })
     }
   };
 }
@@ -442,6 +476,22 @@ function applySanityTestimonials(content: HomepageContent, testimonials: SanityT
         }
       }
     : content;
+}
+
+export function applyFounderTestimonialNames(content: HomepageContent): HomepageContent {
+  const fallback = homepageContent.testimonialsSection.items;
+  const items = Array.from({ length: Math.max(4, content.testimonialsSection.items.length) }, (_, index) => {
+    const item = content.testimonialsSection.items[index] || fallback[index];
+    const author = index === 0 || index === 1 || index === 3 ? fallback[index].author : item.author;
+    return {
+      ...item,
+      author,
+      // Launch is Goa only, so every published testimonial reads as Goa.
+      city: "Goa",
+      photo: item.photo && author !== item.author ? { ...item.photo, alt: author } : item.photo
+    };
+  });
+  return { ...content, testimonialsSection: { ...content.testimonialsSection, items } };
 }
 
 function applySanityDoctors(content: HomepageContent, doctors: SanityDoctor[] | null | undefined) {
@@ -574,7 +624,9 @@ async function buildContent(base: HomepageContent, view: "homepage" | "compare-p
 
   let content = applySanityHomepage(base, payload.homepage, payload.siteSettings);
   content = applySanityPackages(content, payload.packages, payload.packageFeatures);
+  content = applyFounderPackageOffer(content);
   content = applySanityTestimonials(content, payload.testimonials);
+  content = applyFounderTestimonialNames(content);
   content = applySanityDoctors(content, payload.doctors);
   content = applySanityGallery(content, payload.gallery);
   content = applySanityRiskQuiz(content, payload.riskQuiz);
@@ -585,7 +637,7 @@ async function buildContent(base: HomepageContent, view: "homepage" | "compare-p
       packagesSection: {
         ...content.packagesSection,
         title: payload.homepage?.packagesSection?.title || base.packagesSection.title,
-        subtitle: payload.homepage?.packagesSection?.subtitle || base.packagesSection.subtitle,
+        subtitle: base.packagesSection.subtitle,
         addOnFeatures: content.packagesSection.addOnFeatures ?? base.packagesSection.addOnFeatures
       }
     };

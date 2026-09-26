@@ -66,7 +66,7 @@ export default async function PackageCheckoutPage({ params }: PageProps) {
                   Continue with this package
                 </a>
                 <Link href="/#free-assessment" className={styles.heroSecondaryCta}>
-                  Not sure? Request a Safety Visit
+                  Not sure? Book Free Inspection
                 </Link>
                 <Link href="/compare-packages#packages" className={styles.heroSecondaryCta}>
                   Compare packages

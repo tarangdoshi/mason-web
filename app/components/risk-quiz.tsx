@@ -281,7 +281,7 @@ export default function RiskQuiz({ section, packagesSectionId = "packages", fall
               data-analytics-cta-location="risk-quiz-result-primary"
               data-analytics-section={section.id}
             >
-              Book Free Safety Assessment
+              Book Free Inspection
             </a>
             <button type="button" className={`${styles.button} ${styles.buttonSecondary}`} onClick={onSeeRecommendation}>
               {section.resultCtaLabel}

@@ -437,7 +437,7 @@ test("homepage and comparison package CTAs emit current Standard and Advanced pr
     const source = readFileSync(resolve(process.cwd(), file), "utf8");
     assert.match(source, /packagePrice=\{plan\.currentPrice \|\| plan\.price\}/);
   }
-  for (const [name, expectedPrice] of [["Standard", 30000], ["Advanced", 37000]] as const) {
+  for (const [name, expectedPrice] of [["Standard", 29999], ["Advanced", 36999]] as const) {
     const plan = homepageContent.packagesSection.plans.find((item) => item.name === name);
     assert.ok(plan);
     const sellingPrice = plan.currentPrice || plan.price;
@@ -466,18 +466,18 @@ test("homepage and comparison package CTAs emit current Standard and Advanced pr
 
 test("city is attached once the market is known, and omitted before", () => {
   withBrowser("https://www.masoncompany.in/", GA, (_browser, gtagCalls) => {
-    trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 30000 });
+    trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 29999 });
     setAnalyticsMarket("UNKNOWN");
-    trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 30000 });
+    trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 29999 });
     setAnalyticsMarket("GOA");
-    trackAnalyticsEvent("select_package", { package_name: "Standard", package_price: parsePackagePrice("₹30,000") });
+    trackAnalyticsEvent("select_package", { package_name: "Standard", package_price: parsePackagePrice("₹29,999") });
 
     const [first, second] = events(gtagCalls, "view_package");
     assert.equal(first.city, undefined);
     assert.equal(second.city, undefined);
     const selected = events(gtagCalls, "select_package")[0];
     assert.equal(selected.city, "Goa");
-    assert.equal(selected.package_price, 30000);
+    assert.equal(selected.package_price, 29999);
   });
 });
 
@@ -594,7 +594,7 @@ test("Google Ads receives a lead conversion only when its id and label are confi
 
 test("Meta receives Lead for a created lead and only the spreadsheet's custom events", () => {
   withBrowser("https://www.masoncompany.in/", { NEXT_PUBLIC_META_PIXEL_ID: "123" }, (_browser, gtagCalls, fbqCalls) => {
-    trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 30000 });
+    trackAnalyticsEvent("view_package", { package_name: "Standard", package_price: 29999 });
     trackAnalyticsEvent("view_service", { service_name: "Safety Assessment" });
     const funnel = createLeadFunnelTracker(FORM_NAMES.safetyVisit);
     funnel.start();

@@ -1,4 +1,4 @@
-/* The twelve items we actually install.
+/* The approved component categories we install.
    Shared by the hero rail and the packages page so the two can never end up
    describing different kit — the rail is where most people first see this list,
    and the packages page is where they go to read it properly.
@@ -14,7 +14,7 @@ export type KitItem = {
   title: string;
   label: string;
   img: string;
-  qty: number;
+  qty?: number;
 };
 
 export const KIT: KitItem[] = [
@@ -30,4 +30,5 @@ export const KIT: KitItem[] = [
   { id: "drainage-solution", title: "Drainage support", label: "Hygiene", img: "/prerna/images/shower-1.jpg", qty: 4 },
   { id: "slippers-one", title: "Bathroom slippers", label: "Comfort", img: "/prerna/images/care-1.jpg", qty: 1 },
   { id: "total-support-solution", title: "Reinforced fixture support", label: "Stability", img: "/prerna/images/bath-4.jpg", qty: 1 },
+  { id: "raised-toilet-seat", title: "Raised Toilet Seat", label: "Support", img: "/images/stock-web/upgrades/upgrade-toilet-support.jpg" },
 ];
