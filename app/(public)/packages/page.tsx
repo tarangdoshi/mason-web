@@ -116,7 +116,9 @@ export default async function PackagesPage() {
           </div>
 
           <Reveal className="mt-8">
-            <div className="grid gap-6 lg:grid-cols-2">
+            {/* Six shared row tracks for the two package cards (see PackageCard); the
+                last absorbs spare height so the CTAs stay bottom-aligned. */}
+            <div className="grid gap-6 lg:grid-cols-2 lg:grid-rows-[auto_auto_auto_auto_auto_1fr] lg:gap-y-0">
               {packages.plans.map((plan) => (
                 <PackageCard
                   key={plan.code}

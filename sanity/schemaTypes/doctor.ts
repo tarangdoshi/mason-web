@@ -1,21 +1,24 @@
 import { defineField, defineType } from "sanity";
-import { cmsImageSpecs, defineGuidedImageField } from "./image-guidance";
+import { imageField, legacy } from "./fields";
 
 export const doctor = defineType({
   name: "doctor",
-  title: "Doctor",
+  title: "Doctor / Expert",
   type: "document",
+  orderings: [{ title: "Website order", name: "websiteOrder", by: [{ field: "sortOrder", direction: "asc" }] }],
   fields: [
-    defineField({ name: "name", title: "Doctor name", type: "string", validation: (rule) => rule.required() }),
-    defineField({ name: "specialty", title: "Specialty / credentials", type: "string", validation: (rule) => rule.required() }),
-    defineField({ name: "registration", title: "Registration / experience", type: "string", validation: (rule) => rule.required() }),
-    defineField({ name: "experienceLabel", title: "Experience label", type: "string" }),
+    defineField({ name: "name", title: "Name", type: "string", validation: (rule) => rule.required() }),
+    defineField({ name: "specialty", title: "Credentials", type: "string", description: "e.g. MBBS, MD", validation: (rule) => rule.required() }),
+    defineField({ name: "registration", title: "Experience / specialty line", type: "string", validation: (rule) => rule.required() }),
     defineField({ name: "quote", title: "Quote", type: "text", rows: 5, validation: (rule) => rule.required() }),
-    defineGuidedImageField({ name: "photo", title: "Photo", spec: cmsImageSpecs.portrait, description: "Portrait card image." }),
-    defineField({ name: "isFeatured", title: "Featured", type: "boolean", initialValue: false }),
-    defineField({ name: "sortOrder", title: "Sort order", type: "number", initialValue: 0 })
+    imageField("photo", "Photo", "portrait", { description: "Shown as a small round portrait; set the focal point on the face." }),
+    defineField({ name: "sortOrder", title: "Order on website", type: "number", description: "Lower numbers appear first.", initialValue: 0 }),
+    defineField({ name: "isHidden", title: "Hide from website", type: "boolean", initialValue: false }),
+    legacy(defineField({ name: "experienceLabel", title: "Experience label", type: "string" })),
+    legacy(defineField({ name: "isFeatured", title: "Featured", type: "boolean" }))
   ],
   preview: {
-    select: { title: "name", subtitle: "specialty" }
+    select: { title: "name", subtitle: "specialty", media: "photo", hidden: "isHidden" },
+    prepare: ({ title, subtitle, media, hidden }) => ({ title, media, subtitle: hidden ? `${subtitle ?? ""} — Hidden` : subtitle })
   }
 });

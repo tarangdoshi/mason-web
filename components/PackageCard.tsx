@@ -105,7 +105,12 @@ export default function PackageCard({
 
   return (
     <div
-      className={`flex flex-col rounded-3xl p-7 lg:p-9 ${s.card} ${className}`}
+      /* Side by side (lg), both cards share the parent grid's six row tracks
+         through subgrid, so header, price, description, the component list
+         (and its top rule), outcome and CTA start at the same height in both
+         cards whatever the copy length. Stacked below lg, each card is a plain
+         column with its natural height. */
+      className={`flex flex-col rounded-3xl p-7 lg:row-span-6 lg:grid lg:grid-rows-subgrid lg:gap-y-0 lg:p-9 ${s.card} ${className}`}
     >
       <AnalyticsViewTracker event="view_package" packageName={pkg.name} packagePrice={pkg.currentPrice} />
       {/* items-center, not items-baseline: the pill has its own padding, so
@@ -179,7 +184,7 @@ export default function PackageCard({
               >
                 {row.label}
                 {onHome && i === 0 && (
-                  <Link href="/packages" className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
+                  <Link href={`/packages/${plan.slug}#components`} className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
                     Learn more <span aria-hidden="true">&rarr;</span>
                   </Link>
                 )}
@@ -197,7 +202,7 @@ export default function PackageCard({
       </p>
 
       {/* mt-auto so the buttons sit on one line however the copy above wraps */}
-      <div className="mt-auto pt-8">
+      <div className="mt-auto pt-8 lg:mt-0 lg:self-end">
         <Cta packageName={pkg.name} packagePrice={pkg.currentPrice} href={onHome ? `/packages/${plan.slug}` : "#book"} size="block" variant={s.cta}>
           {ctaLabel}
         </Cta>

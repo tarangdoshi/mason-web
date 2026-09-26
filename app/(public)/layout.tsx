@@ -7,6 +7,7 @@ import ScrollRestoration from "@/components/ScrollRestoration";
 import BookingProvider from "@/components/BookingDialog";
 import SiteSettingsProvider from "@/components/SiteSettingsProvider";
 import DraftModeBanner from "@/components/DraftModeBanner";
+import { VisualEditing } from "next-sanity/visual-editing";
 import { getPublicSiteContent, isPreviewingDrafts } from "@/lib/cms/load";
 
 /* Display — big impactful headlines. The dominant typeface. */
@@ -52,6 +53,6 @@ export default async function PublicLayout({children}: {children: React.ReactNod
  const previewingDrafts = await isPreviewingDrafts();
  return <div className={`${archivo.variable} ${fraunces.variable} ${geist.variable} ${geistMono.variable} mason-public grain min-h-full bg-ink text-cream`}>
  <LaunchAnalytics /><SiteSettingsProvider value={settings}><SmoothScroll><ScrollRestoration /><BookingProvider>{children}</BookingProvider></SmoothScroll></SiteSettingsProvider>
- {previewingDrafts ? <DraftModeBanner /> : null}
+ {previewingDrafts ? <><DraftModeBanner /><VisualEditing /></> : null}
  </div>;
 }

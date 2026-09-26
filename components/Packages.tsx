@@ -33,7 +33,7 @@ export default function Packages({ content, packages }: { content: HomeContent["
             package under a full card's scroll is the wrong way round. Order
             only, not the data: /packages renders the same two cards from the
             same array. */}
-        <div className="mt-8 grid gap-6 lg:mt-6 lg:min-h-0 lg:flex-1 lg:grid-cols-2">
+        <div className="mt-8 grid gap-6 lg:mt-6 lg:min-h-0 lg:flex-1 lg:grid-cols-2 lg:grid-rows-[auto_auto_auto_auto_auto_1fr] lg:gap-y-0">
           {packages.plans.map((plan) => (
             <PackageCard
               key={plan.code}

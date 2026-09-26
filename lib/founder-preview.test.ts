@@ -66,11 +66,12 @@ test("published CMS values win over code fallbacks (no founder locks)", () => {
   assert.deepEqual(site.home.testimonials.items, [{ name: "New Customer", relation: "Son", city: "Panaji", quote: "Edited quote" }]);
 });
 
-test("form notice is the exact 8px legal sentence with only the policy names linked", () => {
+test("form notice is the exact 10px legal sentence with only the policy names linked", () => {
   const dom = new JSDOM(renderToStaticMarkup(React.createElement(LeadPrivacyNotice)));
   const notice = dom.window.document.querySelector("p");
   assert.equal(notice?.textContent, "By submitting, you agree to our Privacy Policy and Terms.");
-  assert.equal(notice?.style.fontSize, "0.5rem");
+  assert.equal(notice?.style.fontSize, "0.625rem");
+  assert.equal(notice?.style.lineHeight, "1.4");
   const links = Array.from((notice?.querySelectorAll("a") || []) as ArrayLike<HTMLAnchorElement>, (link) => [link.textContent, link.getAttribute("href")]);
   assert.deepEqual(links, [["Privacy Policy", "/privacy"], ["Terms", "/terms"]]);
   dom.window.close();

@@ -248,3 +248,8 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* In-page anchor targets (e.g. #components) clear any sticky header. */
+.anchorSection {
+  scroll-margin-top: calc(var(--sticky-nav-offset, 4.4rem) + 1rem);
+}

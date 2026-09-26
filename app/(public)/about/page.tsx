@@ -4,21 +4,21 @@ import Footer from "@/components/Footer";
 import Cta from "@/components/Cta";
 import Reveal from "@/components/Reveal";
 import PhotoSlot from "@/components/PhotoSlot";
-import {
-  FOUNDERS,
-  GOALS,
-  ROUTINE,
-  STANDARD,
-  STORY,
-  TRUST,
-} from "@/components/about-data";
+import HighlightedText from "@/components/HighlightedText";
+import { getPublicSiteContent } from "@/lib/cms/load";
+import { cmsMetadata } from "@/lib/cms/seo";
 
-export const metadata: Metadata = {
-  alternates: {canonical: "https://www.masoncompany.in/about"},
-  title: "About Us - Mason Company",
-  description:
-    "Mason Company was started so families would not have to wait for a fall. Premium, doctor-informed bathroom safety upgrades for ageing parents in Indian homes.",
-};
+/* Content comes from Sanity (Studio → About); published changes appear within a minute. */
+export const revalidate = 60;
+
+export function generateMetadata(): Promise<Metadata> {
+  return cmsMetadata("about", {
+    alternates: {canonical: "https://www.masoncompany.in/about"},
+    title: "About Us - Mason Company",
+    description:
+      "Mason Company was started so families would not have to wait for a fall. Premium, doctor-informed bathroom safety upgrades for ageing parents in Indian homes.",
+  });
+}
 
 /* This page carries more words than any other on the site, so the job is to
    stop it reading as a wall.
@@ -30,37 +30,36 @@ export const metadata: Metadata = {
    goals), that list is set as a list, because a reader will scan ten short
    labels and skip the same ten buried in prose. */
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { about } = await getPublicSiteContent();
+  const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
   return (
     <>
       <Nav />
       <main>
         {/* ---- hero ---- */}
         <section className="mx-auto max-w-7xl px-6 pt-32 pb-8 lg:px-10 lg:pt-40 lg:pb-16">
-          <p className="eyebrow mb-6">About Us</p>
+          <p className="eyebrow mb-6">{about.hero.eyebrow}</p>
           <h1 className="h-display max-w-4xl text-[2.4rem] leading-[1.04] text-cream sm:text-5xl lg:text-[4rem]">
-            We started Mason Company because safety at home should still feel
-            like <span className="accent-word">home</span>.
+            <HighlightedText value={about.hero.heading} />
           </h1>
 
           {/* Two columns rather than one long measure — the hero carries two
               paragraphs, and stacked they would push the fold down a screen. */}
           <div className="mt-5 grid max-w-4xl gap-2 lg:mt-10 lg:grid-cols-2 lg:gap-12">
-            <p className="text-base leading-relaxed text-cream-dim sm:text-lg">
-              Mason Company was born from a deeply personal concern: ageing
-              parents should not have to live with pain, restriction, or fear
-              simply because the bathroom was never designed for changing
-              mobility.
-            </p>
-            <p className="text-base leading-relaxed text-cream-dim sm:text-lg">
-              We help families upgrade existing bathrooms with thoughtful,
-              premium safety solutions that support movement, dignity, and
-              independence without making the home feel clinical.
-            </p>
+            {about.hero.paragraphs.map((paragraph, i) => (
+
+              <p key={i} className={i === 0 ? "text-base leading-relaxed text-cream-dim sm:text-lg" : "text-base leading-relaxed text-cream-dim sm:text-lg"}>
+
+                {paragraph}
+
+              </p>
+
+            ))}
           </div>
 
           <Cta href="/#book" className="mt-10">
-            Book Free Inspection
+            {about.hero.ctaLabel}
           </Cta>
         </section>
 
@@ -72,6 +71,9 @@ export default function AboutPage() {
             desktop hero and its image as tight as they are today. */}
         <div className="mx-auto max-w-7xl px-6 pt-8 pb-16 sm:pt-12 sm:pb-24 lg:px-10 lg:pt-0 lg:pb-32">
           <PhotoSlot
+            src={about.hero.image?.src}
+            alt={about.hero.image?.alt}
+            objectPosition={about.hero.image?.objectPosition}
             label="Wide, warm shot of a finished Mason bathroom — the hero image for the page"
             className="h-[38vh] min-h-[280px] w-full sm:h-[52vh]"
             sizes="(max-width: 1280px) 100vw, 1280px"
@@ -87,17 +89,15 @@ export default function AboutPage() {
           <Reveal className="mx-auto max-w-7xl px-6 pt-16 pb-4 sm:pt-24 sm:pb-6 lg:px-10 lg:pt-32 lg:pb-8">
             <div className="grid gap-12 lg:grid-cols-[18rem_1fr] lg:gap-20">
               <div className="lg:sticky lg:top-32 lg:self-start">
-                <p className="reveal eyebrow">Our Story</p>
+                <p className="reveal eyebrow">{about.story.eyebrow}</p>
                 <h2 className="reveal mt-5 h-display text-3xl text-cream sm:text-4xl">
-                  It began as a{" "}
-                  <span className="accent-word">conversation</span>, not a
-                  business idea.
+                  <HighlightedText value={about.story.heading} />
                 </h2>
               </div>
 
               <div className="max-w-2xl">
-                {STORY.map((beat, i) => (
-                  <div key={beat.label}>
+                {about.story.beats.map((beat, i) => (
+                  <div key={`${i}-${beat.label}`}>
                     {/* not first:mt-0 — each beat is the first child of its own
                         wrapper, so the modifier would hit every one of them */}
                     <div
@@ -115,6 +115,9 @@ export default function AboutPage() {
                         than decoratively at the top */}
                     {i === 1 && (
                       <PhotoSlot
+                        src={about.story.image?.src}
+                        alt={about.story.image?.alt}
+                        objectPosition={about.story.image?.objectPosition}
                         label="Tarang and Pranay together — candid, not a studio shot"
                         className="reveal mt-12 h-[30vh] min-h-[220px] w-full"
                         sizes="(max-width: 1024px) 100vw, 640px"
@@ -131,8 +134,7 @@ export default function AboutPage() {
         <section className="border-t border-line">
           <Reveal className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
             <p className="reveal h-display max-w-3xl text-3xl leading-[1.1] text-cream sm:text-4xl lg:text-5xl">
-              That is why Mason Company was{" "}
-              <span className="accent-word">started</span>.
+              <HighlightedText value={about.statement} />
             </p>
           </Reveal>
         </section>
@@ -142,18 +144,16 @@ export default function AboutPage() {
             which is what makes it register as a change of voice. */}
         <section className="bg-forest-700">
           <Reveal className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
-            <p className="reveal eyebrow on-dark mb-6">Why We Exist</p>
+            <p className="reveal eyebrow on-dark mb-6">{about.why.eyebrow}</p>
             <h2 className="reveal h-display max-w-4xl text-3xl leading-[1.08] text-sand-100 sm:text-4xl lg:text-5xl">
-              We believe ageing parents deserve safer homes without giving up
-              comfort, independence, or{" "}
-              <span className="accent-word on-dark">dignity</span>.
+              <HighlightedText value={about.why.heading} accentClassName="accent-word on-dark" />
             </h2>
 
             {/* three refusals, then the promise — the muted-to-bright turn does
                 the work a paragraph break cannot */}
             <div className="mt-14 grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-20">
               <ul className="reveal space-y-4">
-                {STANDARD.refusals.map((line) => (
+                {about.why.refusals.map((line) => (
                   <li key={line} className="flex items-start gap-4">
                     <span
                       aria-hidden="true"
@@ -170,14 +170,12 @@ export default function AboutPage() {
               </ul>
 
               <p className="reveal border-l-2 border-forest-200 pl-6 text-lg leading-relaxed text-sand-100 sm:text-xl">
-                {STANDARD.promise}
+                {about.why.promise}
               </p>
             </div>
 
             <p className="reveal mt-16 max-w-3xl text-base leading-relaxed text-sand-100/75 sm:text-lg">
-              At Mason Company, our hope is simple: no elder should have to live
-              a painful or restricted life because their bathroom was unsafe for
-              their mobility.
+              {about.why.hope}
             </p>
           </Reveal>
         </section>
@@ -186,16 +184,12 @@ export default function AboutPage() {
         <section className="border-t border-line">
           <Reveal className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
             <div className="max-w-3xl">
-              <p className="reveal eyebrow mb-6">Why We Are Built For This</p>
+              <p className="reveal eyebrow mb-6">{about.team.eyebrow}</p>
               <h2 className="reveal h-display text-3xl leading-[1.08] text-cream sm:text-4xl lg:text-5xl">
-                A service company built around{" "}
-                <span className="accent-word">trust</span>.
+                <HighlightedText value={about.team.heading} />
               </h2>
               <p className="reveal mt-6 text-base leading-relaxed text-cream-dim sm:text-lg">
-                Mason Company brings together the founders&rsquo; experience in
-                brand-building, product thinking, startup creation, operations,
-                investing, and service design. Together, they saw Mason Company
-                as more than a bathroom installation business.
+                {about.team.intro}
               </p>
             </div>
 
@@ -206,7 +200,7 @@ export default function AboutPage() {
                 widths. Nothing about that says "tags" any more; it just looks
                 like buttons that don't do anything. */}
             <ul className="reveal mt-10 hidden flex-wrap gap-2.5 sm:flex">
-              {TRUST.map((item) => (
+              {about.team.trust.map((item) => (
                 <li
                   key={item}
                   className="rounded-full border border-line px-4 py-2 text-sm text-cream"
@@ -219,17 +213,18 @@ export default function AboutPage() {
             {/* Founders. Portrait beside the words, not above them — a name and
                 a face carry the credibility here, so they lead the card. */}
             <div className="mt-16 grid gap-6 lg:grid-cols-2">
-              {FOUNDERS.map((f) => (
+              {about.team.founders.map((f) => (
                 <div
                   key={f.name}
                   className="reveal flex flex-col rounded-3xl bg-surface p-7 lg:p-9"
                 >
                   <div className="flex items-center gap-5">
                     <PhotoSlot
-                      src={f.photo}
-                      label={f.photoLabel}
+                      src={f.photo?.src}
+                      objectPosition={f.photo?.objectPosition}
+                      label={`Portrait — ${f.name}`}
                       alt={f.name}
-                      initials={f.initials}
+                      initials={initials(f.name)}
                       className="h-20 w-20 rounded-full text-lg sm:h-24 sm:w-24 sm:text-xl"
                       sizes="96px"
                     />
@@ -270,24 +265,21 @@ export default function AboutPage() {
           <Reveal className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
             <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-20">
               <div>
-                <p className="reveal eyebrow mb-6">Our Approach</p>
+                <p className="reveal eyebrow mb-6">{about.approach.eyebrow}</p>
                 <h2 className="reveal h-display text-3xl leading-[1.06] text-cream sm:text-4xl lg:text-5xl">
-                  Prevention, planned{" "}
-                  <span className="accent-word">beautifully</span>.
+                  <HighlightedText value={about.approach.heading} />
                 </h2>
               </div>
               <div className="space-y-6">
-                <p className="reveal text-base leading-relaxed text-cream sm:text-lg">
-                  Mason Company is designed for families who want to act before
-                  a fall changes everything. We study real bathroom movement,
-                  take doctor inputs, select the right safety components, and
-                  install them through trained technicians.
-                </p>
-                <p className="reveal text-base leading-relaxed text-cream-dim sm:text-lg">
-                  The result is not a collection of products. It is a complete
-                  bathroom safety upgrade that feels considered, premium, and at
-                  home.
-                </p>
+                {about.approach.paragraphs.map((paragraph, i) => (
+
+                  <p key={i} className={i === 0 ? "reveal text-base leading-relaxed text-cream sm:text-lg" : "reveal text-base leading-relaxed text-cream-dim sm:text-lg"}>
+
+                    {paragraph}
+
+                  </p>
+
+                ))}
               </div>
             </div>
 
@@ -298,6 +290,9 @@ export default function AboutPage() {
                 it, and the ten moments stay a tight scannable column. */}
             <div className="mt-16 grid gap-10 lg:grid-cols-2 lg:gap-16">
               <PhotoSlot
+                src={about.approach.image?.src}
+                alt={about.approach.image?.alt}
+                objectPosition={about.approach.image?.objectPosition}
                 label="Installer at work — hands, a grab bar going in, close and unstaged"
                 className="reveal h-[38vh] min-h-[280px] w-full lg:h-auto"
                 sizes="(max-width: 1024px) 100vw, 620px"
@@ -305,13 +300,13 @@ export default function AboutPage() {
 
               <div>
                 <p className="reveal eyebrow">
-                  Our work covers the full bathroom routine
+                  {about.approach.routineLabel}
                 </p>
                 {/* rows-5 + flow-col so the numbering runs down the first
                     column and continues down the second, rather than
                     zig-zagging across the pair */}
                 <ul className="reveal mt-5 grid gap-x-12 sm:grid-flow-col sm:grid-rows-5">
-                  {ROUTINE.map((moment, i) => (
+                  {about.approach.routine.map((moment, i) => (
                     <li
                       key={moment}
                       className="flex items-center gap-4 border-b border-line py-3.5"
@@ -333,15 +328,12 @@ export default function AboutPage() {
         {/* ---- what we want to achieve ---- */}
         <section className="border-t border-line">
           <Reveal className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
-            <p className="reveal eyebrow mb-6">What We Want To Achieve</p>
+            <p className="reveal eyebrow mb-6">{about.goals.eyebrow}</p>
             <h2 className="reveal h-display max-w-4xl text-3xl leading-[1.08] text-cream sm:text-4xl">
-              We want Mason Company to become India&rsquo;s most trusted
-              home-safety brand for ageing parents, starting with the room where
-              families often worry the most: the{" "}
-              <span className="accent-word">bathroom</span>.
+              <HighlightedText value={about.goals.heading} />
             </h2>
             <p className="reveal mt-8 max-w-2xl text-base leading-relaxed text-cream-dim sm:text-lg">
-              Our goal is to make preventive care easier to choose.
+              {about.goals.intro}
             </p>
 
             {/* Three cells in a row from sm, a divided list below it. The
@@ -361,14 +353,14 @@ export default function AboutPage() {
                 override, because two utilities for the same property resolve
                 by stylesheet order, not by the order written here. */}
             <div className="reveal mt-14 grid gap-px overflow-hidden rounded-2xl bg-line max-sm:mt-10 max-sm:gap-0 max-sm:rounded-none max-sm:bg-transparent sm:grid-cols-3">
-              {GOALS.map((g, i) => (
+              {about.goals.items.map((g, i) => (
                 <div
-                  key={g.label}
+                  key={`${i}-${g.label}`}
                   className={`bg-ink p-7 max-sm:bg-transparent max-sm:px-0 lg:p-9 ${
                     i === 0
                       ? "max-sm:pt-0"
                       : "max-sm:border-t max-sm:border-line max-sm:pt-6"
-                  } ${i === GOALS.length - 1 ? "max-sm:pb-0" : "max-sm:pb-6"}`}
+                  } ${i === about.goals.items.length - 1 ? "max-sm:pb-0" : "max-sm:pb-6"}`}
                 >
                   <p className="eyebrow">{g.label}</p>
                   <p className="mt-4 text-base leading-relaxed text-cream">
@@ -387,6 +379,9 @@ export default function AboutPage() {
             itself. The photo band sits above it instead. */}
         <div className="mx-auto max-w-7xl px-6 pt-4 pb-16 sm:pt-6 sm:pb-24 lg:px-10 lg:pt-8 lg:pb-32">
           <PhotoSlot
+            src={about.closing.image?.src}
+            alt={about.closing.image?.alt}
+            objectPosition={about.closing.image?.objectPosition}
             label="Quiet, well-lit bathroom at night — the closing image"
             className="h-[34vh] min-h-[240px] w-full"
             sizes="(max-width: 1280px) 100vw, 1280px"
@@ -396,16 +391,14 @@ export default function AboutPage() {
         <section className="bg-forest-700">
           <Reveal className="mx-auto max-w-7xl px-6 py-16 text-center sm:py-24 lg:px-10 lg:py-32">
             <h2 className="reveal mx-auto h-display max-w-3xl text-3xl leading-[1.08] text-sand-100 sm:text-4xl lg:text-5xl">
-              Make the bathroom safer before it becomes{" "}
-              <span className="accent-word on-dark">urgent</span>.
+              <HighlightedText value={about.closing.heading} accentClassName="accent-word on-dark" />
             </h2>
             <p className="reveal mx-auto mt-6 max-w-xl text-base leading-relaxed text-sand-100/80 sm:text-lg">
-              Mason Company helps families care for ageing parents with
-              thoughtful, premium, preventive bathroom safety upgrades.
+              {about.closing.body}
             </p>
             <div className="reveal mt-10">
               <Cta href="/#book" variant="light">
-                Book Free Inspection
+                {about.closing.ctaLabel}
               </Cta>
             </div>
           </Reveal>

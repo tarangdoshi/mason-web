@@ -6,6 +6,7 @@
    CMS outage degrades to the approved launch copy rather than to a blank page. */
 
 import type {
+  AboutContent,
   ContactPageContent,
   HomeContent,
   PackagesContent,
@@ -39,7 +40,11 @@ export const fallbackHome: HomeContent = {
     heading: { text: "Most falls happen in the bathroom. We make sure yours don't.", highlights: ["falls"] },
     subcopy: "You can't always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety.",
     primaryCta: "Book Free Inspection",
-    secondaryCta: "See Transformations"
+    secondaryCta: "See Transformations",
+    background: {
+      desktop: img("/prerna/images/hero-install.jpg", ""),
+      mobile: img("/prerna/images/hero-install-portrait.jpg", "")
+    }
   },
   stats: {
     eyebrow: "The risk is real",
@@ -267,4 +272,83 @@ export const fallbackContactPage: ContactPageContent = {
   callLabel: "Call & WhatsApp",
   hoursLabel: "When we answer",
   emailLabel: "Write to us"
+};
+
+export const fallbackAbout: AboutContent = {
+  hero: {
+    eyebrow: "About Us",
+    heading: { text: "We started Mason Company because safety at home should still feel like home.", highlights: ["home"] },
+    paragraphs: [
+      "Mason Company was born from a deeply personal concern: ageing parents should not have to live with pain, restriction, or fear simply because the bathroom was never designed for changing mobility.",
+      "We help families upgrade existing bathrooms with thoughtful, premium safety solutions that support movement, dignity, and independence without making the home feel clinical."
+    ],
+    ctaLabel: "Book Free Inspection"
+  },
+  story: {
+    eyebrow: "Our Story",
+    heading: { text: "It began as a conversation, not a business idea.", highlights: ["conversation"] },
+    beats: [
+      { label: "2013", body: "Tarang Doshi and Pranay Gupta have known each other since 2013. Over the years, they had both built, advised, and worked with businesses across consumer products, startups, operations, and early-stage company building. But Mason Company did not begin as a business idea. It began as a conversation between two people who had seen the same problem from very close quarters." },
+      { label: "A catch-up in Goa", body: "During a catch-up in Goa, Pranay spoke about elder care and how badly families can suffer after a fall at home. Tarang had experienced something similar when his father slipped, after which he had to find and put together safety solutions himself. Both had seen the emotional weight of the problem. Both had tried to solve it in their own way. And when they discussed it together, one thing became clear: this was not an isolated family concern. It was a much larger gap." },
+      { label: "After the fall", body: "Most families only begin looking for support after something has already gone wrong. A fall. A fracture. A hospital visit. A painful recovery. Until then, the bathroom often feels ordinary, even though it may be one of the most unsafe rooms for an ageing parent." },
+      { label: "The same gap, everywhere", body: "When Tarang and Pranay spoke to more friends and family, the same pattern kept coming up. Adult children were worried, but did not know what to install, whom to trust, how to plan it, or how to make the bathroom safer without making it look like a hospital. There was no clear preventive care solution. There were products. There were vendors. There was advice. But there was no complete, reliable, premium solution designed for Indian homes." }
+    ]
+  },
+  statement: { text: "That is why Mason Company was started.", highlights: ["started"] },
+  why: {
+    eyebrow: "Why We Exist",
+    heading: { text: "We believe ageing parents deserve safer homes without giving up comfort, independence, or dignity.", highlights: ["dignity"] },
+    refusals: [
+      "It should not feel like a compromise.",
+      "It should not look temporary.",
+      "It should not depend on guesswork or fragmented vendors."
+    ],
+    promise: "It should be thoughtfully planned, medically informed, carefully installed, and finished in a way that still belongs in a beautiful home.",
+    hope: "At Mason Company, our hope is simple: no elder should have to live a painful or restricted life because their bathroom was unsafe for their mobility."
+  },
+  team: {
+    eyebrow: "Why We Are Built For This",
+    heading: { text: "A service company built around trust.", highlights: ["trust"] },
+    intro: "Mason Company brings together the founders’ experience in brand-building, product thinking, startup creation, operations, investing, and service design. Together, they saw Mason Company as more than a bathroom installation business.",
+    trust: ["Clear packages", "Trained experts", "Doctor-informed thinking", "Premium components", "Accountable installation", "A calmer journey for families"],
+    founders: [
+      {
+        name: "Tarang Doshi",
+        role: "Co-founder, Mason Company",
+        bio: "Tarang brings a product, brand, and customer-experience lens to Mason Company. Having built consumer brands and worked across product-led businesses, he focuses on making Mason feel trustworthy, premium, and deeply human for families making an important decision.",
+        credentials: ["Built Pilcrow Spirits", "Built Terry Sent Me!", "Consumer and enterprise products", "Brand positioning", "Customer experience"]
+      },
+      {
+        name: "Pranay Gupta",
+        role: "Co-founder, Mason Company",
+        bio: "Pranay brings startup-building, investment, and operating experience to Mason Company. As a co-founder of 91springboard and a long-time supporter of early-stage companies, he focuses on building Mason as a scalable, reliable, and accountable service for Indian families.",
+        credentials: ["Co-founder, 91springboard", "CIIE, IIM Ahmedabad", "Supporting and investing in early-stage companies in India"]
+      }
+    ]
+  },
+  approach: {
+    eyebrow: "Our Approach",
+    heading: { text: "Prevention, planned beautifully.", highlights: ["beautifully"] },
+    paragraphs: [
+      "Mason Company is designed for families who want to act before a fall changes everything. We study real bathroom movement, take doctor inputs, select the right safety components, and install them through trained technicians.",
+      "The result is not a collection of products. It is a complete bathroom safety upgrade that feels considered, premium, and at home."
+    ],
+    routineLabel: "Our work covers the full bathroom routine",
+    routine: ["Entering", "Turning", "Sitting", "Standing", "Showering", "Night-time use", "Wet zones", "Support points", "Drainage", "Visibility"]
+  },
+  goals: {
+    eyebrow: "What We Want To Achieve",
+    heading: { text: "We want Mason Company to become India’s most trusted home-safety brand for ageing parents, starting with the room where families often worry the most: the bathroom.", highlights: ["bathroom"] },
+    intro: "Our goal is to make preventive care easier to choose.",
+    items: [
+      { label: "Adult children", body: "To give adult children a clear place to go." },
+      { label: "Parents", body: "To give parents safer daily movement." },
+      { label: "Families", body: "And to make sure families do not have to wait for a fall before they take action." }
+    ]
+  },
+  closing: {
+    heading: { text: "Make the bathroom safer before it becomes urgent.", highlights: ["urgent"] },
+    body: "Mason Company helps families care for ageing parents with thoughtful, premium, preventive bathroom safety upgrades.",
+    ctaLabel: "Book Free Inspection"
+  }
 };

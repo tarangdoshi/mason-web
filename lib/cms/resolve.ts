@@ -6,6 +6,7 @@
    every rule is unit-testable. */
 
 import {
+  fallbackAbout,
   fallbackContactPage,
   fallbackHome,
   fallbackPackages,
@@ -13,6 +14,7 @@ import {
   fallbackSettings
 } from "./fallback";
 import type {
+  AboutContent,
   CmsImage,
   ContactPageContent,
   ContactSettings,
@@ -35,6 +37,7 @@ import type {
 
 export type RawImage = {
   alt?: string | null;
+  hotspot?: { x?: number; y?: number } | null;
   fallbackSrc?: string | null;
   objectPosition?: string | null;
   /** Filled by the image-url builder in load.ts when an asset is present. */
@@ -75,6 +78,8 @@ export type RawPayload = {
   siteSettings?: Record<string, unknown> | null;
   faqs?: Record<string, unknown> | null;
   packagesPage?: Record<string, unknown> | null;
+  aboutPage?: Record<string, unknown> | null;
+  gallery?: Record<string, unknown> | null;
   seo?: Record<string, unknown> | null;
   packages?: RawPackage[] | null;
   testimonials?: Record<string, unknown>[] | null;
@@ -127,8 +132,23 @@ export function image(value: unknown, fallback: CmsImage): CmsImage {
     src,
     ...(raw?.resolvedSrcSet ? { srcSet: raw.resolvedSrcSet } : {}),
     alt: optionalText(raw?.alt) ?? fallback.alt,
-    ...(optionalText(raw?.objectPosition) ? { objectPosition: raw!.objectPosition!.trim() } : fallback.objectPosition ? { objectPosition: fallback.objectPosition } : {})
+    ...(() => {
+      // An uploaded image is framed by its hotspot (the editor's focal point);
+      // an explicit position only ever applies to a bundled site image.
+      const position = raw?.resolvedSrc
+        ? hotspotPosition(raw?.hotspot)
+        : optionalText(raw?.objectPosition) ?? fallback.objectPosition;
+      return position ? { objectPosition: position } : {};
+    })()
   };
+}
+
+/** The editor's focal point (Sanity hotspot, 0–1) as CSS object-position, so
+    `object-cover` crops around it at every viewport. */
+export function hotspotPosition(hotspot: { x?: number; y?: number } | null | undefined): string | undefined {
+  if (!hotspot || typeof hotspot.x !== "number" || typeof hotspot.y !== "number") return undefined;
+  const pct = (value: number) => `${Math.round(Math.min(1, Math.max(0, value)) * 1000) / 10}%`;
+  return `${pct(hotspot.x)} ${pct(hotspot.y)}`;
 }
 
 /* --------------------------------------------------------------- prices */
@@ -199,10 +219,10 @@ function resolveComponent(raw: RawFeature, fallbackById: Map<string, ResolvedCom
   const id = optionalText(raw.key);
   if (!id) return null;
   const fb = fallbackById.get(id);
-  const title = optionalText(raw.publicLabel) ?? optionalText(raw.label) ?? fb?.title;
+  const title = optionalText(raw.label) ?? optionalText(raw.publicLabel) ?? fb?.title;
   if (!title) return null;
   const quantity = typeof raw.quantity === "number" && Number.isInteger(raw.quantity) && raw.quantity >= 0 ? raw.quantity : fb?.quantity;
-  const description = optionalText(raw.publicDescription) ?? optionalText(raw.description) ?? fb?.description;
+  const description = optionalText(raw.description) ?? optionalText(raw.publicDescription) ?? fb?.description;
   return {
     id,
     title,
@@ -302,20 +322,31 @@ export function resolvePackagesPage(raw: Obj, packages: PackagesContent): Packag
 
 /* ------------------------------------------------------------- homepage */
 
+/** A master image plus an optional mobile override. Once the editor sets a
+    master, the code's separate mobile crop is dropped (unless they also set a
+    mobile override) so one upload always changes the image on every device. */
+function resolveArtDirected(master: unknown, mobile: unknown, fallback: { desktop: CmsImage; mobile?: CmsImage }) {
+  const desktop = image(master, fallback.desktop);
+  const masterSet = desktop !== fallback.desktop;
+  const mobileImage = image(mobile, masterSet ? desktop : fallback.mobile ?? desktop);
+  return mobileImage === desktop ? { desktop } : { desktop, mobile: mobileImage };
+}
+
 function resolveItems<T>(value: unknown, map: (item: Obj, index: number) => T | null, fallback: T[]): T[] {
   if (!Array.isArray(value)) return fallback;
   const items = value.map((item, index) => map(asObj(item), index)).filter((item): item is T => item !== null);
   return items.length ? items : fallback;
 }
 
-export function resolveHome(payload: RawPayload, packages: PackagesContent, settings: SiteSettingsContent): HomeContent {
+export function resolveHome(payload: RawPayload, packages: PackagesContent): HomeContent {
   const fb = fallbackHome;
   const h = asObj(payload?.homepage);
   const hero = asObj(h?.hero);
   const evidence = asObj(h?.evidenceSection);
   const safer = asObj(h?.whatWeDoSection);
   const why = asObj(h?.whySection);
-  const transformations = asObj(h?.transformationGallerySection);
+  // The gallery has its own Studio document; the old homepage section is a fallback.
+  const transformations = asObj(payload?.gallery) ?? asObj(h?.transformationGallerySection);
   const pkgs = asObj(h?.packagesSection);
   const process = asObj(h?.processSection);
   const doctors = asObj(h?.doctorsSection);
@@ -331,7 +362,8 @@ export function resolveHome(payload: RawPayload, packages: PackagesContent, sett
       heading: heading(hero, fb.hero.heading),
       subcopy: text(hero?.subcopy, fb.hero.subcopy),
       primaryCta: text(hero?.primaryCta, fb.hero.primaryCta),
-      secondaryCta: text(hero?.secondaryCta, fb.hero.secondaryCta)
+      secondaryCta: text(hero?.secondaryCta, fb.hero.secondaryCta),
+      background: resolveArtDirected(hero?.backgroundImage, hero?.backgroundImageMobile, fb.hero.background)
     },
     stats: {
       eyebrow: text(evidence?.eyebrow, fb.stats.eyebrow),
@@ -381,6 +413,7 @@ export function resolveHome(payload: RawPayload, packages: PackagesContent, sett
       tiles: resolveItems(
         transformations?.tiles,
         (tile, index) => {
+          if (tile?.hidden === true) return null;
           const label = optionalText(tile?.label);
           const fallbackTile = fb.transformations.tiles[index] ?? fb.transformations.tiles[0];
           const tileImage = image(tile?.image, { ...fallbackTile.image, alt: label ?? fallbackTile.image.alt });
@@ -514,6 +547,91 @@ export function resolveSeo(raw: Obj): SeoContent {
   return seo;
 }
 
+/* ---------------------------------------------------------------- about */
+
+/** An optional image: present only when the editor has set a usable one. */
+function optionalImage(value: unknown, fallbackAlt: string): CmsImage | undefined {
+  const resolved = image(value, { src: "", alt: fallbackAlt });
+  return resolved.src ? resolved : undefined;
+}
+
+export function resolveAbout(raw: Obj): AboutContent {
+  const fb = fallbackAbout;
+  const hero = asObj(raw?.hero);
+  const story = asObj(raw?.story);
+  const statement = asObj(raw?.statement);
+  const why = asObj(raw?.why);
+  const team = asObj(raw?.team);
+  const approach = asObj(raw?.approach);
+  const goals = asObj(raw?.goals);
+  const closing = asObj(raw?.closing);
+  const withImage = <T extends object>(base: T, value: CmsImage | undefined) => (value ? { ...base, image: value } : base);
+
+  return {
+    hero: withImage(
+      { eyebrow: text(hero?.eyebrow, fb.hero.eyebrow), heading: heading(hero, fb.hero.heading), paragraphs: textList(hero?.paragraphs, fb.hero.paragraphs), ctaLabel: text(hero?.ctaLabel, fb.hero.ctaLabel) },
+      optionalImage(hero?.image, "")
+    ),
+    story: withImage(
+      {
+        eyebrow: text(story?.eyebrow, fb.story.eyebrow),
+        heading: heading(story, fb.story.heading),
+        beats: resolveItems(story?.beats, (beat) => {
+          const label = optionalText(beat?.label);
+          const body = optionalText(beat?.body);
+          return label && body ? { label, body } : null;
+        }, fb.story.beats)
+      },
+      optionalImage(story?.image, "")
+    ),
+    statement: heading(statement, fb.statement),
+    why: {
+      eyebrow: text(why?.eyebrow, fb.why.eyebrow),
+      heading: heading(why, fb.why.heading),
+      refusals: textList(why?.refusals, fb.why.refusals),
+      promise: text(why?.promise, fb.why.promise),
+      hope: text(why?.hope, fb.why.hope)
+    },
+    team: {
+      eyebrow: text(team?.eyebrow, fb.team.eyebrow),
+      heading: heading(team, fb.team.heading),
+      intro: text(team?.intro, fb.team.intro),
+      trust: textList(team?.trust, fb.team.trust),
+      founders: resolveItems(team?.founders, (founder) => {
+        const name = optionalText(founder?.name);
+        const bio = optionalText(founder?.bio);
+        if (!name || !bio) return null;
+        const photo = optionalImage(founder?.photo, name);
+        return { name, role: text(founder?.role, ""), bio, credentials: textList(founder?.credentials, []), ...(photo ? { photo } : {}) };
+      }, fb.team.founders)
+    },
+    approach: withImage(
+      {
+        eyebrow: text(approach?.eyebrow, fb.approach.eyebrow),
+        heading: heading(approach, fb.approach.heading),
+        paragraphs: textList(approach?.paragraphs, fb.approach.paragraphs),
+        routineLabel: text(approach?.routineLabel, fb.approach.routineLabel),
+        routine: textList(approach?.routine, fb.approach.routine)
+      },
+      optionalImage(approach?.image, "")
+    ),
+    goals: {
+      eyebrow: text(goals?.eyebrow, fb.goals.eyebrow),
+      heading: heading(goals, fb.goals.heading),
+      intro: text(goals?.intro, fb.goals.intro),
+      items: resolveItems(goals?.items, (item) => {
+        const label = optionalText(item?.label);
+        const body = optionalText(item?.body);
+        return label && body ? { label, body } : null;
+      }, fb.goals.items)
+    },
+    closing: withImage(
+      { heading: heading(closing, fb.closing.heading), body: text(closing?.body, fb.closing.body), ctaLabel: text(closing?.ctaLabel, fb.closing.ctaLabel) },
+      optionalImage(closing?.image, "")
+    )
+  };
+}
+
 /* ------------------------------------------------------------------ all */
 
 export function resolvePublicSite(payload: RawPayload): PublicSiteContent {
@@ -521,10 +639,11 @@ export function resolvePublicSite(payload: RawPayload): PublicSiteContent {
   const packages = resolvePackages(payload?.packages, asObj(payload?.packagesPage));
   return {
     settings,
-    home: resolveHome(payload, packages, settings),
+    home: resolveHome(payload, packages),
     packages,
     packagesPage: resolvePackagesPage(asObj(payload?.packagesPage), packages),
     contactPage: resolveContactPage(asObj(payload?.siteSettings)),
+    about: resolveAbout(asObj(payload?.aboutPage)),
     seo: resolveSeo(asObj(payload?.seo))
   };
 }

@@ -6,15 +6,19 @@ import Reveal from "@/components/Reveal";
 import ContactForm from "@/components/ContactForm";
 import HighlightedText from "@/components/HighlightedText";
 import { getPublicSiteContent } from "@/lib/cms/load";
+import { cmsMetadata } from "@/lib/cms/seo";
 
-export const metadata: Metadata = {
-  alternates: {canonical: "https://www.masoncompany.in/contact"},
-  title: "Contact - Mason Company",
-  description:
-    "Talk to Mason Company about making a bathroom safer for ageing parents. Call, WhatsApp, or send an enquiry - we reply within 24 hours.",
-};
-
+/* Content comes from Sanity (Contact & Support); published changes appear within a minute. */
 export const revalidate = 60;
+
+export function generateMetadata(): Promise<Metadata> {
+  return cmsMetadata("contact", {
+    alternates: {canonical: "https://www.masoncompany.in/contact"},
+    title: "Contact - Mason Company",
+    description:
+      "Talk to Mason Company about making a bathroom safer for ageing parents. Call, WhatsApp, or send an enquiry - we reply within 24 hours.",
+  });
+}
 
 export default async function ContactPage() {
   const { contactPage: page, settings } = await getPublicSiteContent();

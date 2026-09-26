@@ -45,7 +45,14 @@ export type SiteSettingsContent = {
 export type EvidenceCard = { prefix?: string; value: string; label: string; copy: string };
 
 export type HomeContent = {
-  hero: { heading: Heading; subcopy: string; primaryCta: string; secondaryCta: string };
+  hero: {
+    heading: Heading;
+    subcopy: string;
+    primaryCta: string;
+    secondaryCta: string;
+    /** One master image; `mobile` only when a separate portrait crop is set. */
+    background: { desktop: CmsImage; mobile?: CmsImage };
+  };
   stats: {
     eyebrow: string;
     heading: Heading;
@@ -155,6 +162,25 @@ export type ContactPageContent = {
   emailLabel: string;
 };
 
+/** About page. Images are optional: until one is uploaded the layout keeps
+    its labelled placeholder, exactly as it does today. */
+export type AboutContent = {
+  hero: { eyebrow: string; heading: Heading; paragraphs: string[]; ctaLabel: string; image?: CmsImage };
+  story: { eyebrow: string; heading: Heading; beats: { label: string; body: string }[]; image?: CmsImage };
+  statement: Heading;
+  why: { eyebrow: string; heading: Heading; refusals: string[]; promise: string; hope: string };
+  team: {
+    eyebrow: string;
+    heading: Heading;
+    intro: string;
+    trust: string[];
+    founders: { name: string; role: string; bio: string; credentials: string[]; photo?: CmsImage }[];
+  };
+  approach: { eyebrow: string; heading: Heading; paragraphs: string[]; image?: CmsImage; routineLabel: string; routine: string[] };
+  goals: { eyebrow: string; heading: Heading; intro: string; items: { label: string; body: string }[] };
+  closing: { image?: CmsImage; heading: Heading; body: string; ctaLabel: string };
+};
+
 export type SeoEntry = {
   title?: string;
   description?: string;
@@ -182,5 +208,6 @@ export type PublicSiteContent = {
   packages: PackagesContent;
   packagesPage: PackagesPageContent;
   contactPage: ContactPageContent;
+  about: AboutContent;
   seo: SeoContent;
 };

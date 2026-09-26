@@ -1,176 +1,177 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 import { cmsImageSpecs, defineGuidedImageField } from "./image-guidance";
+import { headingFields, imageField, legacy, mobileOverrideField, plainList } from "./fields";
+
+/* The homepage, one tab per section in the order visitors see them. FAQs and
+   the gallery have their own documents; fields marked legacy are kept for
+   existing data but are not shown on the website. */
+
+const section = (name: string, title: string, fields: ReturnType<typeof defineField>[], group: string) =>
+  defineField({ name, title, type: "object", group, options: { collapsible: false }, fields });
 
 export const homepage = defineType({
   name: "homepage",
   title: "Homepage",
   type: "document",
-  fields: [
-    defineField({
-      name: "hero",
-      title: "Hero",
-      type: "object",
-      fields: [
-        { name: "eyebrow", title: "Eyebrow", type: "string" },
-        { name: "heading", title: "Heading", type: "string" },
-        { name: "subcopy", title: "Subcopy", type: "text", rows: 4 },
-        { name: "primaryCta", title: "Primary CTA", type: "string" },
-        { name: "secondaryCta", title: "Secondary CTA", type: "string" },
-        { name: "supportPoints", title: "Support points", type: "array", of: [{ type: "string" }] },
-        defineGuidedImageField({
-          name: "beforeVisual",
-          title: "Before image",
-          spec: { ...cmsImageSpecs.hero, matchingField: "afterVisual" },
-          description: "Owned by the Hero before/after slider."
-        }),
-        defineGuidedImageField({
-          name: "afterVisual",
-          title: "After image",
-          spec: { ...cmsImageSpecs.hero, matchingField: "beforeVisual" },
-          description: "Owned by the Hero before/after slider."
-        }),
-        defineGuidedImageField({
-          name: "visual",
-          title: "Legacy fallback image",
-          spec: cmsImageSpecs.hero,
-          description: "Retained for existing content. Used only when a dedicated Hero image is unavailable."
-        })
-      ]
-    }),
-    defineField({
-      name: "whatWeDoSection",
-      title: "What we do section",
-      type: "object",
-      fields: [
-        { name: "eyebrow", title: "Eyebrow", type: "string" },
-        { name: "title", title: "Title", type: "string" },
-        { name: "description", title: "Description", type: "text", rows: 4 },
-        { name: "valueTags", title: "Value tags", type: "array", of: [{ type: "string" }] },
-        defineGuidedImageField({
-          name: "visual",
-          title: "Visual",
-          spec: cmsImageSpecs.landscape,
-          description: "Displayed in the What We Do landscape media panel."
-        })
-      ]
-    }),
-    defineField({
-      name: "transformationGallerySection",
-      title: "Transformation gallery section",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 }
-      ]
-    }),
-    defineField({
-      name: "problemSection",
-      title: "Evidence / why families act early",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "string" },
-        { name: "lead", title: "Lead", type: "text", rows: 4 },
-        { name: "highlights", title: "Highlights", type: "array", of: [{ type: "string" }] }
-      ]
-    }),
-    defineField({
-      name: "evidenceSection",
-      title: "Evidence cards",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "string" },
-        { name: "cards", title: "Cards", type: "array", of: [{ type: "evidenceCard" }] }
-      ]
-    }),
-    defineField({
-      name: "packagesSection",
-      title: "Packages intro",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 }
-      ]
-    }),
-    defineField({
-      name: "whySection",
-      title: "Why Mason Company",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 },
-        {
-          name: "items",
-          title: "Items",
-          type: "array",
-          of: [
-            {
-              type: "object",
-              fields: [
-                { name: "title", title: "Title", type: "string" },
-                { name: "description", title: "Description", type: "text", rows: 3 }
-              ]
-            }
-          ]
-        }
-      ]
-    }),
-    defineField({
-      name: "processSection",
-      title: "Process",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 },
-        { name: "highlights", title: "Highlights", type: "array", of: [{ type: "string" }] },
-        { name: "addOnDisclosure", title: "Footer line", type: "text", rows: 3 },
-        { name: "primaryCta", title: "Primary CTA", type: "string" },
-        { name: "secondaryCta", title: "Secondary CTA", type: "string" },
-        { name: "steps", title: "Steps", type: "array", of: [{ type: "processStep" }] }
-      ]
-    }),
-    defineField({
-      name: "doctorsSection",
-      title: "Doctors section",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 }
-      ]
-    }),
-    defineField({
-      name: "testimonialsSection",
-      title: "Testimonials section",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 }
-      ]
-    }),
-    defineField({
-      name: "faqSection",
-      title: "FAQ",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 },
-        { name: "items", title: "Items", type: "array", of: [{ type: "faqItem" }] }
-      ]
-    }),
-    defineField({
-      name: "finalCtaSection",
-      title: "Final CTA",
-      type: "object",
-      fields: [
-        { name: "title", title: "Title", type: "string" },
-        { name: "subtitle", title: "Subtitle", type: "text", rows: 3 },
-        { name: "primaryCta", title: "Primary CTA", type: "string" },
-        { name: "secondaryLabel", title: "Secondary label", type: "string" }
-      ]
-    })
+  groups: [
+    { name: "hero", title: "Hero", default: true },
+    { name: "research", title: "Research" },
+    { name: "visit", title: "Book-a-visit strip" },
+    { name: "why", title: "Why Mason" },
+    { name: "packages", title: "Packages preview" },
+    { name: "process", title: "How it works" },
+    { name: "doctors", title: "Doctors" },
+    { name: "testimonials", title: "Testimonials" },
+    { name: "finalCta", title: "Final call to action" }
   ],
-  preview: {
-    prepare: () => ({ title: "Homepage" })
-  }
+  fields: [
+    section("hero", "Hero", [
+      ...headingFields(),
+      defineField({ name: "subcopy", title: "Supporting text", type: "text", rows: 3 }),
+      defineField({ name: "primaryCta", title: "Main button label", type: "string", description: "Opens the free-inspection booking form." }),
+      defineField({ name: "secondaryCta", title: "Second button label", type: "string", description: "Scrolls to the gallery." }),
+      imageField("backgroundImage", "Background image", "hero", { description: "Shown full-screen behind the heading; keep the right side for the subject." }),
+      mobileOverrideField("backgroundImageMobile"),
+      legacy(defineField({ name: "eyebrow", title: "Eyebrow", type: "string" })),
+      legacy(defineField({ name: "supportPoints", title: "Support points", type: "array", of: [{ type: "string" }] })),
+      legacy(defineGuidedImageField({ name: "beforeVisual", title: "Before image", spec: cmsImageSpecs.hero })),
+      legacy(defineGuidedImageField({ name: "afterVisual", title: "After image", spec: cmsImageSpecs.hero })),
+      legacy(defineGuidedImageField({ name: "visual", title: "Legacy fallback image", spec: cmsImageSpecs.hero }))
+    ], "hero"),
+
+    section("evidenceSection", "Research", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({ name: "costLabel", title: "Cost card label", type: "string" }),
+      defineField({ name: "costPrefix", title: "Cost card qualifier", type: "string", description: "Small text before the figure, e.g. “Up to”." }),
+      defineField({ name: "costFigure", title: "Cost card figure", type: "string", description: "Shown struck through, e.g. “₹10 lakh”." }),
+      defineField({ name: "cards", title: "Statistics", type: "array", of: [{ type: "evidenceCard" }], description: "Four work best." }),
+      defineField({ name: "sourcesNote", title: "Sources line", type: "text", rows: 2 }),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "subtitle", title: "Subtitle", type: "string" }))
+    ], "research"),
+
+    section("whatWeDoSection", "Book-a-visit strip", [
+      ...headingFields(),
+      defineField({ name: "description", title: "Supporting text", type: "text", rows: 3 }),
+      imageField("sideImage", "Photo", "landscape"),
+      legacy(defineField({ name: "eyebrow", title: "Eyebrow", type: "string" })),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "valueTags", title: "Value tags", type: "array", of: [{ type: "string" }] })),
+      legacy(defineGuidedImageField({ name: "visual", title: "Visual", spec: cmsImageSpecs.landscape }))
+    ], "visit"),
+
+    section("whySection", "Why Mason", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({ name: "intro", title: "Supporting text", type: "text", rows: 2 }),
+      defineField({
+        name: "items",
+        title: "Reasons",
+        type: "array",
+        description: "Six fit the design best.",
+        of: [
+          defineArrayMember({
+            type: "object",
+            fields: [
+              defineField({ name: "tag", title: "Small label", type: "string" }),
+              defineField({ name: "title", title: "Title", type: "string", validation: (rule) => rule.required() }),
+              defineField({ name: "description", title: "Text", type: "text", rows: 3, validation: (rule) => rule.required() })
+            ],
+            preview: { select: { title: "title", subtitle: "tag" } }
+          })
+        ]
+      }),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "subtitle", title: "Subtitle", type: "text" }))
+    ], "why"),
+
+    section("packagesSection", "Packages preview", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({
+        name: "subtitle",
+        title: "Supporting text",
+        type: "text",
+        rows: 3,
+        description: "You can write {standard_price} or {advanced_price} to insert the current price."
+      }),
+      defineField({ name: "footnote", title: "Note below the cards", type: "text", rows: 2 }),
+      legacy(defineField({ name: "title", title: "Title", type: "string" }))
+    ], "packages"),
+
+    section("processSection", "How it works", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({ name: "intro", title: "Supporting text", type: "text", rows: 2 }),
+      defineField({
+        name: "websiteSteps",
+        title: "Steps",
+        type: "array",
+        description: "Three fit the design best.",
+        of: [
+          defineArrayMember({
+            type: "object",
+            fields: [
+              defineField({ name: "title", title: "Step title", type: "string", validation: (rule) => rule.required() }),
+              defineField({ name: "description", title: "Step text", type: "text", rows: 3, validation: (rule) => rule.required() })
+            ],
+            preview: { select: { title: "title", subtitle: "description" } }
+          })
+        ]
+      }),
+      defineField({ name: "primaryCta", title: "Button label", type: "string", description: "Opens the free-inspection booking form." }),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "subtitle", title: "Subtitle", type: "text" })),
+      legacy(defineField({ name: "highlights", title: "Highlights", type: "array", of: [{ type: "string" }] })),
+      legacy(defineField({ name: "addOnDisclosure", title: "Footer line", type: "text" })),
+      legacy(defineField({ name: "secondaryCta", title: "Secondary CTA", type: "string" })),
+      legacy(defineField({ name: "steps", title: "Steps (old)", type: "array", of: [{ type: "processStep" }] }))
+    ], "process"),
+
+    section("doctorsSection", "Doctors", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({ name: "intro", title: "Supporting text", type: "text", rows: 2, description: "Doctors themselves are edited under Doctors & Experts; the disclaimer under Contact & Support." }),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "subtitle", title: "Subtitle", type: "text" }))
+    ], "doctors"),
+
+    section("testimonialsSection", "Testimonials", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({ name: "intro", title: "Supporting text", type: "text", rows: 2, description: "The testimonials themselves are edited under Testimonials." }),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "subtitle", title: "Subtitle", type: "text" }))
+    ], "testimonials"),
+
+    section("finalCtaSection", "Final call to action", [
+      defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
+      ...headingFields(),
+      defineField({ name: "subtitle", title: "Supporting text", type: "text", rows: 2 }),
+      defineField({ name: "primaryCta", title: "Button label", type: "string", description: "Opens the free-inspection booking form." }),
+      plainList("badges", "Reassurance points", "Short lines shown with a tick under the button."),
+      imageField("backgroundImage", "Background image", "hero"),
+      legacy(defineField({ name: "title", title: "Title", type: "string" })),
+      legacy(defineField({ name: "secondaryLabel", title: "Secondary label", type: "string" }))
+    ], "finalCta"),
+
+    // Kept for existing data only: FAQs, gallery and the old evidence block now live elsewhere.
+    legacy(defineField({ name: "transformationGallerySection", title: "Transformation gallery (old)", type: "object", fields: [
+      defineField({ name: "title", title: "Title", type: "string" }),
+      defineField({ name: "subtitle", title: "Subtitle", type: "text" })
+    ] })),
+    legacy(defineField({ name: "faqSection", title: "FAQ (old)", type: "object", fields: [
+      defineField({ name: "title", title: "Title", type: "string" }),
+      defineField({ name: "subtitle", title: "Subtitle", type: "text" }),
+      defineField({ name: "items", title: "Items", type: "array", of: [{ type: "faqItem" }] })
+    ] })),
+    legacy(defineField({ name: "problemSection", title: "Problem section (old)", type: "object", fields: [
+      defineField({ name: "title", title: "Title", type: "string" }),
+      defineField({ name: "subtitle", title: "Subtitle", type: "string" }),
+      defineField({ name: "lead", title: "Lead", type: "text" }),
+      defineField({ name: "highlights", title: "Highlights", type: "array", of: [{ type: "string" }] })
+    ] }))
+  ],
+  preview: { prepare: () => ({ title: "Homepage" }) }
 });
