@@ -256,7 +256,7 @@ export default function WhyContent() {
               home, not a hospital.
             </p>
             <Cta href="/#book" variant="light" className="mt-8">
-              Book a Safety Visit
+              Book Free Inspection
             </Cta>
           </div>
         </Reveal>
@@ -272,7 +272,7 @@ export default function WhyContent() {
           {/* Stacked full-width below sm — same reason as the hero's pair. */}
           <div className="reveal mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
             <Cta href="/#book" className="w-full justify-center sm:w-auto">
-              Book a Safety Visit
+              Book Free Inspection
             </Cta>
             <Cta
               href="/#packages"

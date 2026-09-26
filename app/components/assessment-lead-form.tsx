@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import Link from "next/link";
+import LeadPrivacyNotice from "./lead-privacy-notice";
 import { setAnalyticsMarket, trackAnalyticsEvent } from "../../lib/analytics";
 import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../lib/lead-funnel";
 import { getLeadAttributionContext, getQuizContext } from "../../lib/lead-context";
@@ -264,12 +264,10 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
 
       <div className={styles.actions}>
         <button type="submit" disabled={isLocked} aria-busy={isSubmitting} onClick={() => submitAttemptRef.current.submitClick(trackSubmitAttempt)}>
-          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Request my visit"}
+          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Confirm Free Inspection"}
         </button>
       </div>
-      <p className={styles.privacyNotice}>
-        By submitting, you agree to our <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms</Link>.
-      </p>
+      <LeadPrivacyNotice className={styles.privacyNotice} />
 
       {submissionState === "success" ? (
         <p className={styles.successMessage} role="status">

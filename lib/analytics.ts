@@ -343,7 +343,7 @@ export function getAnalyticsCity() {
   }
 }
 
-/** "₹30,000" → 30000. Undefined when no price is stated. */
+/** "₹29,999" → 29999. Undefined when no price is stated. */
 export function parsePackagePrice(value: string | number | null | undefined) {
   if (typeof value === "number") {
     return Number.isFinite(value) && value >= 0 ? value : undefined;

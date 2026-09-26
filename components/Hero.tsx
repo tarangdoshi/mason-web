@@ -24,13 +24,13 @@ const BACKGROUND = {
 const DESKTOP_MEDIA = "(min-width: 1024px)";
 
 function renderHeading(heading: string) {
-  if (heading === "Most falls happen here. We make sure yours don't.") {
+  if (heading === "Most falls happen in the bathroom. We make sure yours don't.") {
     return (
       <>
         <span className="lg:block">
-          Most <span className="accent-word on-dark">falls</span> happen here.
+          Most <span className="accent-word on-dark">falls</span> happen in the bathroom.
         </span>{" "}
-        <span className="lg:block">We make sure yours don&rsquo;t.</span>
+        <span className="lg:block">We make sure yours don&apos;t.</span>
       </>
     );
   }
@@ -101,7 +101,7 @@ export default function Hero({ content }: { content?: HeroContent }) {
                 even out the centred lines. The deliberate two-line split
                 returns at lg, where it's left-aligned. */}
             <h1 className="hero-rise text-balance font-display text-[9vw] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl sm:leading-[1.02] lg:text-6xl">
-              {renderHeading(content?.heading || "Most falls happen here. We make sure yours don't.")}
+              {renderHeading(content?.heading || "Most falls happen in the bathroom. We make sure yours don't.")}
             </h1>
 
             <p className="hero-rise mx-auto mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mt-6 sm:text-lg lg:mx-0">
@@ -110,7 +110,7 @@ export default function Hero({ content }: { content?: HeroContent }) {
 
             <div className="hero-rise mt-9 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center sm:items-center lg:justify-start">
               <Cta href="#book" arrow={false} className="w-full justify-center sm:w-auto">
-                {content?.primaryCta || "Book a Safety Visit"}
+                {content?.primaryCta || "Book Free Inspection"}
               </Cta>
               <Cta
                 href="#transformations"

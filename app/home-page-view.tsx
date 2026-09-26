@@ -115,10 +115,9 @@ function renderWhyIllustration(index: number) {
   );
 }
 
-function renderPackageDiagram(plan: PackagePlanContent, isFeatured: boolean) {
-  const hasCommodeSupport = plan.includedFeatureIds.includes("commode-support");
-  const hasSlippersTwo = plan.includedFeatureIds.includes("slippers-two");
-  const supports = isFeatured ? ["PVD-coated bars", "Raised-seat support", "Premium mats"] : ["Grab bars", "Anti-slip mats", "Sensor light"];
+function renderPackageDiagram(plan: PackagePlanContent) {
+  const hasRaisedSeat = plan.includedFeatureIds.includes("raised-toilet-seat");
+  const supports = ["Vertical grab bars", "Raised Toilet Seat", "Shower anti-slip mat"];
 
   return (
     <svg className={styles.packageDiagramSvg} viewBox="0 0 520 310" role="img" aria-label={`${plan.name} safety package layout diagram`}>
@@ -132,7 +131,7 @@ function renderPackageDiagram(plan: PackagePlanContent, isFeatured: boolean) {
       <circle className={styles.diagramPin} cx="186" cy="124" r="12" />
       <circle className={styles.diagramPin} cx="308" cy="166" r="12" />
       <circle className={styles.diagramPin} cx="430" cy="86" r="12" />
-      {hasCommodeSupport ? <path className={styles.diagramPremium} d="M240 132h70v54h-70z" /> : null}
+      {hasRaisedSeat ? <path className={styles.diagramPremium} d="M240 132h70v54h-70z" /> : null}
       <g className={styles.diagramLegend}>
         {supports.map((label, index) => (
           <g key={label} transform={`translate(354 ${185 + index * 22})`}>
@@ -141,7 +140,7 @@ function renderPackageDiagram(plan: PackagePlanContent, isFeatured: boolean) {
           </g>
         ))}
       </g>
-      <text className={styles.diagramLabel} x="56" y="278">{hasSlippersTwo ? "Full support route" : "Core support route"}</text>
+      <text className={styles.diagramLabel} x="56" y="278">Complete support route</text>
     </svg>
   );
 }
@@ -230,7 +229,7 @@ export default async function HomePageView({
               data-analytics-cta-location="top-nav"
               data-analytics-section="header"
             >
-              Book Free Safety Assessment
+              Book Free Inspection
             </a>
           </div>
         </div>
@@ -251,7 +250,7 @@ export default async function HomePageView({
                 data-analytics-cta-location="hero-primary"
                 data-analytics-section="hero"
               >
-                Book Free Safety Assessment
+                Book Free Inspection
               </a>
               <a
                 href="#package-comparison"
@@ -431,7 +430,7 @@ export default async function HomePageView({
                 <p className={styles.packageBestFor}>{plan.bestFor}</p>
 
                 <div className={styles.packageVisual}>
-                  {renderPackageDiagram(plan, isFeatured)}
+                  {renderPackageDiagram(plan)}
                 </div>
 
                 <ul className={styles.packageFeatures}>
@@ -476,7 +475,7 @@ export default async function HomePageView({
             data-analytics-cta-location="packages-assessment-note"
             data-analytics-section="package-comparison"
           >
-            Book Free Safety Assessment
+            Book Free Inspection
           </a>
         </div>
       </section>

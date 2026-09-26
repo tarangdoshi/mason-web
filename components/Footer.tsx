@@ -28,7 +28,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Company",
     links: [
-      { label: "Why Mason Company", href: "/why" },
+      { label: "Why Mason Company", href: "/#why-mason" },
       { label: "About Mason Company", href: "/about" },
       { label: "Doctor Recommendations", href: "/#doctors" },
       { label: "Customer Testimonials", href: "/#testimonials" },
@@ -41,7 +41,6 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Contact", href: "/contact" },
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms & Conditions", href: "/terms" },
-      { label: "Refund & Cancellation Policy", href: "/refund" },
     ],
   },
 ];
@@ -100,14 +99,14 @@ export default function Footer() {
             variant="light"
             className="w-full shrink-0 justify-center sm:w-auto"
           >
-            Request a visit
+            Book Free Inspection
           </Cta>
         </div>
 
         {/* Columns */}
         {/* One column below sm. Two columns at 390px leaves each about 155px,
             which is narrower than the link text: "About Mason Company",
-            "Doctor Recommendations" and "Refund & Cancellation Policy" each
+            "Doctor Recommendations" and other longer labels each
             broke onto a second line, so the rows lost the even 12px rhythm
             that makes a list scannable and turned into ragged blocks. */}
         <div className="ft-reveal grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
@@ -160,7 +159,7 @@ export default function Footer() {
             reserved.
           </p>
           {/* Was "Serving major cities across India" - we install in two. */}
-          <p>Installing in {CITIES}, with more cities on the way</p>
+          <p>Currently available in {CITIES}</p>
         </div>
       </div>
     </footer>

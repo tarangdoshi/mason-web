@@ -245,7 +245,7 @@ export default function CheckoutExperience({
   const totalPayable = basePrice === null ? null : basePrice + installationFee;
   const leadTotalPayable = totalPayable ?? 0;
   const serviceableLocation = locationResolution.status === "serviceable" ? locationResolution : null;
-  const stickySummary = `${paymentChoice === "online" ? "Online payment" : `Pay on installation + ${formatCurrency(PAY_ON_INSTALLATION_SURCHARGE)}`} • ${entry.plan.name === "Advanced" ? "1-Year Safety Check-Up Included" : "Complete installation kit"}`;
+  const stickySummary = `${paymentChoice === "online" ? "Online payment" : `Pay on installation + ${formatCurrency(PAY_ON_INSTALLATION_SURCHARGE)}`} • ${entry.plan.name === "Advanced" ? "2-Year Safety AMC Included" : "Complete installation kit"}`;
 
   useEffect(() => {
     if (checkoutStartTrackedRef.current) {
@@ -549,14 +549,14 @@ export default function CheckoutExperience({
                     setManualLocation(event.target.value);
                     setReviewState(null);
                   }}
-                  placeholder="For example: Andheri West, Mumbai or Panaji, Goa"
+                  placeholder="For example: Panaji, Goa"
                 />
               </label>
               <div className={styles.manualLocationActions}>
                 <button type="button" className={styles.secondaryButton} onClick={handleManualLocationCheck}>
                   Check serviceability
                 </button>
-                <p className={styles.fieldHint}>We currently serve Mumbai metro and Goa.</p>
+                <p className={styles.fieldHint}>Mason is currently available in Goa.</p>
               </div>
             </div>
           ) : null}

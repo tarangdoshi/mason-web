@@ -36,7 +36,7 @@ export default function AboutPage() {
       <Nav />
       <main>
         {/* ---- hero ---- */}
-        <section className="mx-auto max-w-7xl px-6 pt-32 pb-16 lg:px-10 lg:pt-40 lg:pb-16">
+        <section className="mx-auto max-w-7xl px-6 pt-32 pb-8 lg:px-10 lg:pt-40 lg:pb-16">
           <p className="eyebrow mb-6">About Us</p>
           <h1 className="h-display max-w-4xl text-[2.4rem] leading-[1.04] text-cream sm:text-5xl lg:text-[4rem]">
             We started Mason Company because safety at home should still feel
@@ -45,7 +45,7 @@ export default function AboutPage() {
 
           {/* Two columns rather than one long measure — the hero carries two
               paragraphs, and stacked they would push the fold down a screen. */}
-          <div className="mt-10 grid max-w-4xl gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="mt-5 grid max-w-4xl gap-2 lg:mt-10 lg:grid-cols-2 lg:gap-12">
             <p className="text-base leading-relaxed text-cream-dim sm:text-lg">
               Mason Company was born from a deeply personal concern: ageing
               parents should not have to live with pain, restriction, or fear
@@ -60,7 +60,7 @@ export default function AboutPage() {
           </div>
 
           <Cta href="/#book" className="mt-10">
-            Book a Safety Visit
+            Book Free Inspection
           </Cta>
         </section>
 
@@ -70,7 +70,7 @@ export default function AboutPage() {
             neither, and here it stacked on top of the next section's padding
             to make that one boundary twice the others. lg:pt-0 keeps the
             desktop hero and its image as tight as they are today. */}
-        <div className="mx-auto max-w-7xl px-6 pt-16 pb-16 sm:pt-24 sm:pb-24 lg:px-10 lg:pt-0 lg:pb-32">
+        <div className="mx-auto max-w-7xl px-6 pt-8 pb-16 sm:pt-12 sm:pb-24 lg:px-10 lg:pt-0 lg:pb-32">
           <PhotoSlot
             label="Wide, warm shot of a finished Mason bathroom — the hero image for the page"
             className="h-[38vh] min-h-[280px] w-full sm:h-[52vh]"
@@ -84,7 +84,7 @@ export default function AboutPage() {
             broken into labelled beats the reader gets landmarks and can rejoin
             the thread anywhere. */}
         <section className="border-t border-line bg-surface">
-          <Reveal className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
+          <Reveal className="mx-auto max-w-7xl px-6 pt-16 pb-4 sm:pt-24 sm:pb-6 lg:px-10 lg:pt-32 lg:pb-8">
             <div className="grid gap-12 lg:grid-cols-[18rem_1fr] lg:gap-20">
               <div className="lg:sticky lg:top-32 lg:self-start">
                 <p className="reveal eyebrow">Our Story</p>
@@ -385,7 +385,7 @@ export default function AboutPage() {
             behind an overlay: an unfilled PhotoSlot under 85% green would be
             invisible, which defeats the point of a placeholder announcing
             itself. The photo band sits above it instead. */}
-        <div className="mx-auto max-w-7xl px-6 pt-16 pb-16 sm:pt-24 sm:pb-24 lg:px-10 lg:pt-32 lg:pb-32">
+        <div className="mx-auto max-w-7xl px-6 pt-4 pb-16 sm:pt-6 sm:pb-24 lg:px-10 lg:pt-8 lg:pb-32">
           <PhotoSlot
             label="Quiet, well-lit bathroom at night — the closing image"
             className="h-[34vh] min-h-[240px] w-full"
@@ -405,7 +405,7 @@ export default function AboutPage() {
             </p>
             <div className="reveal mt-10">
               <Cta href="/#book" variant="light">
-                Book a Safety Visit
+                Book Free Inspection
               </Cta>
             </div>
           </Reveal>

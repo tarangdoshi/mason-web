@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description =
     entry.plan.summary ||
     entry.plan.outcome ||
-    `The Mason ${name} bathroom safety package — installed by a trained Mason team after a safety visit.`;
+    `The Mason ${name} bathroom safety package — installed by a trained Mason team after a free inspection.`;
   const title = `${name} Bathroom Safety Package | Mason Company`;
   const url = `${SITE_URL}/packages/${slug}`;
   const ogImage = absoluteImageUrl(entry.plan.visual?.src);
@@ -103,7 +103,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
     name: `${plan.name} Bathroom Safety Package`,
     serviceType: "Bathroom safety installation",
     provider: { "@type": "Organization", name: "Mason Company", url: SITE_URL },
-    areaServed: ["Mumbai", "Goa"],
+    areaServed: ["Goa"],
     description: plan.summary || plan.outcome || `Mason ${plan.name} bathroom safety package.`,
     url: pageUrl
   };
@@ -141,7 +141,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
             {plan.price ? <p className={styles.price}>{plan.price}</p> : null}
             <div className={styles.ctaRow}>
               <a href="#book-assessment" className={styles.primaryCta} data-analytics-cta-location="package-detail-hero">
-                Request a Safety Visit
+                Book Free Inspection
               </a>
               <Link
                 href={checkoutHref}
@@ -245,7 +245,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>How it works</h2>
           <ol className={styles.process}>
-            <li>Book a safety visit (home visit or video).</li>
+            <li>Book a free inspection (home visit or video).</li>
             <li>Mason assesses the bathroom and confirms the right package.</li>
             <li>Install — often in the same visit if you&apos;re ready.</li>
             <li>Walkthrough &amp; handover with before/after photos.</li>
@@ -253,8 +253,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
         </section>
 
         <section className={styles.assessmentSection} id="book-assessment">
-          <p className={styles.eyebrow}>Request a safety visit</p>
-          <h2 className={styles.sectionTitle}>Book your safety visit</h2>
+          <p className={styles.eyebrow}>Free &amp; no obligation</p>
+          <h2 className={styles.sectionTitle}>Book Free Inspection</h2>
           <p className={styles.muted}>
             Share a few details and Mason will contact you to schedule a home visit or video assessment before you
             choose a package.

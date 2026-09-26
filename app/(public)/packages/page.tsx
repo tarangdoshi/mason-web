@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/packages"},
   title: "Packages - Mason Company",
   description:
-    "Request a bathroom safety visit and explore Standard or Advanced. Both install the same 12 upgrades, fitted by trained Mason experts.",
+    "Book a free bathroom inspection, or choose Standard or Advanced. Both include the same 13 component categories, fitted by trained Mason experts.",
 };
 
 /* Three blocks, in the order the decision is actually made.
@@ -55,13 +55,13 @@ export default async function PackagesPage() {
           <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />
           <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className="eyebrow mb-4">Request your visit</p>
+              <p className="eyebrow mb-4">Free &amp; no obligation</p>
               {/* The lg step down from text-6xl is the column: the h1 has half
                   the page beside the form, and 60px there puts three words on
                   a line. */}
               <h1 className="h-display text-4xl text-cream sm:text-5xl lg:text-[clamp(2.5rem,3.8vw,3.5rem)]">
-                Book a bathroom <span className="accent-word">safety</span>{" "}
-                visit.
+                Book a <span className="accent-word">free</span> bathroom{" "}
+                inspection.
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-cream-dim sm:text-lg">
                 We walk the bathroom with you first, then recommend Standard or
@@ -98,7 +98,7 @@ export default async function PackagesPage() {
                 forest green in the Safer strip, where a hairline would be
                 invisible. Same radius as the card it wraps, no padding, so the
                 stroke lands exactly on its edge. */}
-            <div className="mx-auto w-full max-w-xl rounded-3xl ring-1 ring-line lg:max-w-none">
+            <div className="mx-auto w-full max-w-xl lg:max-w-none">
               <VisitForm />
             </div>
           </div>
@@ -200,10 +200,10 @@ export default async function PackagesPage() {
                     aria-hidden="true"
                     className="min-w-9 shrink-0 rounded-full bg-sand-200 px-2.5 py-1 text-center font-mono-label text-sm tabular-nums text-cream"
                   >
-                    {item.qty}
+                    {item.qty ?? "Included"}
                   </span>
                   <span className="sr-only">
-                    {item.qty} included
+                    {item.qty === undefined ? "Included" : `${item.qty} included`}
                   </span>
                 </li>
               ))}

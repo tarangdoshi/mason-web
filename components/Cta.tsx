@@ -68,7 +68,7 @@ export default function Cta({
 }: {
   href: string;
   packageName?: string;
-  /** Listed price, e.g. "₹30,000"; reported with select_package. */
+  /** Current selling price, e.g. "₹29,999"; reported with select_package. */
   packagePrice?: string;
   children: React.ReactNode;
   variant?: Variant;
@@ -92,6 +92,14 @@ export default function Cta({
     </>
   );
 
+  const trackCtaClick = (section: string) => {
+    trackAnalyticsEvent("homepage_cta_click", {cta_location:"public-cta",section});
+    if (packageName) {
+      trackAnalyticsEvent("package_cta_click", {package:packageName,cta_location:"public-package",section});
+      trackAnalyticsEvent("select_package", {package_name:packageName,package_price:parsePackagePrice(packagePrice)});
+    }
+  };
+
   // Falls back to a plain link when no provider is mounted, so the CTA still
   // does something sensible rather than breaking.
   if (booking && BOOKING_HREFS.has(href)) {
@@ -99,11 +107,7 @@ export default function Cta({
       <button type="button" onClick={(event) => {
         const section = event.currentTarget.closest("section")?.id || "navigation";
         storeLeadCtaContext({entryPoint:"assessment-form", ctaId:"book-free-safety-assessment", pageSection:section, packageName, packageCode:packageName ? getPackageCodeFromName(packageName) || undefined : undefined});
-        trackAnalyticsEvent("homepage_cta_click", {cta_location:"public-cta",section});
-        if (packageName) {
-          trackAnalyticsEvent("package_cta_click", {package:packageName,cta_location:"public-package",section});
-          trackAnalyticsEvent("select_package", {package_name:packageName,package_price:parsePackagePrice(packagePrice)});
-        }
+        trackCtaClick(section);
         booking.open(packageName);
       }} className={classes}>
         {label}
@@ -111,8 +115,10 @@ export default function Cta({
     );
   }
 
+  // A package card that links to its detail page ("View Details") is still the
+  // visitor choosing that package, so it reports the same selection events.
   return (
-    <Link href={href} className={classes}>
+    <Link href={href} className={classes} onClick={packageName ? (event) => trackCtaClick(event.currentTarget.closest("section")?.id || "navigation") : undefined}>
       {label}
     </Link>
   );

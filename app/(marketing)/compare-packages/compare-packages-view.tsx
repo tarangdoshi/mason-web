@@ -54,7 +54,7 @@ export default function ComparePackagesView({
                 data-analytics-cta-location="compare-hero-primary"
                 data-analytics-section="compare-hero"
               >
-                Request a Safety Visit
+                Book Free Inspection
               </a>
               <a href="#packages" className={styles.secondaryButton}>
                 Compare plans
@@ -73,7 +73,7 @@ export default function ComparePackagesView({
             <p>Most families start with a visit request. If you already know what you need, you can compare package scope and continue to checkout.</p>
             <ul>
               <li>A visit request requires no package selection</li>
-              <li>Advanced includes one technician safety check-up during the first year</li>
+              <li>Advanced includes a 2-Year Safety AMC: annual safety visits for 2 years after installation</li>
             </ul>
           </article>
         </div>
@@ -101,7 +101,7 @@ export default function ComparePackagesView({
             data-analytics-cta-location="compare-packages-assessment-callout"
             data-analytics-section="packages"
           >
-            Request a Safety Visit
+            Book Free Inspection
           </a>
         </div>
 
@@ -212,7 +212,7 @@ export default function ComparePackagesView({
                 <li>Start with an assessment if you need help choosing</li>
                 <li>Online payment keeps the current package total</li>
                 <li>Pay on installation adds ₹500 service fee</li>
-                <li>Advanced includes one first-year safety check-up visit</li>
+                <li>Advanced includes a 2-Year Safety AMC</li>
               </ul>
             </div>
           </aside>
@@ -223,7 +223,7 @@ export default function ComparePackagesView({
         <div className={styles.ctaPanel}>
           <div className={styles.ctaCopy}>
             <p className={styles.cardEyebrow}>Best first step</p>
-            <h2>Book a free safety assessment before choosing a package.</h2>
+            <h2>Book a free inspection before choosing a package.</h2>
             <p>If you are confident about the package, the package cards above still take you to checkout.</p>
           </div>
           <div className={styles.ctaActions}>
@@ -234,7 +234,7 @@ export default function ComparePackagesView({
               data-analytics-cta-location="compare-final-primary"
               data-analytics-section={finalCtaSection.id || "compare-cta"}
             >
-              Request a Safety Visit
+              Book Free Inspection
             </a>
             <a
               href={phoneHref}

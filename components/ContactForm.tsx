@@ -36,7 +36,7 @@ type Errors = Partial<Record<Required, string>>;
 
 // In visual/tab order, so the first invalid field is the one focused — same
 // convention as the home page assessment form.
-const FIELD_ORDER: Required[] = ["name", "email", "mobile"];
+const FIELD_ORDER: Required[] = ["name", "mobile", "email"];
 
 // Maps the API's field-error keys (public-leads schema: customerName/phone/
 // email) onto this form's own field names, so a server-side validation error
@@ -47,7 +47,7 @@ const SERVER_FIELD_TO_LOCAL: Record<string, Required> = {
   phone: "mobile",
   email: "email",
 };
-const INLINE_ERROR_FIELD_ORDER = ["customerName", "email", "phone"] as const;
+const INLINE_ERROR_FIELD_ORDER = ["customerName", "phone", "email"] as const;
 
 function validate(v: Values): Errors {
   const errors: Errors = {};
@@ -59,11 +59,10 @@ function validate(v: Values): Errors {
 
 const LABEL = "block text-sm font-semibold text-cream";
 
-/* The card is white, so fields go one step DOWN the elevation ladder into
-   sand-100 — the inverse of the booking dialog, where a sand-50 dialog holds
-   white fields. Either way the field reads as recessed. */
+/* White fields sit on Prerna's sand card; the canonical input and validation
+   logic stays inside the same form. */
 const FIELD =
-  "mt-2 w-full rounded-xl border bg-sand-100 px-4 py-3 text-base text-cream transition-colors duration-150";
+  "mt-2 w-full rounded-xl border bg-white px-4 py-3 text-base text-cream transition-colors duration-150";
 const INPUT = `${FIELD} placeholder:text-sand-400 focus:outline-none`;
 /* The mobile field wraps a static +91, so its active state comes from the
    container (focus-within) rather than the input itself. */
@@ -231,7 +230,7 @@ export default function ContactForm() {
        collapsing to whatever the confirmation happens to need. Hidden
        visibility also drops the fields out of the tab order and the
        accessibility tree, so nothing is reachable behind the confirmation. */
-    <div className="grid rounded-3xl border border-line bg-ink-raised p-6 sm:p-8 lg:p-10">
+    <div className="grid rounded-3xl border border-line bg-sand-50 p-6 sm:p-8 lg:p-10">
       <form
         onSubmit={onSubmit}
         onFocusCapture={trackStart}
@@ -240,7 +239,7 @@ export default function ContactForm() {
         className={`col-start-1 row-start-1 ${done ? "invisible" : ""}`}
       >
         <div className="grid gap-x-5 gap-y-1 sm:grid-cols-2">
-          <div>
+          <div className="sm:col-span-2">
             <label htmlFor="contact-name" className={LABEL}>
               Full name
               <span aria-hidden="true" className="text-brick">
@@ -262,32 +261,6 @@ export default function ContactForm() {
             />
             <p id="contact-name-error" aria-live="polite" className={ERROR}>
               {errors.name}
-            </p>
-          </div>
-
-          <div>
-            <label htmlFor="contact-email" className={LABEL}>
-              Email address
-              <span aria-hidden="true" className="text-brick">
-                *
-              </span>
-            </label>
-            <input
-              id="contact-email"
-              name="email"
-              ref={emailInputRef}
-              type="email"
-              autoComplete="email"
-              required
-              value={values.email}
-              onChange={(e) => set("email", e.target.value)}
-              aria-invalid={!!errors.email}
-              aria-describedby={describedBy("email")}
-              placeholder="priya@example.com"
-              className={`${INPUT} ${border("email")}`}
-            />
-            <p id="contact-email-error" aria-live="polite" className={ERROR}>
-              {errors.email}
             </p>
           </div>
 
@@ -318,12 +291,38 @@ export default function ContactForm() {
                 onChange={(e) => set("mobile", sanitizePhoneInput(e.target.value))}
                 aria-invalid={!!errors.mobile}
                 aria-describedby={describedBy("mobile")}
-                placeholder="98765 43210"
+                placeholder="81494 33383"
                 className="w-full bg-transparent text-base text-cream placeholder:text-sand-400 focus:outline-none"
               />
             </div>
             <p id="contact-mobile-error" aria-live="polite" className={ERROR}>
               {errors.mobile}
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="contact-email" className={LABEL}>
+              Email address
+              <span aria-hidden="true" className="text-brick">
+                *
+              </span>
+            </label>
+            <input
+              id="contact-email"
+              name="email"
+              ref={emailInputRef}
+              type="email"
+              autoComplete="email"
+              required
+              value={values.email}
+              onChange={(e) => set("email", e.target.value)}
+              aria-invalid={!!errors.email}
+              aria-describedby={describedBy("email")}
+              placeholder="priya@example.com"
+              className={`${INPUT} ${border("email")}`}
+            />
+            <p id="contact-email-error" aria-live="polite" className={ERROR}>
+              {errors.email}
             </p>
           </div>
 
@@ -335,12 +334,8 @@ export default function ContactForm() {
           />
         </div>
 
-      {/* col-reverse, so the DOM order that gives text-left / button-right on
-          desktop stacks the other way round on mobile - the button belongs
-          directly under the last field, not beneath a paragraph of fine print.
-          items-center because the text runs to three lines against a one-line
-          button. */}
-        <div className="mt-6 flex flex-col-reverse gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+      {/* Availability, then a full-width primary action on every viewport. */}
+        <div className="mt-4 flex flex-col gap-3">
           <ServiceArea className="max-w-sm" />
 
           <button
@@ -353,7 +348,7 @@ export default function ContactForm() {
                a 277px button. A no-op from sm, where shrink-0 in a row sizes it
                to its content again. */
             className={ctaClass({
-              className: "shrink-0 justify-center disabled:opacity-70",
+              className: "w-full justify-center disabled:opacity-70",
             })}
           >
             {busy ? "Sending…" : "Send my enquiry"}

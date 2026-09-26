@@ -68,7 +68,7 @@ test("checkout DB success shows the review screen without a Zoho lead conversion
       entry, includedFeatures: [], excludedFeatures: [], addOnFeatures: []
     })));
     await act(async () => button("Enter area manually").click());
-    await act(async () => setInput('input[placeholder="For example: Andheri West, Mumbai or Panaji, Goa"]', "Panaji, Goa"));
+    await act(async () => setInput('input[placeholder="For example: Panaji, Goa"]', "Panaji, Goa"));
     await act(async () => button("Check serviceability").click());
     assert.match(dom.window.document.body.textContent || "", /Service available/);
 

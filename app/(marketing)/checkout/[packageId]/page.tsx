@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${entry.plan.name} Package Request | Mason Company`,
-    description: `Request the ${entry.plan.name} package if you already know it fits, or start with a Mason safety visit.`
+    description: `Request the ${entry.plan.name} package if you already know it fits, or start with a free Mason inspection.`
   };
 }
 
@@ -66,7 +66,7 @@ export default async function PackageCheckoutPage({ params }: PageProps) {
                   Continue with this package
                 </a>
                 <Link href="/#free-assessment" className={styles.heroSecondaryCta}>
-                  Not sure? Request a Safety Visit
+                  Not sure? Book Free Inspection
                 </Link>
                 <Link href="/compare-packages#packages" className={styles.heroSecondaryCta}>
                   Compare packages

@@ -36,7 +36,7 @@ export const comparePackagesContent: HomepageContent = {
   },
   processSection: {
     ...homepageContent.processSection,
-    addOnDisclosure: "Advanced includes one technician safety check-up visit during the first year."
+    addOnDisclosure: "Advanced includes a 2-Year Safety AMC. Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required."
   },
   packagesSection: {
     title: "Compare package options",

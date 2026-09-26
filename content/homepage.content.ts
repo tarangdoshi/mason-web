@@ -10,7 +10,7 @@ export const homepageContent: HomepageContent = {
       { label: "FAQ", href: "#faq" }
     ],
     locationLabel: "City",
-    locationValue: "Mumbai & Goa",
+    locationValue: "Goa",
     searchPlaceholder: ""
   },
   brand: {
@@ -18,10 +18,10 @@ export const homepageContent: HomepageContent = {
     tagline: "",
     serviceLine: "Premium bathroom safety upgrades for ageing parents",
     trustBadges: ["Pre-priced safety packages", "Trained Mason experts", "Doctor-reviewed planning", "Full refund any time before installation."],
-    phoneDisplay: "+91 98765 43210",
-    phoneTel: "+919876543210",
+    phoneDisplay: "+91 81494 33383",
+    phoneTel: "+918149433383",
     whatsappLabel: "WhatsApp Support",
-    whatsappUrl: "https://wa.me/919876543210",
+    whatsappUrl: "https://wa.me/918149433383",
     headerStats: [
       { value: "2 Packages", label: "Standard and Advanced" },
       { value: "Doctor inputs", label: "Safety planning" },
@@ -30,9 +30,9 @@ export const homepageContent: HomepageContent = {
   },
   hero: {
     eyebrow: "Bathroom Safety for Ageing Parents",
-    heading: "Most falls happen here. We make sure yours don't.",
+    heading: "Most falls happen in the bathroom. We make sure yours don't.",
     subcopy: "You can't always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety.",
-    primaryCta: "Book a Safety Visit",
+    primaryCta: "Book Free Inspection",
     secondaryCta: "See Transformations",
     supportNote: "",
     supportPoints: ["Premium home-first finish", "Trained Mason experts", "Doctor-reviewed planning"],
@@ -349,7 +349,7 @@ export const homepageContent: HomepageContent = {
     subtitle: "Six clear steps, handled by one accountable Mason team - from your visit request all the way to final handover.",
     highlights: ["Clear steps", "Assisted support", "One accountable Mason team from booking to handover"],
     addOnDisclosure: "Clear steps. Assisted support. One accountable Mason team from booking to handover.",
-    primaryCta: "Book a Safety Visit",
+    primaryCta: "Book Free Inspection",
     secondaryCta: "Talk to a Mason Company specialist",
     steps: [
       {
@@ -446,7 +446,7 @@ export const homepageContent: HomepageContent = {
   },
   packagesSection: {
     title: "The same complete kit. You choose the cover.",
-    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes one safety check-up visit during the first year.",
+    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes annual safety visits for 2 years after installation.",
     features: [
       { id: "vertical-grab-bars", label: "Vertical grab bars", description: "Support placed at key standing and movement points.", quantity: 3 },
       { id: "angled-grab-bar", label: "L / angled grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
@@ -459,7 +459,8 @@ export const homepageContent: HomepageContent = {
       { id: "corner-safety", label: "Edge & corner protection", description: "Protective cushioning for sharp edges and corners that could cause injury.", quantity: 1 },
       { id: "drainage-solution", label: "Drainage support", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
       { id: "slippers-one", label: "Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
-      { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 }
+      { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 },
+      { id: "raised-toilet-seat", label: "Raised Toilet Seat", quantity: 1 }
     ],
     plans: [
       {
@@ -470,9 +471,9 @@ export const homepageContent: HomepageContent = {
         isFeatured: true,
         bestFor: "The full safety upgrade, installed, inspected and handed over in one go.",
         outcome: "A complete everyday safety upgrade for steadier movement, better grip, and more confidence at home.",
-        price: "₹30,000",
+        price: "₹29,999",
         referencePrice: "₹35,000",
-        currentPrice: "₹30,000",
+        currentPrice: "₹29,999",
         savings: "Core package",
         visual: {
           src: "/images/hero/transformed-bathroom-desktop.jpg",
@@ -492,28 +493,29 @@ export const homepageContent: HomepageContent = {
           "corner-safety",
           "drainage-solution",
           "slippers-one",
-          "total-support-solution"
+          "total-support-solution",
+          "raised-toilet-seat"
         ],
         ctaLabel: "Book Standard"
       },
       {
         id: "package-advanced",
         name: "Advanced",
-        badge: "The complete kit + 1-Year Safety Check-Up Included",
+        badge: "2-Year Safety AMC Included",
         titleDescriptor: "Full Mason safety setup",
         isFeatured: false,
-        bestFor: "The same installation, with one included safety check-up during the first year.",
-        outcome: "The complete installation kit, plus one technician visit within the first year to inspect the work and cover necessary corrective support identified during that visit.",
-        price: "₹37,000",
+        bestFor: "Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.",
+        outcome: "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
+        price: "₹36,999",
         referencePrice: "₹44,000",
-        currentPrice: "₹37,000",
+        currentPrice: "₹36,999",
         savings: "Premium package",
         visual: {
           src: "/images/stock-web/upgrades/upgrade-shower-support.jpg",
           alt: "Bathroom with broader safety support for the Advanced package",
           objectPosition: "50% 48%"
         },
-        visualHighlights: ["Same complete kit", "Home-first finish", "1-year safety check-up"],
+        visualHighlights: ["Same complete kit", "Home-first finish", "2-Year Safety AMC"],
         includedFeatureIds: [
           "vertical-grab-bars",
           "angled-grab-bar",
@@ -526,7 +528,8 @@ export const homepageContent: HomepageContent = {
           "corner-safety",
           "drainage-solution",
           "slippers-one",
-          "total-support-solution"
+          "total-support-solution",
+          "raised-toilet-seat"
         ],
         ctaLabel: "Book Advanced"
       },
@@ -570,25 +573,25 @@ export const homepageContent: HomepageContent = {
       {
         id: "ts-1",
         quote: "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
-        author: "Anita Mehra",
+        author: "Maria Pereira",
         relation: "Daughter",
-        city: "Bengaluru",
+        city: "Goa",
         outcomeLine: "Safer movement, premium finish",
         photo: {
           src: "/images/proof/testimonial-anita.jpg",
-          alt: "Portrait of Anita Sharma"
+          alt: "Portrait of Maria Pereira"
         }
       },
       {
         id: "ts-2",
         quote: "The process was clear from the first call. The team explained the package, inspected the bathroom, and installed everything neatly. My mother now has support exactly where she needs it.",
-        author: "Rohan Kapoor",
+        author: "Rohan Naik",
         relation: "Son",
         city: "Goa",
         outcomeLine: "Clear process, confident handover",
         photo: {
           src: "/images/proof/testimonial-rohan.jpg",
-          alt: "Portrait of Rohan Desai"
+          alt: "Portrait of Rohan Naik"
         }
       },
       {
@@ -596,13 +599,13 @@ export const homepageContent: HomepageContent = {
         quote: "The biggest relief was not having to coordinate multiple vendors. Mason handled the planning, products, installation, and walkthrough as one complete solution.",
         author: "Neha Shah",
         relation: "Daughter-in-law",
-        city: "Bengaluru",
+        city: "Goa",
         outcomeLine: "One accountable team"
       },
       {
         id: "ts-4",
         quote: "The before-and-after difference was obvious. The bathroom feels safer, but it still looks like a well-designed home bathroom, not a medical facility.",
-        author: "Vikram Rao",
+        author: "Karl Fernandes",
         relation: "Son",
         city: "Goa",
         outcomeLine: "Visible upgrade, home-first design"
@@ -714,7 +717,7 @@ export const homepageContent: HomepageContent = {
     items: [
       {
         question: "What does Mason Company do?",
-        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support."
+        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support."
       },
       {
         question: "Who is Mason Company for?",
@@ -722,7 +725,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "Do you renovate the entire bathroom?",
-        answer: "No. Mason focuses on safety upgrades to the existing bathroom. Most installations do not require a major renovation."
+        answer: "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation."
       },
       {
         question: "Will the bathroom look clinical?",
@@ -730,15 +733,15 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What packages do you offer?",
-        answer: "Mason currently offers two packages: Standard at ₹30,000 and Advanced at ₹37,000. Both install the same complete kit. Advanced adds one technician safety check-up visit during the first year."
+        answer: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install the same complete kit. Advanced also includes a 2-Year Safety AMC: annual safety visits for 2 years after installation."
       },
       {
         question: "What is included in Standard?",
-        answer: "Standard includes the complete 12-item kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting, SOS hardware, and toilet-seat support are not included."
+        answer: "Standard includes the complete 13-component kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included."
       },
       {
         question: "What is included in Advanced?",
-        answer: "Advanced includes the same complete 12-item installation kit as Standard, plus one technician follow-up visit within the first year. During that visit we inspect the completed work, check for flaws or additional support needs, and cover necessary corrective work or additional support identified during that included visit."
+        answer: "Advanced includes the same complete 13-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required."
       },
       {
         question: "Can I buy only one product, like a grab bar?",
@@ -774,7 +777,7 @@ export const homepageContent: HomepageContent = {
     id: "final-cta",
     title: "Book the visit. We'll handle the rest.",
     subtitle: "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest.",
-    primaryCta: "Request a Callback",
-    secondaryLabel: "Call +91 98765 43210"
+    primaryCta: "Book Free Inspection",
+    secondaryLabel: "Call +91 81494 33383"
   }
 };
