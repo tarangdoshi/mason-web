@@ -4,7 +4,7 @@ Everything customers read on masoncompany.in is edited in **Sanity Studio**. You
 
 ## Open the editor
 
-Go to **www.masoncompany.in/crm/content** and sign in with your CRM admin account.
+Go to **www.masoncompany.in/crm/content** and sign in with your **Sanity account** (the one invited to the Mason Sanity project). This is separate from the CRM sign-in — CRM passwords do not open the editor.
 
 The left menu lists every part of the website:
 

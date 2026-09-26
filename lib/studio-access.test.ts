@@ -70,6 +70,12 @@ test("Presentation can see which document controls each part of the page — onl
   assert.match(attr, /path=hero/);
   assert.match(attr, new RegExp(`base=${encodeURIComponent(STUDIO_BASE_PATH)}`));
   assert.doesNotMatch(attr, /token|secret/i);
+  // Every document marker must carry a field path (Sanity throws without one),
+  // and a marker can never break rendering.
+  for (const target of [DOCS.homepage, DOCS.about, DOCS.packagesPage, DOCS.faqs, DOCS.gallery, DOCS.settings, DOCS.package("package-standard")]) {
+    assert.match(editProps(true, target)["data-sanity"] ?? "", /path=/, target.id);
+  }
+  assert.deepEqual(editProps(true, { id: "", type: "", path: "" } as never), {}, "an invalid marker renders nothing instead of throwing");
   // Every CMS-backed page section is mapped to its document.
   const mapped: Record<string, RegExp> = {
     "components/Hero.tsx": /DOCS\.homepage, path: "hero"/, "components/FAQ.tsx": /useEditProps\(DOCS\.faqs\)/,
