@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: "What packages do you offer?",
-    a: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install exactly the same complete kit. Advanced adds a safety check-up visit two years after installation.",
+    a: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install exactly the same complete kit. Advanced also includes a 2-Year Safety AMC: annual safety visits for 2 years after installation.",
   },
   {
     q: "What is included in Standard?",
@@ -35,7 +35,7 @@ const FAQS = [
   },
   {
     q: "What is included in Advanced?",
-    a: "Exactly the same 13-component installation kit as Standard. Advanced adds a safety check-up visit two years after installation, when we inspect the fittings and identify any support that needs attention.",
+    a: "Exactly the same 13-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.",
   },
   {
     q: "Can I buy only one product, like a grab bar?",

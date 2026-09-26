@@ -35,7 +35,7 @@ type Skin = {
    different kinds of object, not two shades of the same one.
 
    Takes `popular` (promotion), not `advanced` (identity): the skin follows
-   which card is being pushed, not which package has the check-up. */
+   which card is being pushed, not which package has the AMC. */
 function skin(tone: Tone, featured: boolean): Skin {
   if (tone === "green" && !featured) {
     return {

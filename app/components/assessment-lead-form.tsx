@@ -264,7 +264,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
 
       <div className={styles.actions}>
         <button type="submit" disabled={isLocked} aria-busy={isSubmitting} onClick={() => submitAttemptRef.current.submitClick(trackSubmitAttempt)}>
-          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Request my visit"}
+          {isSubmitting ? "Sending…" : submissionState === "success" ? "Request received" : "Confirm Free Inspection"}
         </button>
       </div>
       <LeadPrivacyNotice className={styles.privacyNotice} />

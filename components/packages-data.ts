@@ -22,15 +22,15 @@ export const PACKAGE_ROWS: PackageRow[] = [
     advanced: true,
   },
   { label: "Inspection and final walkthrough", standard: true, advanced: true },
-  { label: "Two-year safety check-up visit", standard: false, advanced: true },
+  { label: "2-Year Safety AMC Included", standard: false, advanced: true },
 ];
 
 export type Package = {
   name: string;
   badge: string;
   /* Identity, not promotion. Fixes which PACKAGE_ROWS column the card reads
-     (Advanced gets the check-up row), and which package the advisor treats as
-   "the one with the two-year cover". Never flip this to re-style a card. */
+     (Advanced gets the AMC row), and which package the advisor treats as
+   "the one with the 2-Year Safety AMC". Never flip this to re-style a card. */
   advanced: boolean;
   /* Promotion. Which card gets the bright "Most popular" treatment and leads
      the stack. Independent of `advanced` on purpose, so the promoted card can
@@ -59,11 +59,11 @@ export const PACKAGES: Package[] = [
   },
   {
     name: "Advanced",
-    badge: "The complete kit, plus two years of cover",
+    badge: "2-Year Safety AMC Included",
     advanced: true,
     popular: false,
     bestFor:
-      "The same installation, with a safety check-up two years on to catch anything that has worked loose.",
+      "Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.",
     outcome:
       "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
     referencePrice: "₹44,000",

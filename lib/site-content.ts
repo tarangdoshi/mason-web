@@ -351,9 +351,10 @@ export function applySanityHomepage(base: HomepageContent, homepage: SanityHomep
     ...next.faqSection,
     items: mergedFaqItems
   };
-  // The two-year Advanced cover is a founder-approved offer. A previously
-  // published CMS subtitle must not put retired first-year copy back on the
-  // public cards while the editor updates the document.
+  // Advanced's 2-Year Safety AMC (annual visits for 2 years) is a
+  // founder-approved offer. A previously published CMS subtitle must not put
+  // retired check-up copy back on the public cards while the editor updates
+  // the document.
   next.packagesSection.subtitle = base.packagesSection.subtitle;
   next.processSection.primaryCta = base.processSection.primaryCta;
   next.finalCtaSection.primaryCta = base.finalCtaSection.primaryCta;

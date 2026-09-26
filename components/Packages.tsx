@@ -34,7 +34,7 @@ export default async function Packages({ content: contentProp }: { content?: Hom
             {renderTitle(content.title || "The same complete kit. You choose the cover.")}
           </h2>
           <p className="reveal mt-3 text-base leading-relaxed text-sand-100/75">
-            {content.subtitle || "Both packages install everything, fitted by Mason-trained experts. Advanced adds a safety check-up visit two years after installation."}
+            {content.subtitle || "Both packages install everything, fitted by Mason-trained experts. Advanced includes annual safety visits for 2 years after installation."}
           </p>
         </div>
 

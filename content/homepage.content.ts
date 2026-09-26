@@ -446,7 +446,7 @@ export const homepageContent: HomepageContent = {
   },
   packagesSection: {
     title: "The same complete kit. You choose the cover.",
-    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced adds a safety check-up visit two years after installation.",
+    subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes annual safety visits for 2 years after installation.",
     features: [
       { id: "vertical-grab-bars", label: "Vertical grab bars", description: "Support placed at key standing and movement points.", quantity: 3 },
       { id: "angled-grab-bar", label: "L / angled grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
@@ -501,10 +501,10 @@ export const homepageContent: HomepageContent = {
       {
         id: "package-advanced",
         name: "Advanced",
-        badge: "The complete kit, plus two years of cover",
+        badge: "2-Year Safety AMC Included",
         titleDescriptor: "Full Mason safety setup",
         isFeatured: false,
-        bestFor: "The same installation, with a safety check-up two years on to catch anything that has worked loose.",
+        bestFor: "Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.",
         outcome: "The same upgrade, looked after - so it stays as safe as the day it was fitted.",
         price: "₹36,999",
         referencePrice: "₹44,000",
@@ -515,7 +515,7 @@ export const homepageContent: HomepageContent = {
           alt: "Bathroom with broader safety support for the Advanced package",
           objectPosition: "50% 48%"
         },
-        visualHighlights: ["Same complete kit", "Home-first finish", "Two-year safety check-up"],
+        visualHighlights: ["Same complete kit", "Home-first finish", "2-Year Safety AMC"],
         includedFeatureIds: [
           "vertical-grab-bars",
           "angled-grab-bar",
@@ -733,7 +733,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What packages do you offer?",
-        answer: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install the same complete kit. Advanced adds a safety check-up visit two years after installation."
+        answer: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install the same complete kit. Advanced also includes a 2-Year Safety AMC: annual safety visits for 2 years after installation."
       },
       {
         question: "What is included in Standard?",
@@ -741,7 +741,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What is included in Advanced?",
-        answer: "Advanced includes the same complete 13-component installation kit as Standard, plus a safety check-up visit two years after installation. During that visit we inspect the fittings and identify any support that needs attention."
+        answer: "Advanced includes the same complete 13-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required."
       },
       {
         question: "Can I buy only one product, like a grab bar?",

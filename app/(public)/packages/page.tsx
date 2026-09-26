@@ -60,8 +60,8 @@ export default async function PackagesPage() {
                   the page beside the form, and 60px there puts three words on
                   a line. */}
               <h1 className="h-display text-4xl text-cream sm:text-5xl lg:text-[clamp(2.5rem,3.8vw,3.5rem)]">
-                Book a free bathroom{" "}
-                <span className="accent-word">inspection</span>.
+                Book a <span className="accent-word">free</span> bathroom{" "}
+                inspection.
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-cream-dim sm:text-lg">
                 We walk the bathroom with you first, then recommend Standard or

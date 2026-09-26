@@ -82,7 +82,7 @@ test("form notice is smaller, says T&C apply and keeps its Terms link", () => {
   const dom = new JSDOM(renderToStaticMarkup(React.createElement(LeadPrivacyNotice)));
   const notice = dom.window.document.querySelector("p");
   assert.equal(notice?.textContent, "T&C apply");
-  assert.equal(notice?.style.fontSize, "0.75rem");
+  assert.equal(notice?.style.fontSize, "0.375rem");
   assert.equal(notice?.querySelector("a")?.getAttribute("href"), "/terms");
   dom.window.close();
 });
@@ -107,7 +107,8 @@ test("active customer-facing booking surfaces never say Safety Visit", () => {
   for (const surface of surfaces) {
     const source = readFileSync(new URL(surface, import.meta.url), "utf8");
     // Headings split the phrase across an accent span, so match through markup.
-    assert.doesNotMatch(source, /safety(\s|<[^>]*>|\{" "\})+(visit|assessment)/i, surface);
+    // "annual safety visits" is the approved Advanced AMC wording, not the retired CTA.
+    assert.doesNotMatch(source, /(?<!annual )safety(\s|<[^>]*>|\{" "\})+(visit|assessment)/i, surface);
   }
 });
 
@@ -149,5 +150,53 @@ test("homepage View Details reports select_package with the current selling pric
     Reflect.deleteProperty(globalThis, "document");
     if (previousGa === undefined) delete process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
     else process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID = previousGa;
+  }
+});
+
+const AMC_SHORT = "2-Year Safety AMC Included";
+const AMC_DETAIL = "Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.";
+
+test("Advanced is described as a 2-Year Safety AMC with annual visits, everywhere it is shown", () => {
+  const { PACKAGES, PACKAGE_ROWS } = require("../components/packages-data.ts") as typeof import("../components/packages-data");
+  const advancedCard = PACKAGES.find((pkg) => pkg.name === "Advanced")!;
+  assert.equal(advancedCard.badge, AMC_SHORT);
+  assert.equal(advancedCard.bestFor, AMC_DETAIL);
+  assert.deepEqual(PACKAGE_ROWS.filter((row) => row.advanced && !row.standard).map((row) => row.label), [AMC_SHORT]);
+  const advancedPlan = homepageContent.packagesSection.plans.find((plan) => plan.name === "Advanced")!;
+  assert.equal(advancedPlan.badge, AMC_SHORT);
+  assert.equal(advancedPlan.bestFor, AMC_DETAIL);
+  assert.ok(advancedPlan.visualHighlights?.includes("2-Year Safety AMC"));
+  const advancedFaq = homepageContent.faqSection.items.find((item) => item.question === "What is included in Advanced?")!.answer;
+  assert.match(advancedFaq, /annual safety visits for 2 years after installation/);
+  assert.match(advancedFaq, /fix, change or replace items where required/);
+  assert.match(homepageContent.packagesSection.subtitle || "", /annual safety visits for 2 years after installation/);
+
+  // Wording that implies a single visit, a mere check-up, or the retired first-year cover.
+  const retired = /check-?up|first year|1-year|one (safety |follow-up )?visit (in|within|during|after)|only one visit|two years on|two years of cover/i;
+  for (const source of [
+    "../components/packages-data.ts", "../components/FAQ.tsx", "../components/Packages.tsx", "../content/homepage.content.ts",
+    "../content/compare-packages.content.ts", "../app/(marketing)/compare-packages/compare-packages-view.tsx",
+    "../app/(marketing)/compare-packages/page.tsx", "../app/(marketing)/checkout/components/checkout-experience.tsx",
+    "../app/(marketing)/packages/[slug]/page.tsx", "../app/(public)/packages/page.tsx"
+  ]) {
+    assert.doesNotMatch(readFileSync(new URL(source, import.meta.url), "utf8"), retired, source);
+  }
+});
+
+test("Packages page heading highlights Free, not inspection", () => {
+  const source = readFileSync(new URL("../app/(public)/packages/page.tsx", import.meta.url), "utf8");
+  const heading = source.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)![1];
+  assert.match(heading, /<span className="accent-word">free<\/span>/);
+  assert.doesNotMatch(heading, /<span[^>]*>\s*inspection/);
+  assert.equal(heading.replace(/<[^>]+>|\{" "\}/g, " ").replace(/\s+/g, " ").trim(), "Book a free bathroom inspection.");
+});
+
+test("customer phone fields show Mason's number only as an empty-field example", () => {
+  for (const surface of ["../app/components/phone-field.tsx", "../components/ContactForm.tsx"]) {
+    const source = readFileSync(new URL(surface, import.meta.url), "utf8");
+    assert.match(source, /placeholder="81494 33383"/, surface);
+    assert.doesNotMatch(source, /99718\s?91017|98765 43210/, surface);
+    assert.doesNotMatch(source, /(defaultValue|value)=["{]\s*"?(\+91)?\s*81494/, surface);
+    assert.match(source, /required/, surface);
   }
 });

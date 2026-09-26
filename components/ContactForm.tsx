@@ -291,7 +291,7 @@ export default function ContactForm() {
                 onChange={(e) => set("mobile", sanitizePhoneInput(e.target.value))}
                 aria-invalid={!!errors.mobile}
                 aria-describedby={describedBy("mobile")}
-                placeholder="98765 43210"
+                placeholder="81494 33383"
                 className="w-full bg-transparent text-base text-cream placeholder:text-sand-400 focus:outline-none"
               />
             </div>

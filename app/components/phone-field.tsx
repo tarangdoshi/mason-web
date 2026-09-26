@@ -39,7 +39,7 @@ const PhoneField = forwardRef<HTMLInputElement, Props>(function PhoneField(
           name="phone"
           inputMode="numeric"
           autoComplete="tel-national"
-          placeholder="99718 91017"
+          placeholder="81494 33383"
           aria-label="Mobile number, ten digits, India country code plus 91"
           aria-invalid={error ? "true" : undefined}
           aria-describedby={error && errorId ? errorId : undefined}
@@ -49,7 +49,7 @@ const PhoneField = forwardRef<HTMLInputElement, Props>(function PhoneField(
           value={formatNationalMobile(value)}
           onChange={(event) => onChange(sanitizePhoneInput(event.target.value))}
           onPaste={(event) => {
-            // Handle the paste explicitly so a value like "+91 99718 91017"
+            // Handle the paste explicitly so a value like "+91 81494 33383"
             // does not momentarily exceed the ten-digit limit.
             const pasted = event.clipboardData.getData("text");
             if (pasted) {

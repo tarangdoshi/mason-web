@@ -6,7 +6,7 @@ import { draftMode } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Mason Company | Compare Retrofit Packages",
-  description: "Compare the Mason Company Standard and Advanced retrofit washroom packages with the same complete installation kit and a two-year safety check-up with Advanced."
+  description: "Compare the Mason Company Standard and Advanced retrofit washroom packages with the same complete installation kit and a 2-Year Safety AMC with Advanced."
 };
 
 type SearchParams = {

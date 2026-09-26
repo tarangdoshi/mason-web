@@ -39,12 +39,12 @@ test("Standard and Advanced share the same kit and locked current/reference pric
   );
 });
 
-test("Advanced differs only through the approved two-year safety check-up", () => {
+test("Advanced differs only through the approved 2-Year Safety AMC", () => {
   const plans = homepageContent.packagesSection.plans;
   assert.equal(plans[0]?.isFeatured, true);
   assert.equal(plans[1]?.isFeatured, false);
-  assert.match(plans[1]?.badge || "", /two years of cover/i);
-  assert.match(plans[1]?.bestFor || "", /safety check-up two years on/i);
+  assert.equal(plans[1]?.badge, "2-Year Safety AMC Included");
+  assert.equal(plans[1]?.bestFor, "Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.");
   assert.match(plans[1]?.outcome || "", /same upgrade, looked after/i);
 });
 

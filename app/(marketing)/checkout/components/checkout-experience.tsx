@@ -245,7 +245,7 @@ export default function CheckoutExperience({
   const totalPayable = basePrice === null ? null : basePrice + installationFee;
   const leadTotalPayable = totalPayable ?? 0;
   const serviceableLocation = locationResolution.status === "serviceable" ? locationResolution : null;
-  const stickySummary = `${paymentChoice === "online" ? "Online payment" : `Pay on installation + ${formatCurrency(PAY_ON_INSTALLATION_SURCHARGE)}`} • ${entry.plan.name === "Advanced" ? "Two-year safety check-up included" : "Complete installation kit"}`;
+  const stickySummary = `${paymentChoice === "online" ? "Online payment" : `Pay on installation + ${formatCurrency(PAY_ON_INSTALLATION_SURCHARGE)}`} • ${entry.plan.name === "Advanced" ? "2-Year Safety AMC Included" : "Complete installation kit"}`;
 
   useEffect(() => {
     if (checkoutStartTrackedRef.current) {

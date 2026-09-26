@@ -21,7 +21,7 @@ Source: Mason UAT Google Doc `1BrkpoOgIvuNeWzX-h-nUudoLBFhAE57gS8nvDdffWQw`, inc
 | Transformation: heading/subheading spacing | Yes | Local mobile visual/code | Tightened. |
 | Transformation: overall section spacing | Yes | Local mobile visual/code | Tightened. |
 | Transformation: remove text from images | Yes | Code/visual | Captions are screen-reader-only; existing image/slider behavior remains. |
-| Advanced: two-year AMC / safety check-up | Yes | Code/tests/local content | Updated package rows, cards, FAQ and comparison copy; CMS display mapping follows the founder decision. |
+| Advanced: 2-Year Safety AMC | Yes | Founder Preview #2 | Annual safety visits for 2 years after installation (year 1 and year 2), inspecting the installed setup and fixing, changing or replacing items where required. Package rows, cards, detail page, comparison, FAQ and checkout summary updated. |
 | About desktop: heading sticky only within its section | Yes | Code/local visual | Existing section-bounded sticky treatment preserved. |
 | About desktop: reduce section-to-image spacing | Yes | Code/local visual | Gap reduced. |
 | About mobile: halve heading/body spacing | Yes | Code/local visual | Prerna's mobile spacing carried over. |
@@ -52,12 +52,15 @@ Review at mobile, tablet, standard desktop and large desktop, especially the lar
 | Launch | Goa only |
 | Packages | Standard and Advanced |
 | Current selling prices | Standard ₹29,999; Advanced ₹36,999 |
-| Advanced cover | Two-year AMC / safety check-up |
+| Advanced cover | 2-Year Safety AMC Included: annual safety visits for 2 years after installation; inspect the installed setup and fix, change or replace items where required |
 | Shared kit | 13 component categories; Raised Toilet Seat added without an invented quantity; original 12 names retained |
 | Legal entity | 91 Ventures LLP |
-| Form footer | “T&C apply”, smaller helper-text size |
+| Form footer | “T&C apply” at 0.375rem (about half the Preview #1 size), linked to Terms |
 | FAQ layout | Left heading sticky; right Q&A scrollable |
 | Homepage package CTA | “View Details” to the corresponding package detail page |
 | Dedicated Packages-page CTA | “Book Free Inspection” using the existing booking flow |
+| Inspection form submit | “Confirm Free Inspection” (copy only; success message still acknowledges a request, no appointment is confirmed) |
+| Packages page heading | “Book a free bathroom inspection.” with the accent style on “free” |
+| Phone field example | Placeholder “81494 33383” (Mason’s number) on the inspection and contact forms; the field stays empty and required |
 
 The branch pins these newly approved offer and copy fields when older published Sanity data is still present. Other CMS text, image and feature mappings remain in use. The legacy `scripts/migrate-prerna-content.ts` is a historical migration for the prior 12-component, older-price offer; it is not executed by the frontend or this correction pass and must not be re-applied to current content.

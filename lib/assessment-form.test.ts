@@ -11,11 +11,13 @@ test("public booking form matches the approved Prerna field set and copy", () =>
   assert.match(phoneSource, /Mobile number/);
   assert.match(formSource, /Email address/);
   assert.match(formSource, /<LocationAutocompleteField/);
-  assert.match(formSource, /Request my visit/);
+  assert.match(formSource, /"Confirm Free Inspection"/);
+  assert.doesNotMatch(formSource, /Request my visit/);
   assert.doesNotMatch(formSource, /assessmentType/);
   assert.doesNotMatch(formSource, /Optional notes \/ concern/);
   assert.doesNotMatch(formSource, /Book Free Safety Assessment/);
   assert.match(formSource, /<LeadPrivacyNotice/);
+  // The button says "Confirm", but the success copy still only acknowledges a request.
   assert.match(formSource, /Visit request received/);
   assert.doesNotMatch(formSource, /Assessment received/);
 });

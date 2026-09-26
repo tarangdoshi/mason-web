@@ -86,7 +86,7 @@ export const packageSchema = defineType({
           : "Use ₹29,999 for Standard or ₹36,999 for Advanced.";
       })
     }),
-    defineField({ name: "followUpLabel", title: "Included follow-up", type: "string", description: "For Advanced: the included two-year safety check-up." }),
+    defineField({ name: "followUpLabel", title: "Included follow-up", type: "string", description: "For Advanced: 2-Year Safety AMC Included (annual safety visits for 2 years after installation)." }),
     defineField({ name: "savings", title: "Savings / tier label", type: "string" }),
     defineField({ name: "isFeatured", title: "Featured", type: "boolean", initialValue: false }),
     defineField({ name: "sortOrder", title: "Sort order", type: "number", initialValue: 0 }),
