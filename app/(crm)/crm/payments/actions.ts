@@ -54,6 +54,27 @@ export async function startCommercialCaseAction(formData: FormData) {
   }
 }
 
+export async function verifyLocationAction(formData: FormData) {
+  await requireAdminCrmUser();
+  const authToken = await token();
+  const caseId = field(formData, "caseId");
+  const placeId = field(formData, "placeId");
+  let market: string | null;
+  try {
+    const response = await apiFetch<{ data: { verifiedLocationMarket: string | null } }>(
+      `/api/v1/internal/commercial-cases/${caseId}/location-verification`,
+      { method: "POST", token: authToken, body: placeId ? { placeId } : {} });
+    market = response.data.verifiedLocationMarket;
+  } catch (error) {
+    if (error instanceof ApiError) redirect(detailUrl(caseId, errorMessage(error)));
+    throw error;
+  }
+  revalidatePath(detailUrl(caseId));
+  redirect(market === "GOA"
+    ? detailUrl(caseId, undefined, "Goa service address verified from Google location evidence.")
+    : detailUrl(caseId, `Google places this address outside Goa (${market ?? "unknown"}). Payment Links stay unavailable.`));
+}
+
 export async function approveRevisionAction(formData: FormData) {
   await requireAdminCrmUser();
   const authToken = await token();

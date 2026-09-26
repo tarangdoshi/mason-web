@@ -4,11 +4,17 @@ import { notFound } from "next/navigation";
 import { ApiError, apiFetch } from "../../../../../lib/api";
 import { getCrmSessionToken, requireCrmUser } from "../../../../../lib/crm";
 import CrmShell from "../../crm-shell";
-import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction } from "../actions";
+import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction, verifyLocationAction } from "../actions";
+import PlacePicker from "../place-picker";
 import { rupees, type CommercialCase } from "../types";
 import styles from "../payments.module.css";
 
 type PackageOption = { id: string; code: string; name: string; city: string; active: boolean };
+const LOCATION_ORIGIN_LABEL = {
+  MASON_LEAD_LOCATION: "Mason lead's Google-selected location",
+  ZOHO_LEAD_LOCATION: "Zoho lead's captured Google location",
+  STAFF_PLACE_VERIFICATION: "Admin-selected Google place"
+} as const;
 
 export default async function PaymentCasePage({ params, searchParams }: {
   params: Promise<{ id: string }>;
@@ -29,7 +35,8 @@ export default async function PaymentCasePage({ params, searchParams }: {
     .filter((option) => option.active && option.city === item.city) : [];
   const currentRevision = item.revisions.find((revision) => revision.id === item.order?.currentRevisionId);
   const active = item.order?.paymentRequests.find((request) => request.status === "ACTIVE" && request.url);
-  const canIssue = item.city === "Goa" && !!currentRevision && !!item.balance && item.balance.balancePaise > 0 && !item.exceptionNote &&
+  const locationVerifiedGoa = item.verifiedLocationMarket === "GOA" && item.city === "Goa";
+  const canIssue = locationVerifiedGoa && !!currentRevision && !!item.balance && item.balance.balancePaise > 0 && !item.exceptionNote &&
     !item.order?.paymentRequests.some((request) => ["ACTIVE", "PREPARING", "CANCEL_PENDING"].includes(request.status));
   const reversedIds = new Set(item.order?.payments.filter((payment) => payment.recordType === "REVERSAL").map((payment) => payment.reversesPaymentId) ?? []);
 
@@ -48,6 +55,28 @@ export default async function PaymentCasePage({ params, searchParams }: {
           <div><span>Location</span><strong>{item.locationText}</strong></div>
           <div><span>Assigned staff</span><strong>{item.assignedStaffId ?? "Unassigned"}</strong></div>
         </div>
+      </section>
+      <section className={styles.panel}>
+        <h3>Payment location evidence</h3>
+        {item.verifiedLocationMarket && item.locationEvidenceJson ? <div className={styles.facts}>
+          <div><span>Verified market</span><strong>{item.verifiedLocationMarket}</strong></div>
+          <div><span>Evidence</span><strong>Google geocoding · {LOCATION_ORIGIN_LABEL[item.locationEvidenceJson.origin]}</strong></div>
+          <div><span>Resolved address</span><strong>{item.locationEvidenceJson.formattedAddress ?? "—"}</strong></div>
+          <div><span>Verified</span><strong>{new Date(item.locationVerifiedAt!).toLocaleString("en-IN")}{item.locationVerifiedByStaffId ? ` by ${item.locationVerifiedByStaffId}` : ""}</strong></div>
+        </div> : <p><strong>Unverified.</strong> Payment Links cannot be issued. A “Goa” city or service-area label copied from the lead or Zoho is not location evidence.</p>}
+        {item.verifiedLocationMarket && !locationVerifiedGoa && <p>Payment Links are unavailable for this location.</p>}
+        {user.role === "ADMIN" && item.verifiedLocationMarket !== "GOA" && <div className={styles.twoColumns}>
+          <form action={verifyLocationAction} className={styles.form}>
+            <input type="hidden" name="caseId" value={item.id} />
+            <p>Re-check the Google location captured on the source {item.origin === "ZOHO_LEAD" ? "Zoho lead" : "Mason lead"}.</p>
+            <button type="submit">Re-check source lead location</button>
+          </form>
+          <form action={verifyLocationAction} className={styles.form}>
+            <input type="hidden" name="caseId" value={item.id} />
+            <p>Or confirm the customer&rsquo;s service address with them and select it from Google. Mason re-geocodes it; typed text is not accepted.</p>
+            <PlacePicker />
+          </form>
+        </div>}
       </section>
       <section className={styles.panel}>
         <h3>Approved amount and collections</h3>
@@ -76,7 +105,7 @@ export default async function PaymentCasePage({ params, searchParams }: {
       </section>}
       <section className={styles.panel}>
         <h3>Razorpay Payment Links</h3>
-        <p>Only a verified Goa case with an approved outstanding balance can receive a new link. Share the link after checking the amount below.</p>
+        <p>Only a case with verified Goa location evidence and an approved outstanding balance can receive a new link. Share the link after checking the amount below.</p>
         {canIssue && <form action={createPaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><button type="submit">Create link for {rupees(item.balance!.balancePaise)}</button></form>}
         {active && <p className={styles.linkCallout}>Active link for {rupees(active.amountPaise)}: <a href={active.url!} target="_blank" rel="noopener noreferrer">Open Razorpay link</a></p>}
         {item.order?.paymentRequests.length ? <div className={styles.tableWrap}><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Provider ID</th><th>Actions</th></tr></thead><tbody>
@@ -91,12 +120,12 @@ export default async function PaymentCasePage({ params, searchParams }: {
       </section>
       {user.role === "ADMIN" && item.order && <section className={styles.panel}>
         <h3>Record an offline collection</h3>
-        <p>Record only money received and independently verified. Keep a reference for UPI or POS. Each submission carries a unique idempotency key.</p>
+        <p>Record only money received and independently verified. UPI and POS need the full transaction reference; the same reference cannot be recorded twice unless the earlier entry is reversed.</p>
         <form action={recordOfflineCollectionAction} className={styles.form}>
           <input type="hidden" name="caseId" value={item.id} /><input type="hidden" name="idempotencyKey" value={randomUUID()} />
           <label>Received amount (₹)<input name="amountRupees" type="number" min="0.01" step="0.01" required /></label>
           <label>Method<select name="method"><option value="CASH">Cash</option><option value="UPI">UPI</option><option value="POS">POS</option></select></label>
-          <label>Reference<input name="externalReference" maxLength={160} placeholder="Receipt, UTR or terminal reference" /></label>
+          <label>Reference<input name="externalReference" maxLength={160} placeholder="UPI UTR/RRN, or POS RRN from the charge slip (not the approval code)" /></label>
           <label>Audit note<textarea name="note" maxLength={1000} /></label>
           <button type="submit">Record verified collection</button>
         </form>
@@ -106,7 +135,7 @@ export default async function PaymentCasePage({ params, searchParams }: {
         {item.order?.payments.length ? <div className={styles.tableWrap}><table><thead><tr><th>When</th><th>Type</th><th>Amount</th><th>Reference</th><th>Note / correction</th></tr></thead><tbody>
           {item.order.payments.map((payment) => <tr key={payment.id}>
             <td>{new Date(payment.collectedAt ?? payment.createdAt).toLocaleString("en-IN")}</td>
-            <td>{payment.source} {payment.recordType.toLowerCase()}</td><td>{payment.recordType === "REVERSAL" ? "−" : ""}{rupees(payment.amountPaise)}</td>
+            <td>{payment.source === "LEGACY" ? "Legacy (unverified provenance, not counted)" : `${payment.source} ${payment.recordType.toLowerCase()}`}</td><td>{payment.recordType === "REVERSAL" ? "−" : ""}{rupees(payment.amountPaise)}</td>
             <td>{payment.providerPaymentId ?? payment.externalTxnRef ?? "—"}</td>
             <td>{payment.note ?? "—"}{user.role === "ADMIN" && payment.source === "OFFLINE" && payment.recordType === "COLLECTION" && !reversedIds.has(payment.id) && <form action={reverseOfflineCollectionAction} className={styles.inlineActions}>
               <input type="hidden" name="caseId" value={item.id} /><input type="hidden" name="paymentId" value={payment.id} />

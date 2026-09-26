@@ -35,6 +35,15 @@ export type CommercialCase = {
   city: "Goa" | "Mumbai" | null;
   assignedStaffId: string | null;
   exceptionNote: string | null;
+  // Server-derived Google geocoding evidence; the city label alone never makes a case payable.
+  verifiedLocationMarket: "GOA" | "BANGALORE" | "OTHER" | null;
+  locationVerifiedAt: string | null;
+  locationVerifiedByStaffId: string | null;
+  locationEvidenceJson: null | {
+    origin: "MASON_LEAD_LOCATION" | "ZOHO_LEAD_LOCATION" | "STAFF_PLACE_VERIFICATION";
+    placeId: string | null;
+    formattedAddress: string | null;
+  };
   updatedAt: string;
   revisions: Array<{
     id: string;

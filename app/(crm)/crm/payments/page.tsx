@@ -34,11 +34,11 @@ export default async function PaymentsPage({ searchParams }: { searchParams?: Pr
       <section className={styles.panel}>
         <h3>Commercial cases</h3>
         {response.data.length === 0 ? <p>No commercial cases are assigned to you yet.</p> : <div className={styles.tableWrap}><table>
-          <thead><tr><th>Customer</th><th>Origin</th><th>City</th><th>Payment state</th><th>Balance</th><th>Updated</th></tr></thead>
+          <thead><tr><th>Customer</th><th>Origin</th><th>Location</th><th>Payment state</th><th>Balance</th><th>Updated</th></tr></thead>
           <tbody>{response.data.map((item) => <tr key={item.id}>
             <td><Link href={`/crm/payments/${item.id}`}>{item.customerName}</Link></td>
             <td>{item.origin === "ZOHO_LEAD" ? "Zoho" : "Mason"}</td>
-            <td>{item.city ?? "Needs verification"}</td>
+            <td>{item.verifiedLocationMarket === "GOA" && item.city === "Goa" ? "Goa (verified)" : item.verifiedLocationMarket ? `${item.verifiedLocationMarket} (verified)` : `${item.city ?? "Unknown"} · location unverified`}</td>
             <td>{item.exceptionNote ? "Exception" : item.balance?.paymentState.replaceAll("_", " ") ?? "Awaiting approval"}</td>
             <td>{item.balance ? rupees(item.balance.balancePaise) : "—"}</td>
             <td>{new Date(item.updatedAt).toLocaleDateString("en-IN")}</td>
