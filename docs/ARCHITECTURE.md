@@ -7,7 +7,7 @@
 
 This repository (`mason-web`) is the **Mason Company web app** — `@aegis/web`, a Next.js 15 (App Router) site that also hosts the embedded Sanity Studio and the CRM UI.
 
-It is one half of a pnpm monorepo (`pnpm@10.16.1`, Node `20.x`). The companion **CRM/API service** (`@aegis/api` — Fastify + Prisma + Neon Postgres) is deployed separately as its own Vercel project and is **not** part of this repository; the web app talks to it over HTTP.
+It is one half of a pnpm monorepo (`pnpm@10.16.1`, Node `24.x`). The companion **CRM/API service** (`@aegis/api` — Fastify + Prisma + Neon Postgres) is deployed separately as its own Vercel project and is **not** part of this repository; the web app talks to it over HTTP.
 
 ## Next.js Structure (`app/`)
 

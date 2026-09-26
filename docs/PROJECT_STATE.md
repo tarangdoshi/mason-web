@@ -39,7 +39,7 @@ Launch hardening — clearing go-live conditions and stabilising the Git-backed 
 |---|---|---|
 | **P0** | Google Maps `InvalidKeyMapError` | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` invalid/unauthorised; Places autocomplete degrades to manual entry until fixed. |
 | **P1** | Verify GA4 DebugView | Confirm `NEXT_PUBLIC_GA_MEASUREMENT_ID` fires pageview + assessment events in GA4 Realtime/DebugView. |
-| **P2** | Node 20 engine warning | All packages pin `engines.node = "20.x"`; align the Vercel/CI Node version to silence the warning. |
+| **P2** | Node 20 deprecation | Vercel fails Node 20.x builds created on or after 2026-10-01. `@aegis/web` moves to `engines.node = "24.x"` (branch `chore/node-24-engines`); `@aegis/api` still pins `"20.x"` in its own repo and needs the same change. |
 
 ## Recently Completed
 
