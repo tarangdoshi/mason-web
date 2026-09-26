@@ -188,7 +188,7 @@ export default function PackageCard({
               >
                 {row.label}
                 {onHome && i === 0 && (
-                  <Link href={`/packages/${plan.slug}#components`} className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
+                  <Link href="/packages#kit" className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
                     Learn more <span aria-hidden="true">&rarr;</span>
                   </Link>
                 )}

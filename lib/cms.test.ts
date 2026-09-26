@@ -168,9 +168,12 @@ test("drafts are only ever requested while Next draft mode is on", () => {
   assert.match(loader, /return \(await draftMode\(\)\)\.isEnabled;/);
 });
 
-test("package card Learn more links to that package's components section", () => {
+test("package card Learn more scrolls to What we install on /packages, not a package-detail page", () => {
   const card = readFileSync(new URL("../components/PackageCard.tsx", import.meta.url), "utf8");
-  assert.match(card, /href=\{`\/packages\/\$\{plan\.slug\}#components`\}/);
+  const learnMore = card.match(/<Link href=("[^"]*"|\{[^}]*\})[^>]*>\s*Learn more/)?.[1];
+  assert.equal(learnMore, '"/packages#kit"');
+  assert.match(readFileSync(new URL("../app/(public)/packages/page.tsx", import.meta.url), "utf8"), /id="kit"/);
+  // Direct links to a package's own components section keep working.
   const detail = readFileSync(new URL("../app/(marketing)/packages/[slug]/page.tsx", import.meta.url), "utf8");
   assert.match(detail, /id="components"/);
   assert.match(readFileSync(new URL("../app/(marketing)/packages/packages.module.css", import.meta.url), "utf8"), /\.anchorSection \{\s*scroll-margin-top: 1rem/);
