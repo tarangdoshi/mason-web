@@ -186,7 +186,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
         ) : null}
 
         {includedFeatures.length > 0 ? (
-          /* Stable anchor: the homepage package cards' "Learn more" links land here. */
+          /* Stable anchor for direct links to this package's components. */
           <section className={`${styles.section} ${styles.anchorSection}`} id="components" aria-labelledby="components-heading">
             <h2 className={styles.sectionTitle} id="components-heading">What&apos;s included</h2>
             <ul className={styles.featureList}>
