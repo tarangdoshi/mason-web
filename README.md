@@ -8,7 +8,7 @@ Marketing website, embedded CMS, and CRM UI for Mason Company — a trust-led, a
 
 ## Project Overview
 
-This repository is the Mason **web app** (`@aegis/web`): Next.js 15 (App Router) + React, Sanity CMS, styled-components, Ant Design. It is part of a pnpm monorepo; the **CRM/API service** (`@aegis/api` — Fastify + Prisma + Neon Postgres) is deployed separately and lives in its own repo. Node `20.x`, pnpm `10.16.1`.
+This repository is the Mason **web app** (`@aegis/web`): Next.js 15 (App Router) + React, Sanity CMS, styled-components, Ant Design. It is part of a pnpm monorepo; the **CRM/API service** (`@aegis/api` — Fastify + Prisma + Neon Postgres) is deployed separately and lives in its own repo. Node `24.x`, pnpm `10.16.1`.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full picture.
 
