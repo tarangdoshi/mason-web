@@ -30,6 +30,9 @@ function getSelectedKey(pathname: string) {
   if (pathname === "/crm" || pathname.startsWith("/crm/leads/")) {
     return "dashboard";
   }
+  if (pathname.startsWith("/crm/payments")) {
+    return "payments";
+  }
   if (pathname === "/crm/content") {
     return "content-overview";
   }
@@ -80,6 +83,10 @@ export default function CrmShell({
         {
           key: "dashboard",
           label: <Link href="/crm">Dashboard</Link>
+        },
+        {
+          key: "payments",
+          label: <Link href="/crm/payments">Payments</Link>
         }
       ]
     },
