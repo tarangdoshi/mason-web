@@ -249,7 +249,8 @@
   }
 }
 
-/* In-page anchor targets (e.g. #components) clear any sticky header. */
+/* In-page anchor targets (e.g. #components). The page's scroll-padding
+   already clears the sticky-header offset; this adds a little breathing room. */
 .anchorSection {
-  scroll-margin-top: calc(var(--sticky-nav-offset, 4.4rem) + 1rem);
+  scroll-margin-top: 1rem;
 }

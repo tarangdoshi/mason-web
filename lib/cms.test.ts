@@ -173,7 +173,7 @@ test("package card Learn more links to that package's components section", () =>
   assert.match(card, /href=\{`\/packages\/\$\{plan\.slug\}#components`\}/);
   const detail = readFileSync(new URL("../app/(marketing)/packages/[slug]/page.tsx", import.meta.url), "utf8");
   assert.match(detail, /id="components"/);
-  assert.match(readFileSync(new URL("../app/(marketing)/packages/packages.module.css", import.meta.url), "utf8"), /\.anchorSection \{\s*scroll-margin-top/);
+  assert.match(readFileSync(new URL("../app/(marketing)/packages/packages.module.css", import.meta.url), "utf8"), /\.anchorSection \{\s*scroll-margin-top: 1rem/);
 });
 
 test("package cards share row tracks side by side so their dividers line up", () => {
