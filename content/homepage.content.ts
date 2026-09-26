@@ -460,7 +460,7 @@ export const homepageContent: HomepageContent = {
       { id: "drainage-solution", label: "Drainage support", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
       { id: "slippers-one", label: "Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
       { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 },
-      { id: "raised-toilet-seat", label: "Raised Toilet Seat" }
+      { id: "raised-toilet-seat", label: "Raised Toilet Seat", quantity: 1 }
     ],
     plans: [
       {
@@ -737,7 +737,7 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What is included in Standard?",
-        answer: "Standard includes the complete 13-component kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, a Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included."
+        answer: "Standard includes the complete 13-component kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included."
       },
       {
         question: "What is included in Advanced?",

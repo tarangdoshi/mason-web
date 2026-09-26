@@ -32,14 +32,14 @@ test("package cards use context-specific CTA copy and retain each package destin
   }
 });
 
-test("both packages include Raised Toilet Seat without an assumed quantity", () => {
+test("both packages include one Raised Toilet Seat among 13 component categories", () => {
   for (const plan of homepageContent.packagesSection.plans) {
     const entry = getPackageCatalogEntry(plan.id);
     assert.ok(entry);
     assert.equal(getIncludedFeatures(entry).length, 13);
     const raisedSeat = getIncludedFeatures(entry).find((feature) => feature.id === "raised-toilet-seat");
     assert.equal(raisedSeat?.label, "Raised Toilet Seat");
-    assert.equal(raisedSeat?.quantity, undefined);
+    assert.equal(raisedSeat?.quantity, 1);
   }
 });
 
@@ -78,12 +78,13 @@ test("older CMS copy cannot override founder-approved hero, FAQ or testimonial n
   assert.deepEqual(approved.testimonialsSection.items.map((item) => item.city), approved.testimonialsSection.items.map(() => "Goa"));
 });
 
-test("form notice is smaller, says T&C apply and keeps its Terms link", () => {
+test("form notice is the exact 8px legal sentence with only the policy names linked", () => {
   const dom = new JSDOM(renderToStaticMarkup(React.createElement(LeadPrivacyNotice)));
   const notice = dom.window.document.querySelector("p");
-  assert.equal(notice?.textContent, "T&C apply");
-  assert.equal(notice?.style.fontSize, "0.375rem");
-  assert.equal(notice?.querySelector("a")?.getAttribute("href"), "/terms");
+  assert.equal(notice?.textContent, "By submitting, you agree to our Privacy Policy and Terms.");
+  assert.equal(notice?.style.fontSize, "0.5rem");
+  const links = Array.from((notice?.querySelectorAll("a") || []) as ArrayLike<HTMLAnchorElement>, (link) => [link.textContent, link.getAttribute("href")]);
+  assert.deepEqual(links, [["Privacy Policy", "/privacy"], ["Terms", "/terms"]]);
   dom.window.close();
 });
 
@@ -199,4 +200,63 @@ test("customer phone fields show Mason's number only as an empty-field example",
     assert.doesNotMatch(source, /(defaultValue|value)=["{]\s*"?(\+91)?\s*81494/, surface);
     assert.match(source, /required/, surface);
   }
+});
+
+test("Raised Toilet Seat shows a quantity of 1 and other quantities are unchanged", () => {
+  const { KIT } = require("../components/kit.ts") as typeof import("../components/kit");
+  assert.deepEqual(KIT.map((item) => [item.id, item.qty]), [
+    ["vertical-grab-bars", 3], ["angled-grab-bar", 1], ["folding-bar", 1], ["anti-slip-coating", 1],
+    ["anti-slip-mat-shower", 1], ["anti-slip-mat-post-shower", 1], ["shower-stool", 1], ["two-way-lock", 1],
+    ["corner-safety", 1], ["drainage-solution", 4], ["slippers-one", 1], ["total-support-solution", 1],
+    ["raised-toilet-seat", 1]
+  ]);
+  // The Packages page falls back to "Included" only for a component without a
+  // quantity, so every canonical component must carry one.
+  assert.ok(homepageContent.packagesSection.features.every((feature) => typeof feature.quantity === "number"));
+  assert.equal(homepageContent.packagesSection.features.find((feature) => feature.id === "raised-toilet-seat")?.quantity, 1);
+});
+
+test("old form legal copy is gone from every customer form", () => {
+  for (const surface of ["../app/components/lead-privacy-notice.tsx", "../app/components/assessment-lead-form.tsx", "../components/ContactForm.tsx",
+    "../components/BookingDialog.tsx", "../app/(marketing)/checkout/components/checkout-experience.tsx"]) {
+    assert.doesNotMatch(readFileSync(new URL(surface, import.meta.url), "utf8"), /T&(amp;)?C apply/, surface);
+  }
+});
+
+test("customer support email and hours are the founder-approved values everywhere they are published", () => {
+  const details = require("../components/contact-details.ts") as typeof import("../components/contact-details");
+  assert.equal(details.CARE_EMAIL, "support@masoncompany.in");
+  assert.equal(details.HOURS, "Monday to Friday, 10 am to 7 pm");
+
+  const footer = new JSDOM(renderToStaticMarkup(React.createElement(Footer)));
+  const mailtos = Array.from(footer.window.document.querySelectorAll('a[href^="mailto:"]') as NodeListOf<HTMLAnchorElement>, (link) => link.getAttribute("href"));
+  assert.deepEqual(mailtos, ["mailto:support@masoncompany.in"]);
+  footer.window.close();
+
+  const { PRIVACY, TERMS, REFUND } = require("../components/legal-data.ts") as typeof import("../components/legal-data");
+  for (const doc of [PRIVACY, TERMS, REFUND]) {
+    const text = JSON.stringify(doc);
+    assert.match(text, /mailto:support@masoncompany\.in/);
+  }
+
+  const stale = /care@masoncompany\.in|Mon\s*-\s*Sat|9\s?am|saturday|sunday|weekend|24\s*\/\s*7|24x7/i;
+  for (const surface of ["../components/contact-details.ts", "../components/legal-data.ts", "../components/Footer.tsx",
+    "../app/(public)/contact/page.tsx", "../components/FAQ.tsx", "../content/homepage.content.ts"]) {
+    assert.doesNotMatch(readFileSync(new URL(surface, import.meta.url), "utf8"), stale, surface);
+  }
+});
+
+test("public wrapper clips horizontal overflow without breaking position: sticky", () => {
+  // public.css is scoped onto the .mason-public wrapper, so its body rule styles
+  // that div. overflow-x: hidden alone would make it a non-scrolling scroll
+  // container and disable the FAQ and About sticky columns.
+  const css = readFileSync(new URL("../app/(public)/public.css", import.meta.url), "utf8");
+  const bodyRule = css.match(/\nbody\s*\{([^}]*)\}/)![1];
+  const overflowX = Array.from(bodyRule.matchAll(/overflow-x:\s*([a-z]+)/g), (match) => match[1]);
+  assert.equal(overflowX.at(-1), "clip");
+  assert.doesNotMatch(bodyRule, /(^|[^-])overflow:\s*(hidden|auto|scroll)/);
+  const postcss = readFileSync(new URL("../postcss.config.mjs", import.meta.url), "utf8");
+  assert.match(postcss, /selector === "body"\) return prefix/);
+  const faq = readFileSync(new URL("../components/FAQ.tsx", import.meta.url), "utf8");
+  assert.match(faq, /lg:sticky lg:top-28 lg:self-start/);
 });

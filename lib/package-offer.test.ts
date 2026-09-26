@@ -16,7 +16,7 @@ const expectedKit = [
   ["drainage-solution", 4],
   ["slippers-one", 1],
   ["total-support-solution", 1],
-  ["raised-toilet-seat", undefined]
+  ["raised-toilet-seat", 1]
 ] as const;
 
 test("the public kit keeps the locked components and quantities", () => {
@@ -29,7 +29,7 @@ test("Standard and Advanced share the same kit and locked current/reference pric
   const plans = homepageContent.packagesSection.plans;
   assert.deepEqual(plans[0]?.includedFeatureIds, plans[1]?.includedFeatureIds);
   assert.equal(plans[0]?.includedFeatureIds.length, 13);
-  assert.equal(homepageContent.packagesSection.features.find((feature) => feature.id === "raised-toilet-seat")?.quantity, undefined);
+  assert.equal(homepageContent.packagesSection.features.find((feature) => feature.id === "raised-toilet-seat")?.quantity, 1);
   assert.deepEqual(
     plans.map((plan) => [plan.name, plan.referencePrice, plan.currentPrice]),
     [

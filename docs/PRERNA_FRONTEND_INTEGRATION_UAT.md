@@ -14,7 +14,7 @@ Source: Mason UAT Google Doc `1BrkpoOgIvuNeWzX-h-nUudoLBFhAE57gS8nvDdffWQw`, inc
 | Home desktop: remove process-section animations | Yes | Code | Three-step process uses the current Prerna layout without the old step reveal animation. |
 | Doctor cards: name, qualifications, experience | Yes | Code | Corrected canonical CMS field mapping; Prerna photo fallback added without bypassing CMS images. |
 | Testimonial cards: updated presentation, no green tags, Goa | Yes | Local visual/code | CMS quotes/authors retained; visible city labels are Goa. |
-| FAQ: heading sticky while questions scroll | APPROVED | Founder Preview #1 | Founder confirmed the **left heading** stays sticky and right Q&A scrolls normally. The older UAT right-side wording is superseded. |
+| FAQ: heading sticky while questions scroll | Yes (fixed in Preview #3) | Founder Preview #1 / #3 browser check | Left block sticks while the right Q&A scrolls and releases at the end of the FAQ. Preview #3 fixed the real cause: the scoped `body { overflow-x: hidden }` rule landed on the `.mason-public` wrapper and made it a non-scrolling scroll container; it now uses `overflow-x: clip`. |
 | Home mobile: assessment heading → form → image | Yes | Local 390×844 visual | Source and visual order match; canonical lead form retained. |
 | Home mobile: headings left-aligned | Yes | Local mobile visual | Updated assessment heading treatment. |
 | Home mobile: reduced heading/subheading spacing | Yes | Local mobile visual | Assessment and transformation spacing tightened. |
@@ -53,9 +53,10 @@ Review at mobile, tablet, standard desktop and large desktop, especially the lar
 | Packages | Standard and Advanced |
 | Current selling prices | Standard ₹29,999; Advanced ₹36,999 |
 | Advanced cover | 2-Year Safety AMC Included: annual safety visits for 2 years after installation; inspect the installed setup and fix, change or replace items where required |
-| Shared kit | 13 component categories; Raised Toilet Seat added without an invented quantity; original 12 names retained |
+| Shared kit | 13 component categories; Raised Toilet Seat ×1 (founder-approved quantity); original 12 names and quantities retained |
 | Legal entity | 91 Ventures LLP |
-| Form footer | “T&C apply” at 0.375rem (about half the Preview #1 size), linked to Terms |
+| Form footer | “By submitting, you agree to our Privacy Policy and Terms.” at 0.5rem (8px); only “Privacy Policy” (/privacy) and “Terms” (/terms) are links |
+| Customer support | support@masoncompany.in; Monday to Friday, 10 am to 7 pm |
 | FAQ layout | Left heading sticky; right Q&A scrollable |
 | Homepage package CTA | “View Details” to the corresponding package detail page |
 | Dedicated Packages-page CTA | “Book Free Inspection” using the existing booking flow |
