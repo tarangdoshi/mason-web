@@ -223,7 +223,7 @@ export default function ComparePackagesView({
         <div className={styles.ctaPanel}>
           <div className={styles.ctaCopy}>
             <p className={styles.cardEyebrow}>Best first step</p>
-            <h2>Book a free safety assessment before choosing a package.</h2>
+            <h2>Book a free inspection before choosing a package.</h2>
             <p>If you are confident about the package, the package cards above still take you to checkout.</p>
           </div>
           <div className={styles.ctaActions}>

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -92,4 +93,19 @@ test("footer navigation keeps Terms and omits the standalone refund link", () =>
   assert.equal(hrefs.includes("/refund"), false);
   assert.doesNotMatch(dom.window.document.querySelector("footer")?.textContent || "", /Refund & Cancellations|Refund & Cancellation Policy/);
   dom.window.close();
+});
+
+test("active customer-facing booking surfaces never say Safety Visit", () => {
+  const surfaces = [
+    "../components/BookingDialog.tsx", "../components/Booking.tsx", "../components/Hero.tsx", "../components/Nav.tsx",
+    "../components/Process.tsx", "../components/PackageCard.tsx", "../app/(public)/packages/page.tsx",
+    "../app/(public)/about/page.tsx", "../app/(public)/contact/page.tsx", "../app/(marketing)/packages/[slug]/page.tsx",
+    "../app/(marketing)/compare-packages/compare-packages-view.tsx", "../app/(marketing)/checkout/[packageId]/page.tsx",
+    "../app/(marketing)/checkout/components/checkout-experience.tsx"
+  ];
+  for (const surface of surfaces) {
+    const source = readFileSync(new URL(surface, import.meta.url), "utf8");
+    // Headings split the phrase across an accent span, so match through markup.
+    assert.doesNotMatch(source, /safety(\s|<[^>]*>|\{" "\})+(visit|assessment)/i, surface);
+  }
 });

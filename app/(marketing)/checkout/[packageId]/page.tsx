@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${entry.plan.name} Package Request | Mason Company`,
-    description: `Request the ${entry.plan.name} package if you already know it fits, or start with a Mason safety visit.`
+    description: `Request the ${entry.plan.name} package if you already know it fits, or start with a free Mason inspection.`
   };
 }
 

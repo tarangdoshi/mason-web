@@ -51,7 +51,7 @@ export default function ContactPage() {
             </h1>
             <p className="max-w-sm text-base leading-relaxed text-cream-dim lg:pb-3 lg:text-right">
               Send us the details and a Mason advisor calls you back within 24
-              hours - to answer questions, or to arrange a free safety visit.
+              hours - to answer questions, or to arrange a free inspection.
             </p>
           </div>
         </section>
