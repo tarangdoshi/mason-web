@@ -537,7 +537,7 @@ async function buildContent(base: HomepageContent, view: "homepage" | "compare-p
       packagesSection: {
         ...content.packagesSection,
         title: payload.homepage?.packagesSection?.title || base.packagesSection.title,
-        subtitle: payload.homepage?.packagesSection?.subtitle || base.packagesSection.subtitle,
+        subtitle: base.packagesSection.subtitle,
         addOnFeatures: content.packagesSection.addOnFeatures ?? base.packagesSection.addOnFeatures
       }
     };

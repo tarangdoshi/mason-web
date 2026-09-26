@@ -104,8 +104,8 @@ export const fallbackHome: HomeContent = {
     ctaLabel: "Book Free Inspection",
     steps: [
       { title: "Request your visit", description: "Leave your details and a Mason advisor will call to arrange the visit." },
-      { title: "Inspection", description: "We schedule a virtual or physical bathroom inspection depending on location and logistics. Our trained technicians finalise support placement." },
-      { title: "Installation", description: "The selected package is installed with careful fitting, clean execution, and minimal disruption on a date scheduled with you." }
+      { title: "Inspection", description: "We schedule a virtual or physical bathroom inspection depending on location and logistics." },
+      { title: "Installation", description: "The selected package is installed with careful fitting, clean execution, and minimal disruption." }
     ]
   },
   doctors: {
@@ -164,6 +164,7 @@ export const fallbackHome: HomeContent = {
       { question: "How can I pay?", answer: "Our team will confirm the package and payment details with you after your visit request." },
       { question: "Can I cancel after booking?", answer: "Yes. Full refund any time before installation." },
       { question: "Do you inspect the bathroom before installation?", answer: "Yes. Depending on location and logistics, Mason may complete a virtual or physical inspection before installation." },
+      { question: "Does this guarantee that no fall will happen?", answer: "No service can guarantee a fall-free outcome. Mason focuses on preventive bathroom safety upgrades that support safer daily movement." },
       { question: "Who installs the package?", answer: "Mason-trained technicians handle the installation, site verification, fitting, and final handover." }
     ]
   },
