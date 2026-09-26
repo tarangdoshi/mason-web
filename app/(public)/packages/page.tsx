@@ -7,18 +7,23 @@ import ScrollCue from "@/components/ScrollCue";
 import PhotoSlot from "@/components/PhotoSlot";
 import VisitForm from "@/components/VisitForm";
 import PackageCard from "@/components/PackageCard";
-import { KIT } from "@/components/kit";
-import { getHomepageContentData } from "@/lib/site-content";
-import { packageCardFromPlan } from "@/components/packages-data";
+import HighlightedText from "@/components/HighlightedText";
+import { getPublicSiteContent } from "@/lib/cms/load";
+import { cmsMetadata } from "@/lib/cms/seo";
 import AnalyticsViewTracker from "@/app/components/analytics-view-tracker";
 import { SERVICE_NAMES } from "@/lib/analytics";
 
-export const metadata: Metadata = {
-  alternates: {canonical: "https://www.masoncompany.in/packages"},
-  title: "Packages - Mason Company",
-  description:
-    "Book a free bathroom inspection, or choose Standard or Advanced. Both include the same 13 component categories, fitted by trained Mason experts.",
-};
+/* Content comes from Sanity; published changes appear within a minute. */
+export const revalidate = 60;
+
+export function generateMetadata(): Promise<Metadata> {
+  return cmsMetadata("packages", {
+    alternates: {canonical: "https://www.masoncompany.in/packages"},
+    title: "Packages - Mason Company",
+    description:
+      "Book a free bathroom inspection, or choose Standard or Advanced. Both include the same 13 component categories, fitted by trained Mason experts.",
+  });
+}
 
 /* Three blocks, in the order the decision is actually made.
 
@@ -34,15 +39,8 @@ export const metadata: Metadata = {
    change rather than a gap, and nothing bottoms out on empty paper. */
 
 export default async function PackagesPage() {
-  const content = await getHomepageContentData();
-  const packages = content.packagesSection.plans.map(packageCardFromPlan);
-  const cmsFeatures = new Map(content.packagesSection.features.map((feature) => [feature.id, feature]));
-  const kit = KIT.map((item) => {
-    const feature = cmsFeatures.get(item.id);
-    return feature
-      ? { ...item, title: feature.label, qty: feature.quantity ?? item.qty }
-      : item;
-  });
+  const { packages, packagesPage: page } = await getPublicSiteContent();
+  const kit = packages.components;
   return (
     <>
       <Nav />
@@ -55,17 +53,15 @@ export default async function PackagesPage() {
           <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />
           <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className="eyebrow mb-4">Free &amp; no obligation</p>
+              <p className="eyebrow mb-4">{page.eyebrow}</p>
               {/* The lg step down from text-6xl is the column: the h1 has half
                   the page beside the form, and 60px there puts three words on
                   a line. */}
               <h1 className="h-display text-4xl text-cream sm:text-5xl lg:text-[clamp(2.5rem,3.8vw,3.5rem)]">
-                Book a <span className="accent-word">free</span> bathroom{" "}
-                inspection.
+                <HighlightedText value={page.heading} />
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-cream-dim sm:text-lg">
-                We walk the bathroom with you first, then recommend Standard or
-                Advanced. Full refund any time before installation.
+                {page.subcopy}
               </p>
 
               {/* Directly under the sentence it answers, not under the photo.
@@ -76,16 +72,17 @@ export default async function PackagesPage() {
                   "Standard or Advanced", which is the moment the question
                   occurs to them. */}
               <ScrollCue href="#packages" className="mt-6">
-                Or choose a package now
+                {page.scrollCue}
               </ScrollCue>
 
               {/* Two short blocks against a form that runs past 600px, so
                   without a picture the left half is mostly empty paper - the
                   same problem, and the same fix, as the Safer strip. */}
               <PhotoSlot
-                src="/prerna/images/bath-2.jpg"
+                src={page.image.src}
                 label="A finished bathroom, grab rail fitted"
-                alt="A bathroom after a Mason safety install"
+                alt={page.image.alt}
+                objectPosition={page.image.objectPosition}
                 sizes="(min-width: 1024px) 45vw, (min-width: 640px) 36rem, 100vw"
                 /* Above the fold and the page's LCP - without this it waits
                    in the lazy queue behind the form. */
@@ -114,28 +111,31 @@ export default async function PackagesPage() {
           className="mx-auto max-w-7xl px-6 py-14 lg:px-10 lg:py-20"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-sand-200 pb-4">
-            <p className="eyebrow">Choose a package</p>
-            <p className="eyebrow">Same for both packages</p>
+            <p className="eyebrow">{page.chooseLabel}</p>
+            <p className="eyebrow">{page.chooseNote}</p>
           </div>
 
           <Reveal className="mt-8">
             <div className="grid gap-6 lg:grid-cols-2">
-              {packages.map((p) => (
+              {packages.plans.map((plan) => (
                 <PackageCard
-                  key={p.name}
-                  pkg={p}
+                  key={plan.code}
+                  plan={plan}
+                  rows={packages.rows}
+                  popularLabel={packages.popularLabel}
+                  ctaLabel={packages.pageCardCta}
                   headingLevel={2}
                   /* Featured first in the single-column stack - same as the
                      homepage section, so the two never disagree about which
                      package leads. */
-                  className={`reveal ${p.popular ? "order-first lg:order-none" : ""}`}
+                  className={`reveal ${plan.isPopular ? "order-first lg:order-none" : ""}`}
                 />
               ))}
             </div>
           </Reveal>
 
           <div className="mt-8">
-            <ScrollCue href="#kit">See what gets installed</ScrollCue>
+            <ScrollCue href="#kit">{page.kitCue}</ScrollCue>
           </div>
         </section>
 
@@ -159,9 +159,9 @@ export default async function PackagesPage() {
                   a count, and set as display type it would compete with the
                   h1 for the page. */}
               <h2 className="inline-flex items-center rounded-full border border-dashed border-forest-200 bg-accent-tint px-4 py-2 font-mono-label text-[0.7rem] uppercase tracking-[0.18em] text-forest-700">
-                What we install &middot; {kit.length}
+                {page.kitHeading} &middot; {kit.length}
               </h2>
-              <p className="eyebrow">Identical in both packages</p>
+              <p className="eyebrow">{page.kitNote}</p>
             </div>
 
             {/* Grid rather than columns so a title that wraps lifts its whole
@@ -169,14 +169,14 @@ export default async function PackagesPage() {
             <ul className="reveal mt-8 grid lg:grid-cols-2 lg:gap-x-14">
               {kit.map((item) => (
                 <li
-                  key={item.title}
+                  key={item.id}
                   className="flex items-center gap-4 border-b border-dashed border-sand-200 py-3"
                 >
                   {/* alt is empty on purpose - the title sits right beside it,
                       so a screen reader would otherwise hear it twice. */}
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:h-14 sm:w-14">
                     <Image
-                      src={item.img}
+                      src={item.image.src}
                       alt=""
                       fill
                       sizes="56px"
@@ -186,7 +186,7 @@ export default async function PackagesPage() {
 
                   <div className="min-w-0 flex-1">
                     <p className="font-mono-label text-[0.6rem] uppercase tracking-[0.18em] text-sand-400">
-                      {item.label}
+                      {item.category}
                     </p>
                     <h3 className="text-sm leading-snug font-semibold text-cream sm:text-base">
                       {item.title}
@@ -200,18 +200,17 @@ export default async function PackagesPage() {
                     aria-hidden="true"
                     className="min-w-9 shrink-0 rounded-full bg-sand-200 px-2.5 py-1 text-center font-mono-label text-sm tabular-nums text-cream"
                   >
-                    {item.qty ?? "Included"}
+                    {item.quantity ?? "Included"}
                   </span>
                   <span className="sr-only">
-                    {item.qty === undefined ? "Included" : `${item.qty} included`}
+                    {item.quantity === undefined ? "Included" : `${item.quantity} included`}
                   </span>
                 </li>
               ))}
             </ul>
 
             <p className="reveal mt-8 max-w-lg text-sm leading-relaxed text-sand-600">
-              All {kit.length} are fitted, tested and handed over on the same
-              visit - there is no shorter version of the kit.
+              {page.kitFootnote}
             </p>
           </Reveal>
         </section>

@@ -8,7 +8,8 @@ import PhotoSlot from "./PhotoSlot";
 import VisitForm from "./VisitForm";
 import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
 import { SERVICE_NAMES } from "../lib/analytics";
-import type { WhatWeDoSectionContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -22,7 +23,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  * instead, so the one place on the page where the promise is stated outright is
  * also the first place you can act on it — without a click in between.
  */
-export default function Safer({ content }: { content?: WhatWeDoSectionContent }) {
+export default function Safer({ content }: { content: HomeContent["safer"] }) {
   const container = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -101,22 +102,21 @@ export default function Safer({ content }: { content?: WhatWeDoSectionContent })
               the form, where 56px puts three words on a line and turns two
               sentences into five. */}
           <h2 className="font-display text-[7.3vw] font-extrabold leading-[1.12] tracking-tight text-sand-100 max-sm:-mx-2 max-sm:tracking-[-0.045em] sm:text-[clamp(2rem,5vw,3.5rem)] lg:text-[clamp(1.85rem,2.9vw,2.6rem)]">
-            <span className="block overflow-hidden pb-1">
-              <span className="safer-line block">
-                Make your bathroom <span className="accent-word on-dark">safer</span>
-              </span>
-            </span>
-            <span className="block overflow-hidden pb-1">
-              <span className="safer-line block">
-                while it still feels like <span className="accent-word on-dark">home</span>
-              </span>
-            </span>
+            <HighlightedText
+              value={content.heading}
+              accentClassName="accent-word on-dark"
+              renderLine={(line) => (
+                <span className="block overflow-hidden pb-1">
+                  <span className="safer-line block">{line}</span>
+                </span>
+              )}
+            />
           </h2>
 
           {/* white/90 rather than the sand-100 of the headline: a step back
               from it, and still clear of the 4.5:1 floor on forest-700. */}
           <p className="safer-rise mt-3 max-w-md text-base leading-relaxed text-white/90 lg:mt-6">
-            {content?.description || "Leave your details and a Mason advisor will call to arrange the visit. Full refund any time before installation."}
+            {content.description}
           </p>
         </div>
 
@@ -127,11 +127,11 @@ export default function Safer({ content }: { content?: WhatWeDoSectionContent })
           <VisitForm />
         </div>
         <PhotoSlot
-          src="/prerna/images/care-2.jpg"
+          src={content.image.src}
           label="An older person at ease at home"
-          alt="An older person's hands resting in their lap"
+          alt={content.image.alt}
           sizes="(min-width: 1024px) 45vw, (min-width: 640px) 36rem, 100vw"
-          position="object-[50%_70%]"
+          objectPosition={content.image.objectPosition}
           className="safer-rise mx-auto aspect-[16/10] w-full max-w-xl lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-none"
         />
       </div>

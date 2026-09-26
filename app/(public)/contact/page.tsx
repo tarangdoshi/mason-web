@@ -4,12 +4,8 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import ContactForm from "@/components/ContactForm";
-import {
-  CARE_EMAIL,
-  HOURS,
-  PHONE_DISPLAY,
-  PHONE_HREF,
-} from "@/components/contact-details";
+import HighlightedText from "@/components/HighlightedText";
+import { getPublicSiteContent } from "@/lib/cms/load";
 
 export const metadata: Metadata = {
   alternates: {canonical: "https://www.masoncompany.in/contact"},
@@ -18,40 +14,29 @@ export const metadata: Metadata = {
     "Talk to Mason Company about making a bathroom safer for ageing parents. Call, WhatsApp, or send an enquiry - we reply within 24 hours.",
 };
 
-const DETAILS: {
-  title: string;
-  lines: { text: string; href?: string }[];
-}[] = [
-  {
-    title: "Call & WhatsApp",
-    lines: [{ text: PHONE_DISPLAY, href: PHONE_HREF }],
-  },
-  {
-    title: "When we answer",
-    lines: [{ text: HOURS }],
-  },
-  {
-    title: "Write to us",
-    lines: [{ text: CARE_EMAIL, href: `mailto:${CARE_EMAIL}` }],
-  },
-];
+export const revalidate = 60;
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { contactPage: page, settings } = await getPublicSiteContent();
+  const { contact } = settings;
+  const DETAILS: { title: string; lines: { text: string; href?: string }[] }[] = [
+    { title: page.callLabel, lines: [{ text: contact.phoneDisplay, href: contact.phoneHref }] },
+    { title: page.hoursLabel, lines: [{ text: contact.supportHours }] },
+    { title: page.emailLabel, lines: [{ text: contact.supportEmail, href: `mailto:${contact.supportEmail}` }] }
+  ];
   return (
     <>
       <Nav />
       <main>
         {/* Page header — headline left, the promise right, as in the reference */}
         <section className="mx-auto max-w-7xl px-6 pt-32 pb-10 lg:px-10 lg:pt-40 lg:pb-14">
-          <p className="eyebrow mb-5">Contact</p>
+          <p className="eyebrow mb-5">{page.eyebrow}</p>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
             <h1 className="h-display max-w-2xl text-5xl text-cream sm:text-6xl lg:text-7xl">
-              Tell us about the{" "}
-              <span className="accent-word">bathroom</span>.
+              <HighlightedText value={page.heading} />
             </h1>
             <p className="max-w-sm text-base leading-relaxed text-cream-dim lg:pb-3 lg:text-right">
-              Send us the details and a Mason advisor calls you back within 24
-              hours - to answer questions, or to arrange a free inspection.
+              {page.intro}
             </p>
           </div>
         </section>
@@ -66,18 +51,17 @@ export default function ContactPage() {
                 photograph, so it uses that instead. */}
             <div className="relative min-h-[340px] overflow-hidden rounded-3xl border border-line sm:min-h-[420px] lg:min-h-0">
               <Image
-                src="/prerna/images/care-3.jpg"
-                alt="An older couple holding hands"
+                src={page.image.src}
+                alt={page.image.alt}
                 fill
                 sizes="(min-width: 1024px) 34vw, 100vw"
                 className="object-cover"
               />
               <div className="photo-scrim absolute inset-0" />
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-8">
-                <p className="eyebrow on-dark">The visit is free</p>
+                <p className="eyebrow on-dark">{page.cardTitle}</p>
                 <p className="mt-3 font-display text-xl font-extrabold leading-snug text-white sm:text-2xl">
-                  A trained Mason expert walks the bathroom with you. No
-                  obligation, no charge.
+                  {page.cardBody}
                 </p>
               </div>
             </div>

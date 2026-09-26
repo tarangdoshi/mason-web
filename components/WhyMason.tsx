@@ -5,42 +5,11 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { smoothScroll } from "./SmoothScroll";
-import type { WhyFeatureContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const reasons = [
-  {
-    title: "Comprehensive by design",
-    copy: "We look at the full bathroom routine: entry, turning, sitting, standing, showering, and night-time use.",
-    tag: "The whole routine",
-  },
-  {
-    title: "Doctor-informed planning",
-    copy: "Our approach is shaped with doctor inputs, preventive mobility guidance, and senior-care context.",
-    tag: "Medically shaped",
-  },
-  {
-    title: "Trained Mason experts",
-    copy: "Every visit is handled by trained technicians who understand support placement and secure fitting.",
-    tag: "Skilled hands",
-  },
-  {
-    title: "One accountable team",
-    copy: "From selection to inspection, installation, and follow-up, Mason stays responsible for the outcome.",
-    tag: "Owned end to end",
-  },
-  {
-    title: "Premium, home-first finish",
-    copy: "Built to feel calm and considered - not hospital-like or temporary.",
-    tag: "Still feels like home",
-  },
-  {
-    title: "Evidence-led prevention",
-    copy: "We study fall-risk patterns and assisted-care environments to design practical home upgrades.",
-    tag: "Grounded in evidence",
-  },
-];
 
 // DOM grid order (row-major): 0 1 2 / 3 4 5  ->  TL TM TR / BL BM BR
 // Outside-in deal order: corners first, middle column lands last.
@@ -48,11 +17,9 @@ const reasons = [
 const dealRank = [0, 4, 1, 3, 5, 2]; // TL,TR,BR,BL first; TM,BM last
 const flightRot = [-9, 7, -6, 8, -4, 5]; // per-rank tilt while stacked
 
-export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
+export default function WhyMason({ content }: { content: HomeContent["why"] }) {
   const ref = useRef<HTMLElement>(null);
-  const displayReasons = items?.length
-    ? items.slice(0, 6).map((item, index) => ({ title: item.title, copy: item.description, tag: reasons[index]?.tag || "Mason approach" }))
-    : reasons;
+  const displayReasons = content.items.map((item) => ({ title: item.title, copy: item.description, tag: item.tag }));
 
   useGSAP(
     () => {
@@ -82,7 +49,7 @@ export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
 
         // top of the stack (deals first) sits above the rest
         cards.forEach((el, i) =>
-          gsap.set(el, { zIndex: 10 + (cards.length - dealRank[i]) })
+          gsap.set(el, { zIndex: 10 + (cards.length - (dealRank[i] ?? i)) })
         );
 
         /* Paused, and driven by hand below rather than handed to ScrollTrigger
@@ -97,14 +64,15 @@ export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
         });
 
         cards.forEach((el, i) => {
-          const rank = dealRank[i];
+          // Items beyond the designed six still animate, dealt after the rest.
+          const rank = dealRank[i] ?? i;
           const at = rank * 0.13; // sequence the deal
           tl.fromTo(
             el,
             {
               x: () => dx(el),
               y: () => dy(el),
-              rotation: flightRot[rank],
+              rotation: flightRot[rank % flightRot.length],
               scale: 0.82,
             },
             { x: 0, y: 0, rotation: 0, scale: 1, duration: 0.55, immediateRender: true },
@@ -232,13 +200,12 @@ export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
           other section — top equal to bottom. */}
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-6 lg:min-h-screen lg:px-10 lg:py-24">
         <div className="max-w-3xl">
-          <p className="wm-reveal eyebrow mb-5">Why Mason Company</p>
+          <p className="wm-reveal eyebrow mb-5">{content.eyebrow}</p>
           <h2 className="wm-reveal h-display text-3xl text-cream sm:text-4xl lg:text-[2.75rem]">
-            A complete <span className="accent-word">solution</span> - not
-            a pile of products.
+            <HighlightedText value={content.heading} />
           </h2>
           <p className="wm-reveal mt-2 max-w-xl text-base leading-relaxed text-cream-dim">
-            Six strengths that come together into one accountable outcome.
+            {content.subtitle}
           </p>
         </div>
 
@@ -275,10 +242,7 @@ export default function WhyMason({ items }: { items?: WhyFeatureContent[] }) {
                 <h3 className="font-display text-xl font-semibold text-cream">
                   {r.title}
                 </h3>
-                <p
-                  className="mt-2.5 text-sm leading-relaxed text-cream-dim"
-                  dangerouslySetInnerHTML={{ __html: r.copy }}
-                />
+                <p className="mt-2.5 text-sm leading-relaxed text-cream-dim">{r.copy}</p>
               </div>
             </article>
           ))}

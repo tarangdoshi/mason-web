@@ -1,23 +1,9 @@
 import Reveal from "./Reveal";
 import PackageCard from "./PackageCard";
-import { packageCardFromPlan } from "./packages-data";
-import { getHomepageContentData } from "../lib/site-content";
-import type { HomepageContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent, PackagesContent } from "@/lib/cms/model";
 
-function renderTitle(title: string) {
-  if (title === "The same complete kit. You choose the cover.") {
-    return (
-      <>
-        The same complete kit. You choose the <span className="accent-word on-dark">cover</span>.
-      </>
-    );
-  }
-  return title;
-}
-
-export default async function Packages({ content: contentProp }: { content?: HomepageContent["packagesSection"] }) {
-  const content = contentProp || (await getHomepageContentData()).packagesSection;
-  const packages = content.plans.map(packageCardFromPlan);
+export default function Packages({ content, packages }: { content: HomeContent["packages"]; packages: PackagesContent }) {
   return (
     <section
       id="packages"
@@ -28,13 +14,13 @@ export default async function Packages({ content: contentProp }: { content?: Hom
       <Reveal className="mx-auto flex h-full max-w-7xl flex-col px-6 lg:px-10 lg:py-24">
         <div className="max-w-2xl">
           <p className="reveal eyebrow on-dark mb-3">
-            Choose your safety package
+            {content.eyebrow}
           </p>
           <h2 className="reveal h-display text-3xl text-sand-100 sm:text-4xl lg:text-[2.5rem]">
-            {renderTitle(content.title || "The same complete kit. You choose the cover.")}
+            <HighlightedText value={content.heading} accentClassName="accent-word on-dark" />
           </h2>
           <p className="reveal mt-3 text-base leading-relaxed text-sand-100/75">
-            {content.subtitle || "Both packages install everything, fitted by Mason-trained experts. Advanced includes annual safety visits for 2 years after installation."}
+            {content.subtitle}
           </p>
         </div>
 
@@ -48,20 +34,21 @@ export default async function Packages({ content: contentProp }: { content?: Hom
             only, not the data: /packages renders the same two cards from the
             same array. */}
         <div className="mt-8 grid gap-6 lg:mt-6 lg:min-h-0 lg:flex-1 lg:grid-cols-2">
-          {packages.map((p) => (
+          {packages.plans.map((plan) => (
             <PackageCard
-              key={p.name}
-              pkg={p}
+              key={plan.code}
+              plan={plan}
+              rows={packages.rows}
+              popularLabel={packages.popularLabel}
+              ctaLabel={packages.homeCardCta}
               tone="green"
-              className={`reveal ${p.popular ? "order-first lg:order-none" : ""}`}
+              className={`reveal ${plan.isPopular ? "order-first lg:order-none" : ""}`}
             />
           ))}
         </div>
 
         <p className="reveal mt-5 text-xs leading-relaxed text-sand-100/60 lg:hidden">
-          Both packages are planned for real bathroom movement and installed by
-          trained Mason experts - so the result feels safe, thoughtful, and
-          still beautifully at home.
+          {content.footnote}
         </p>
       </Reveal>
     </section>

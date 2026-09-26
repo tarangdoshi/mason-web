@@ -15,6 +15,7 @@ export default function PhotoSlot({
   sizes = "100vw",
   className = "",
   position = "",
+  objectPosition,
   priority = false,
 }: {
   /** Omit while the photo is still to be shot. */
@@ -31,6 +32,8 @@ export default function PhotoSlot({
   /** object-position utility, for the slots where centring cuts the subject —
       a tall portrait dropped into a wide box being the usual one. */
   position?: string;
+  /** CSS object-position from the CMS (e.g. "50% 70%"). Wins over `position`. */
+  objectPosition?: string;
   priority?: boolean;
 }) {
   if (!src && initials) {
@@ -65,7 +68,8 @@ export default function PhotoSlot({
         fill
         sizes={sizes}
         priority={priority}
-        className={`object-cover ${position}`}
+        className={`object-cover ${objectPosition ? "" : position}`}
+        style={objectPosition ? { objectPosition } : undefined}
       />
     </div>
   );

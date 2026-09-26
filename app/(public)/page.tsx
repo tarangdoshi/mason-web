@@ -1,5 +1,4 @@
-export const metadata = {alternates: {canonical: "https://www.masoncompany.in/"}};
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Stats from "@/components/Stats";
@@ -13,31 +12,38 @@ import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
 import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
-import { getHomepageContentData } from "@/lib/site-content";
+import { getPublicSiteContent } from "@/lib/cms/load";
+import { cmsMetadata } from "@/lib/cms/seo";
 
-export default async function Home({searchParams}: {searchParams?: Promise<Record<string, string | string[] | undefined>>}) {
-  const query = await searchParams;
-  if (query?.preview === "draft") redirect("/content-preview?preview=draft");
-  const content = await getHomepageContentData();
+/* Content comes from Sanity. Published changes appear within a minute
+   (regenerated in the background); draft previews render on every request. */
+export const revalidate = 60;
+
+export function generateMetadata(): Promise<Metadata> {
+  return cmsMetadata("home", { alternates: { canonical: "https://www.masoncompany.in/" } });
+}
+
+export default async function Home() {
+  const { home, packages, settings } = await getPublicSiteContent();
   return (
     <>
       <Nav />
       <main>
-        <Hero content={content.hero} />
-        <Stats cards={content.evidenceSection.cards} />
-        <Safer content={content.whatWeDoSection} />
+        <Hero content={home.hero} />
+        <Stats content={home.stats} />
+        <Safer content={home.safer} />
         <span id="why-mason" />
-        <WhyMason items={content.whySection.items} />
+        <WhyMason content={home.why} />
         <span id="before-after" />
-        <Transformations content={content.transformationGallerySection} />
+        <Transformations content={home.transformations} />
         <span id="package-comparison" />
-        <Packages content={content.packagesSection} />
+        <Packages content={home.packages} packages={packages} />
         <span id="how-it-works" />
-        <Process content={content.processSection} />
-        <Doctors items={content.doctorsSection.items} />
-        <Testimonials items={content.testimonialsSection.items} />
-        <FAQ content={content.faqSection} />
-        <Booking content={content.finalCtaSection} />
+        <Process content={home.process} />
+        <Doctors content={home.doctors} disclaimer={settings.doctorDisclaimer} />
+        <Testimonials content={home.testimonials} />
+        <FAQ content={home.faq} />
+        <Booking content={home.finalCta} />
       </main>
       <Footer />
     </>

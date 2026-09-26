@@ -1,26 +1,11 @@
 import Image from "next/image";
 import Reveal from "./Reveal";
 import Cta from "./Cta";
-import type { FinalCtaSectionContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
-const chips = [
-  "Full refund any time before installation.",
-  "Doctor-informed planning",
-  "Trained Mason experts",
-];
 
-function renderTitle(title?: string) {
-  if (!title || title === "Book the visit. We'll handle the rest.") {
-    return (
-      <>
-        Book the visit. We&rsquo;ll handle the <span className="accent-word on-dark">rest</span>.
-      </>
-    );
-  }
-  return title;
-}
-
-export default function Booking({ content }: { content?: FinalCtaSectionContent }) {
+export default function Booking({ content }: { content: HomeContent["finalCta"] }) {
   /* Full-bleed below sm. The inset card is a desktop device: it needs margin
      around it to read as a card, and at 390px the 24px gutter and 24px radius
      are too small to do that — they just shave the photograph and leave a
@@ -37,8 +22,8 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
       <Reveal className="relative mx-auto max-w-7xl overflow-hidden rounded-none border-0 sm:rounded-3xl sm:border sm:border-line">
         {/* background image */}
         <Image
-          src="/prerna/images/shower-1.jpg"
-          alt="A safer, calmer bathroom"
+          src={content.image.src}
+          alt={content.image.alt}
           fill
           sizes="100vw"
           className="object-cover"
@@ -66,9 +51,9 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
             grow and shrink as the phone's toolbars collapse. From sm it goes
             back to being sized by its own padding. */}
         <div className="relative flex min-h-svh flex-col justify-center px-6 py-12 text-center sm:block sm:min-h-0 sm:px-12 sm:py-14 lg:py-16">
-          <p className="reveal eyebrow on-dark mb-6">Book Free Inspection</p>
+          <p className="reveal eyebrow on-dark mb-6">{content.eyebrow}</p>
           <h2 className="reveal mx-auto max-w-3xl h-display text-4xl leading-[1.05] text-white sm:text-5xl lg:text-6xl">
-            {renderTitle(content?.title)}
+            <HighlightedText value={content.heading} accentClassName="accent-word on-dark" />
           </h2>
           {/* white/90, not /80: the last 10% is the difference between 4.28:1
               and 4.78:1 over the lit part of the photo, and costs nothing —
@@ -78,7 +63,7 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
                 were two buttons here to choose between. One of them opens the
                 same sheet as the other, so the sentence was offering a fork
                 that did not exist. */}
-            {content?.subtitle || "Act before a fall changes everything. Leave your number and one accountable Mason team handles the rest."}
+            {content.subtitle}
           </p>
 
           {/* One button, because there was only ever one action. The pair here
@@ -88,7 +73,7 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
               reader a decision and returns nothing for it. */}
           <div className="reveal mt-9 flex justify-center">
             <Cta href="#book" className="w-full justify-center sm:w-auto">
-              {content?.primaryCta || "Book Free Inspection"}
+              {content.ctaLabel}
             </Cta>
           </div>
 
@@ -96,7 +81,7 @@ export default function Booking({ content }: { content?: FinalCtaSectionContent 
               five blocks and the first place to find room when the whole thing
               has to hold one screen. */}
           <div className="reveal mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:mt-10">
-            {chips.map((c) => (
+            {content.badges.map((c) => (
               <span
                 key={c}
                 /* Same again, and it matters more here: 12px text needs the

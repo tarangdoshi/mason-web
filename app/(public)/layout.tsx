@@ -5,6 +5,9 @@ import "./public.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import ScrollRestoration from "@/components/ScrollRestoration";
 import BookingProvider from "@/components/BookingDialog";
+import SiteSettingsProvider from "@/components/SiteSettingsProvider";
+import DraftModeBanner from "@/components/DraftModeBanner";
+import { getPublicSiteContent, isPreviewingDrafts } from "@/lib/cms/load";
 
 /* Display — big impactful headlines. The dominant typeface. */
 const archivo = Archivo({
@@ -44,8 +47,11 @@ export const metadata: Metadata = {
     "Premium, doctor-informed, expert-installed bathroom safety upgrades that keep the home feeling like home. Book Free Inspection.",
 };
 
-export default function PublicLayout({children}: {children: React.ReactNode}) {
+export default async function PublicLayout({children}: {children: React.ReactNode}) {
+ const { settings } = await getPublicSiteContent();
+ const previewingDrafts = await isPreviewingDrafts();
  return <div className={`${archivo.variable} ${fraunces.variable} ${geist.variable} ${geistMono.variable} mason-public grain min-h-full bg-ink text-cream`}>
- <LaunchAnalytics /><SmoothScroll><ScrollRestoration /><BookingProvider>{children}</BookingProvider></SmoothScroll>
+ <LaunchAnalytics /><SiteSettingsProvider value={settings}><SmoothScroll><ScrollRestoration /><BookingProvider>{children}</BookingProvider></SmoothScroll></SiteSettingsProvider>
+ {previewingDrafts ? <DraftModeBanner /> : null}
  </div>;
 }

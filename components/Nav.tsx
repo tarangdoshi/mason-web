@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { MasonWordmark } from "./Logo";
 import Cta from "./Cta";
 import { ArrowForward, Call } from "./Icon";
-import { PHONE_DISPLAY, PHONE_HREF } from "./contact-details";
+import { useSiteSettings } from "./SiteSettingsProvider";
 import { smoothScroll } from "./SmoothScroll";
 
 const links = [
@@ -17,6 +17,7 @@ const links = [
 ];
 
 export default function Nav() {
+  const { contact } = useSiteSettings();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -184,8 +185,8 @@ export default function Nav() {
             the panel where each gets a full row. */}
         <div className="hidden items-center gap-3 lg:flex lg:gap-5">
           <a
-            href={PHONE_HREF}
-            aria-label={`Call Mason Company on ${PHONE_DISPLAY}`}
+            href={contact.phoneHref}
+            aria-label={`Call Mason Company on ${contact.phoneDisplay}`}
             className={`flex items-center gap-2 text-sm transition-colors ${EASE} ${
               overHero ? "text-white/80 hover:text-white" : "text-cream-dim hover:text-cream"
             }`}
@@ -198,7 +199,7 @@ export default function Nav() {
             />
             {/* tabular-nums so the digits sit on an even rhythm rather than
                 the proportional spacing the UI face gives them */}
-            <span className="tabular-nums">{PHONE_DISPLAY}</span>
+            <span className="tabular-nums">{contact.phoneDisplay}</span>
           </a>
 
           <span
@@ -306,13 +307,13 @@ export default function Nav() {
             </div>
 
             <a
-              href={PHONE_HREF}
-              aria-label={`Call Mason Company on ${PHONE_DISPLAY}`}
+              href={contact.phoneHref}
+              aria-label={`Call Mason Company on ${contact.phoneDisplay}`}
               className="mt-4 flex items-center justify-center gap-2.5 py-2 text-cream-dim transition-colors duration-200 hover:text-cream"
             >
               <Call size={17} className="text-accent" />
               <span className="text-base font-semibold tabular-nums">
-                {PHONE_DISPLAY}
+                {contact.phoneDisplay}
               </span>
             </a>
           </div>
