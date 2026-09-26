@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { KIT } from "../components/kit";
 import { homepageContent } from "../content/homepage.content";
+import { fallbackPackages } from "./cms/fallback";
+import { resolvePackages } from "./cms/resolve";
 
 const expectedKit = [
   ["vertical-grab-bars", 3],
@@ -20,9 +21,10 @@ const expectedKit = [
 ] as const;
 
 test("the public kit keeps the locked components and quantities", () => {
-  assert.deepEqual(KIT.map((item) => [item.id, item.qty]), expectedKit);
-  assert.equal(KIT.some((item) => /sensor|sos|commode/i.test(item.title)), false);
-  assert.equal(KIT.find((item) => item.id === "raised-toilet-seat")?.title, "Raised Toilet Seat");
+  const kit = fallbackPackages.components;
+  assert.deepEqual(kit.map((item) => [item.id, item.quantity]), expectedKit);
+  assert.equal(kit.some((item) => /sensor|sos|commode/i.test(item.title)), false);
+  assert.equal(kit.find((item) => item.id === "raised-toilet-seat")?.title, "Raised Toilet Seat");
 });
 
 test("Standard and Advanced share the same kit and locked current/reference prices", () => {
@@ -48,19 +50,13 @@ test("Advanced differs only through the approved 2-Year Safety AMC", () => {
   assert.match(plans[1]?.outcome || "", /same upgrade, looked after/i);
 });
 
-
-test("legacy CMS package descriptions cannot change the shared-kit launch offer", async () => {
-  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "testproject";
-  const { applySanityPackages, applyFounderPackageOffer } = await import("./site-content");
-  const packages = homepageContent.packagesSection.plans.map((plan) => ({
-    code: plan.id, name: plan.name, bestFor: "Premium hardware and stronger sit-stand support",
-    outcome: "Extra slippers and PVD upgrades", summary: "A different physical kit",
-    badge: "Extra components", titleDescriptor: "Premium hardware", visualHighlights: ["Sensor lighting"],
-    referencePrice: plan.referencePrice, currentPrice: plan.name === "Standard" ? "₹30,000" : "₹37,000",
-  }));
-  const result = applyFounderPackageOffer(applySanityPackages(homepageContent, packages, [])).packagesSection.plans;
-  assert.equal(result.length, 2);
-  assert.doesNotMatch(JSON.stringify(result.map(({ bestFor, outcome, summary, badge, titleDescriptor, visualHighlights }) => ({ bestFor, outcome, summary, badge, titleDescriptor, visualHighlights }))), /PVD|extra slippers|sensor lighting|different physical kit|premium hardware/i);
-  assert.deepEqual(result.map((plan) => plan.includedFeatureIds), homepageContent.packagesSection.plans.map((plan) => plan.includedFeatureIds));
-  assert.deepEqual(result.map((plan) => [plan.referencePrice, plan.currentPrice, plan.price]), homepageContent.packagesSection.plans.map((plan) => [plan.referencePrice, plan.currentPrice, plan.currentPrice]));
+test("package prices resolve from Sanity when set, with the struck price exactly as the editor set it", () => {
+  const cms = resolvePackages([
+    { code: "package-standard", priceInr: 31999, referencePriceInr: 36000 },
+    { code: "package-advanced", priceInr: 38999 }
+  ], null).plans;
+  assert.deepEqual(cms.map((plan) => [plan.name, plan.price, plan.referencePrice]), [["Standard", "₹31,999", "₹36,000"], ["Advanced", "₹38,999", undefined]]);
+  // Missing or invalid prices fall back to the approved values.
+  const fallback = resolvePackages([{ code: "package-standard", priceInr: -5 }, { code: "package-advanced" }], null).plans;
+  assert.deepEqual(fallback.map((plan) => [plan.price, plan.referencePrice]), [["₹29,999", "₹35,000"], ["₹36,999", "₹44,000"]]);
 });
