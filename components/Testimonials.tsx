@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -11,6 +13,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 
 export default function Testimonials({ content }: { content: HomeContent["testimonials"] }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "testimonialsSection" });
   const container = useRef<HTMLElement>(null);
   const displayTestimonials = content.items.map((item) => ({ name: item.name, role: item.relation, city: item.city, quote: item.quote }));
 
@@ -45,6 +48,7 @@ export default function Testimonials({ content }: { content: HomeContent["testim
   return (
     <section
       id="testimonials"
+      {...edit}
       ref={container}
       /* Sized by its padding — see Doctors. */
       className="flex flex-col overflow-hidden bg-forest-700 px-6 py-14 sm:px-10 sm:py-20 lg:px-16 lg:py-24"

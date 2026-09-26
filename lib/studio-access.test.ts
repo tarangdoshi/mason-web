@@ -59,3 +59,24 @@ test("preview still requires a validated Sanity preview secret (unchanged)", () 
   assert.match(route, /defineEnableDraftMode\(/);
   assert.match(route, /status: 401/);
 });
+
+test("Presentation can see which document controls each part of the page — only while previewing drafts", async () => {
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "0m8qa2h8";
+  const { editProps, DOCS, STUDIO_BASE_PATH } = await import("./cms/edit");
+  assert.deepEqual(editProps(false, DOCS.homepage), {}, "public pages get no data-sanity attributes");
+  const attr = editProps(true, { ...DOCS.homepage, path: "hero" })["data-sanity"] ?? "";
+  assert.match(attr, /id=homepage/);
+  assert.match(attr, /type=homepage/);
+  assert.match(attr, /path=hero/);
+  assert.match(attr, new RegExp(`base=${encodeURIComponent(STUDIO_BASE_PATH)}`));
+  assert.doesNotMatch(attr, /token|secret/i);
+  // Every CMS-backed page section is mapped to its document.
+  const mapped: Record<string, RegExp> = {
+    "components/Hero.tsx": /DOCS\.homepage, path: "hero"/, "components/FAQ.tsx": /useEditProps\(DOCS\.faqs\)/,
+    "components/Transformations.tsx": /useEditProps\(DOCS\.gallery\)/, "components/Footer.tsx": /DOCS\.settings, path: "footerHeading"/,
+    "components/Packages.tsx": /serverEditProps\(DOCS\.package\(plan\.code\)\)/, "app/(public)/about/page.tsx": /serverEditProps\(DOCS\.about\)/,
+    "app/(public)/packages/page.tsx": /serverEditProps\(DOCS\.packagesPage\)/
+  };
+  for (const [file, pattern] of Object.entries(mapped)) assert.match(read(file), pattern, file);
+  assert.match(read("app/(public)/layout.tsx"), /<EditModeProvider enabled=\{previewingDrafts\}>/);
+});

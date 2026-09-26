@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -47,6 +49,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 ];
 
 export default function Footer() {
+  const edit = useEditProps({ ...DOCS.settings, path: "footerHeading" });
   const container = useRef<HTMLElement>(null);
   const { contact, footer } = useSiteSettings();
 
@@ -81,6 +84,7 @@ export default function Footer() {
   return (
     <footer
       ref={container}
+      {...edit}
       /* pt matches the section rhythm; pb doesn't, deliberately. Every other
          section's bottom padding is half of a gap to the next section — here
          there is no next section, so 40px below the legal line is the page

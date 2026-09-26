@@ -1,4 +1,6 @@
 import Cta from "./Cta";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
 import { SERVICE_NAMES } from "../lib/analytics";
 import HighlightedText from "./HighlightedText";
@@ -10,12 +12,14 @@ import type { HomeContent } from "@/lib/cms/model";
 // spread widens so the staircase still spans the column.
 const offset = ["lg:ml-0", "lg:ml-[19%]", "lg:ml-[38%]"];
 
-export default function Process({ content }: { content: HomeContent["process"] }) {
+export default async function Process({ content }: { content: HomeContent["process"] }) {
+  const edit = await serverEditProps({ ...DOCS.homepage, path: "processSection" });
   const displaySteps = content.steps.map((step) => ({ title: step.title, copy: step.description }));
 
   return (
     <section
       id="process"
+      {...edit}
       className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-0"
     >
       <AnalyticsViewTracker event="view_service" serviceName={SERVICE_NAMES.safetyAssessment} />

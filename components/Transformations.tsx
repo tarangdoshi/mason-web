@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useRef, useState } from "react";
 import Reveal from "./Reveal";
 import HighlightedText from "./HighlightedText";
@@ -177,9 +179,11 @@ function Tile({
 }
 
 export default function Transformations({ content }: { content: HomeContent["transformations"] }) {
+  const edit = useEditProps(DOCS.gallery);
   return (
     <section
       id="transformations"
+      {...edit}
       className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-28"
     >
       <Reveal className="mx-auto max-w-7xl px-6 lg:px-10">

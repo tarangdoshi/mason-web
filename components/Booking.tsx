@@ -1,11 +1,14 @@
 import Image from "next/image";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import Reveal from "./Reveal";
 import Cta from "./Cta";
 import HighlightedText from "./HighlightedText";
 import type { HomeContent } from "@/lib/cms/model";
 
 
-export default function Booking({ content }: { content: HomeContent["finalCta"] }) {
+export default async function Booking({ content }: { content: HomeContent["finalCta"] }) {
+  const edit = await serverEditProps({ ...DOCS.homepage, path: "finalCtaSection" });
   /* Full-bleed below sm. The inset card is a desktop device: it needs margin
      around it to read as a card, and at 390px the 24px gutter and 24px radius
      are too small to do that — they just shave the photograph and leave a
@@ -15,6 +18,7 @@ export default function Booking({ content }: { content: HomeContent["finalCta"] 
   return (
     <section
       id="book"
+      {...edit}
       /* py-0 below sm is the full-bleed card, not a gap — from sm up this
          picks up the page's section rhythm like everything else. */
       className="border-t border-line bg-sand-100 px-0 py-0 sm:px-6 sm:py-20 lg:px-10 lg:py-24"

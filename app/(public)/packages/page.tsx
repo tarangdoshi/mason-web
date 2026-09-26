@@ -9,6 +9,8 @@ import VisitForm from "@/components/VisitForm";
 import PackageCard from "@/components/PackageCard";
 import HighlightedText from "@/components/HighlightedText";
 import { getPublicSiteContent } from "@/lib/cms/load";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import { cmsMetadata } from "@/lib/cms/seo";
 import AnalyticsViewTracker from "@/app/components/analytics-view-tracker";
 import { SERVICE_NAMES } from "@/lib/analytics";
@@ -40,11 +42,13 @@ export function generateMetadata(): Promise<Metadata> {
 
 export default async function PackagesPage() {
   const { packages, packagesPage: page } = await getPublicSiteContent();
+  const edit = await serverEditProps(DOCS.packagesPage);
+  const planEdits = await Promise.all(packages.plans.map((plan) => serverEditProps(DOCS.package(plan.code))));
   const kit = packages.components;
   return (
     <>
       <Nav />
-      <main>
+      <main {...edit}>
         {/* ---------- 1. BOOK THE VISIT ----------
             Headline left, form right, on the sunken surface so the sand-50
             card lifts off it. Text before form in the DOM and in both layouts:
@@ -119,10 +123,11 @@ export default async function PackagesPage() {
             {/* Six shared row tracks for the two package cards (see PackageCard); the
                 last absorbs spare height so the CTAs stay bottom-aligned. */}
             <div className="grid gap-6 lg:grid-cols-2 lg:grid-rows-[auto_auto_auto_auto_auto_1fr] lg:gap-y-0">
-              {packages.plans.map((plan) => (
+              {packages.plans.map((plan, index) => (
                 <PackageCard
                   key={plan.code}
                   plan={plan}
+                  editAttributes={planEdits[index]}
                   rows={packages.rows}
                   popularLabel={packages.popularLabel}
                   ctaLabel={packages.pageCardCta}

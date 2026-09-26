@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, type CSSProperties } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import Cta from "./Cta";
@@ -24,6 +26,7 @@ function heroLines(text: string) {
 }
 
 export default function Hero({ content }: { content: HomeContent["hero"] }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "hero" });
   const desktopBg = content.background.desktop;
   const mobileBg = content.background.mobile ?? desktopBg;
   const ref = useRef<HTMLElement>(null);
@@ -59,6 +62,7 @@ export default function Hero({ content }: { content: HomeContent["hero"] }) {
     <section
       ref={ref}
       id="top"
+      {...edit}
       className="relative isolate flex min-h-[100svh] flex-col overflow-hidden text-white"
     >
       {/* full-bleed backdrop + left-heavy scrim */}

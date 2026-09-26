@@ -1,12 +1,17 @@
 import Reveal from "./Reveal";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import PackageCard from "./PackageCard";
 import HighlightedText from "./HighlightedText";
 import type { HomeContent, PackagesContent } from "@/lib/cms/model";
 
-export default function Packages({ content, packages }: { content: HomeContent["packages"]; packages: PackagesContent }) {
+export default async function Packages({ content, packages }: { content: HomeContent["packages"]; packages: PackagesContent }) {
+  const edit = await serverEditProps({ ...DOCS.homepage, path: "packagesSection" });
+  const planEdits = await Promise.all(packages.plans.map((plan) => serverEditProps(DOCS.package(plan.code))));
   return (
     <section
       id="packages"
+      {...edit}
       /* min-h, not h: a hard height plus overflow-hidden clipped the bottom of
          the cards once the rows and outcome copy went in. */
       className="relative bg-forest-700 py-14 sm:py-20 lg:min-h-screen lg:py-0"
@@ -34,10 +39,11 @@ export default function Packages({ content, packages }: { content: HomeContent["
             only, not the data: /packages renders the same two cards from the
             same array. */}
         <div className="mt-8 grid gap-6 lg:mt-6 lg:min-h-0 lg:flex-1 lg:grid-cols-2 lg:grid-rows-[auto_auto_auto_auto_auto_1fr] lg:gap-y-0">
-          {packages.plans.map((plan) => (
+          {packages.plans.map((plan, index) => (
             <PackageCard
               key={plan.code}
               plan={plan}
+              editAttributes={planEdits[index]}
               rows={packages.rows}
               popularLabel={packages.popularLabel}
               ctaLabel={packages.homeCardCta}

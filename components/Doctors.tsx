@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -13,6 +15,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 
 export default function Doctors({ content, disclaimer }: { content: HomeContent["doctors"]; disclaimer: string }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "doctorsSection" });
   const container = useRef<HTMLElement>(null);
   const displayDoctors = content.items.map((item) => ({
     initials: item.name.replace(/^Dr\.?\s+/i, "").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
@@ -54,6 +57,7 @@ export default function Doctors({ content, disclaimer }: { content: HomeContent[
   return (
     <section
       id="doctors"
+      {...edit}
       ref={container}
       /* border-t like every other sand-100 section: Process is the same
          colour, so without a hairline the two run together and the padding

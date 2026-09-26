@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -24,6 +26,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  * also the first place you can act on it — without a click in between.
  */
 export default function Safer({ content }: { content: HomeContent["safer"] }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "whatWeDoSection" });
   const container = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -77,6 +80,7 @@ export default function Safer({ content }: { content: HomeContent["safer"] }) {
        never doing that work. The page's one section rhythm is the statement. */
     <section
       id="free-assessment"
+      {...edit}
       ref={container}
       className="flex items-center justify-center bg-forest-700 px-6 py-14 sm:py-20 lg:py-24"
     >

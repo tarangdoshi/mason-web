@@ -79,6 +79,7 @@ export default function PackageCard({
   /** h2 where the card sits under a page h1, h3 under a section h2. */
   headingLevel = 3,
   className = "",
+  editAttributes,
 }: {
   plan: ResolvedPlan;
   /** Comparison rows shared by both cards (from the Packages page settings). */
@@ -88,6 +89,8 @@ export default function PackageCard({
   tone?: Tone;
   headingLevel?: 2 | 3;
   className?: string;
+  /** `data-sanity` for Sanity Presentation (only passed while previewing drafts). */
+  editAttributes?: { "data-sanity"?: string };
 }) {
   const pkg = {
     name: plan.name,
@@ -105,6 +108,7 @@ export default function PackageCard({
 
   return (
     <div
+      {...editAttributes}
       /* Side by side (lg), both cards share the parent grid's six row tracks
          through subgrid, so header, price, description, the component list
          (and its top rule), outcome and CTA start at the same height in both

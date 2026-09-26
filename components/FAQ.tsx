@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -61,6 +63,7 @@ function Item({
 }
 
 export default function FAQ({ content }: { content: HomeContent["faq"] }) {
+  const edit = useEditProps(DOCS.faqs);
   const container = useRef<HTMLElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const displayFaqs = content.items.map((item) => ({ q: item.question, a: item.answer }));
@@ -96,6 +99,7 @@ export default function FAQ({ content }: { content: HomeContent["faq"] }) {
   return (
     <section
       id="faq"
+      {...edit}
       ref={container}
       /* No overflow-hidden: an ancestor with it becomes the scroll container
          for descendants, which silently kills the sticky header below. */

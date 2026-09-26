@@ -6,6 +6,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import ScrollRestoration from "@/components/ScrollRestoration";
 import BookingProvider from "@/components/BookingDialog";
 import SiteSettingsProvider from "@/components/SiteSettingsProvider";
+import EditModeProvider from "@/components/EditModeProvider";
 import DraftModeBanner from "@/components/DraftModeBanner";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { getPublicSiteContent, isPreviewingDrafts } from "@/lib/cms/load";
@@ -52,7 +53,7 @@ export default async function PublicLayout({children}: {children: React.ReactNod
  const { settings } = await getPublicSiteContent();
  const previewingDrafts = await isPreviewingDrafts();
  return <div className={`${archivo.variable} ${fraunces.variable} ${geist.variable} ${geistMono.variable} mason-public grain min-h-full bg-ink text-cream`}>
- <LaunchAnalytics /><SiteSettingsProvider value={settings}><SmoothScroll><ScrollRestoration /><BookingProvider>{children}</BookingProvider></SmoothScroll></SiteSettingsProvider>
+ <LaunchAnalytics /><EditModeProvider enabled={previewingDrafts}><SiteSettingsProvider value={settings}><SmoothScroll><ScrollRestoration /><BookingProvider>{children}</BookingProvider></SmoothScroll></SiteSettingsProvider></EditModeProvider>
  {previewingDrafts ? <><DraftModeBanner /><VisualEditing /></> : null}
  </div>;
 }

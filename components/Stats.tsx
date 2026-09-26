@@ -1,4 +1,6 @@
 import Reveal from "./Reveal";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import HighlightedText from "./HighlightedText";
 import type { HomeContent } from "@/lib/cms/model";
 
@@ -7,10 +9,12 @@ import type { HomeContent } from "@/lib/cms/model";
    below it. `prefix` carries a qualifier like "Up to" at a fraction of the
    size — inline rather than on its own line, so one card having it doesn't
    push its label out of step with the other three. */
-export default function Stats({ content }: { content: HomeContent["stats"] }) {
+export default async function Stats({ content }: { content: HomeContent["stats"] }) {
+  const edit = await serverEditProps({ ...DOCS.homepage, path: "evidenceSection" });
   const displayStats = content.cards;
   return (
-    <section id="why" className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-24">
+    <section id="why"
+      {...edit} className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-24">
       <Reveal className="mx-auto max-w-7xl px-6 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-2xl">

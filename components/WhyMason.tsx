@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -18,6 +20,7 @@ const dealRank = [0, 4, 1, 3, 5, 2]; // TL,TR,BR,BL first; TM,BM last
 const flightRot = [-9, 7, -6, 8, -4, 5]; // per-rank tilt while stacked
 
 export default function WhyMason({ content }: { content: HomeContent["why"] }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "whySection" });
   const ref = useRef<HTMLElement>(null);
   const displayReasons = content.items.map((item) => ({ title: item.title, copy: item.description, tag: item.tag }));
 
@@ -193,6 +196,7 @@ export default function WhyMason({ content }: { content: HomeContent["why"] }) {
   return (
     <section
       ref={ref}
+      {...edit}
       className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:min-h-screen lg:overflow-visible lg:py-0"
     >
       {/* lg padding lives here rather than on the section, because the section

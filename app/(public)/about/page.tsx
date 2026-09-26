@@ -6,6 +6,8 @@ import Reveal from "@/components/Reveal";
 import PhotoSlot from "@/components/PhotoSlot";
 import HighlightedText from "@/components/HighlightedText";
 import { getPublicSiteContent } from "@/lib/cms/load";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import { cmsMetadata } from "@/lib/cms/seo";
 
 /* Content comes from Sanity (Studio → About); published changes appear within a minute. */
@@ -32,11 +34,12 @@ export function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const { about } = await getPublicSiteContent();
+  const edit = await serverEditProps(DOCS.about);
   const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
   return (
     <>
       <Nav />
-      <main>
+      <main {...edit}>
         {/* ---- hero ---- */}
         <section className="mx-auto max-w-7xl px-6 pt-32 pb-8 lg:px-10 lg:pt-40 lg:pb-16">
           <p className="eyebrow mb-6">{about.hero.eyebrow}</p>

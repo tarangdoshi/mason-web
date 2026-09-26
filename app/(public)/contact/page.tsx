@@ -6,6 +6,8 @@ import Reveal from "@/components/Reveal";
 import ContactForm from "@/components/ContactForm";
 import HighlightedText from "@/components/HighlightedText";
 import { getPublicSiteContent } from "@/lib/cms/load";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
 import { cmsMetadata } from "@/lib/cms/seo";
 
 /* Content comes from Sanity (Contact & Support); published changes appear within a minute. */
@@ -23,6 +25,7 @@ export function generateMetadata(): Promise<Metadata> {
 export default async function ContactPage() {
   const { contactPage: page, settings } = await getPublicSiteContent();
   const { contact } = settings;
+  const edit = await serverEditProps({ ...DOCS.settings, path: "contactHeading" });
   const DETAILS: { title: string; lines: { text: string; href?: string }[] }[] = [
     { title: page.callLabel, lines: [{ text: contact.phoneDisplay, href: contact.phoneHref }] },
     { title: page.hoursLabel, lines: [{ text: contact.supportHours }] },
@@ -31,7 +34,7 @@ export default async function ContactPage() {
   return (
     <>
       <Nav />
-      <main>
+      <main {...edit}>
         {/* Page header — headline left, the promise right, as in the reference */}
         <section className="mx-auto max-w-7xl px-6 pt-32 pb-10 lg:px-10 lg:pt-40 lg:pb-14">
           <p className="eyebrow mb-5">{page.eyebrow}</p>
