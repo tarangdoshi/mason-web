@@ -6,6 +6,7 @@ import { packageFeature } from "./packageFeature";
 import { riskQuiz } from "./riskQuiz";
 import { siteSettings } from "./siteSettings";
 import { testimonial } from "./testimonial";
+import { aboutPage, faqs, gallery, packagesPage, seo } from "./pages";
 import { ctaFields, evidenceCard, faqItem, imageWithAlt, processStep, sectionHeader, seoFields } from "./objects";
 
 export const schemaTypes = [
@@ -23,5 +24,10 @@ export const schemaTypes = [
   doctor,
   galleryItem,
   siteSettings,
-  riskQuiz
+  riskQuiz,
+  faqs,
+  gallery,
+  packagesPage,
+  aboutPage,
+  seo
 ];

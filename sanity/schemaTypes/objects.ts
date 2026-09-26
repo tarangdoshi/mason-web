@@ -11,17 +11,14 @@ export const imageWithAlt = defineType({
       name: "alt",
       title: "Alt text",
       type: "string",
+      description: "Describe the photo for people using screen readers, e.g. “Grab bar fitted beside a shower”.",
       validation: (rule) => rule.required()
     }),
-    defineField({ name: "caption", title: "Caption", type: "string" }),
-    defineField({
-      name: "fallbackSrc",
-      title: "Fallback local image path",
-      type: "string",
-      description: "Used during migration before the image is uploaded to Sanity."
-    }),
-    defineField({ name: "label", title: "Label", type: "string" }),
-    defineField({ name: "objectPosition", title: "Object position", type: "string" })
+    // Set by the website for its own bundled photos; replaced by an upload.
+    defineField({ name: "fallbackSrc", title: "Website photo", type: "string", hidden: true }),
+    defineField({ name: "objectPosition", title: "Object position", type: "string", hidden: true }),
+    defineField({ name: "caption", title: "Caption", type: "string", hidden: true }),
+    defineField({ name: "label", title: "Label", type: "string", hidden: true })
   ]
 });
 

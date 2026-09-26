@@ -13,6 +13,8 @@ import type {
   VisualAsset,
   WhatWeDoSectionContent
 } from "../content/types";
+import { getPublicSiteContent } from "./cms/load";
+import type { PackagesContent, ResolvedComponent, ResolvedPlan } from "./cms/model";
 import { createSanityClient } from "../sanity/lib/client";
 import { urlForImage } from "../sanity/lib/image";
 import { siteContentQuery } from "../sanity/lib/queries";
@@ -263,10 +265,6 @@ export function applySanityHomepage(base: HomepageContent, homepage: SanityHomep
     next.hero = {
       ...next.hero,
       ...heroFields,
-      // These founder-approved words must reach Preview even while the live
-      // Sanity document still contains the prior headline and CTA.
-      heading: base.hero.heading,
-      primaryCta: base.hero.primaryCta,
       visual: {
         ...next.hero.visual,
         image: heroAfterVisual?.src || legacyHeroVisual?.src || next.hero.visual.image,
@@ -319,134 +317,53 @@ export function applySanityHomepage(base: HomepageContent, homepage: SanityHomep
     }
   }
 
-  // Package and inclusion language is a locked product requirement. Preserve
-  // editor-owned answers for other questions, while preventing an older
-  // published FAQ document from reintroducing retired inclusions before its
-  // content is edited. Base questions missing from CMS are retained as safe
-  // fallbacks so adding approved Prerna questions does not require a write
-  // migration before the public page can render them.
-  const lockedFaqQuestions = new Set([
-    "What does Mason Company do?",
-    "Do you renovate the entire bathroom?",
-    "What packages do you offer?",
-    "What is included in Standard?",
-    "What is included in Advanced?"
-  ]);
-  const baseFaqByQuestion = new Map(base.faqSection.items.map((item) => [item.question, item]));
-  const cmsFaqByQuestion = new Map(next.faqSection.items.map((item) => [item.question, item]));
-  const mergedFaqItems = base.faqSection.items.map((baseItem) => {
-    const cmsItem = cmsFaqByQuestion.get(baseItem.question);
-    return {
-      ...baseItem,
-      ...(cmsItem || {}),
-      answer: lockedFaqQuestions.has(baseItem.question) ? baseItem.answer : cmsItem?.answer || baseItem.answer
-    };
-  });
-  for (const cmsItem of next.faqSection.items) {
-    if (!baseFaqByQuestion.has(cmsItem.question)) {
-      mergedFaqItems.push(cmsItem);
-    }
-  }
-  next.faqSection = {
-    ...next.faqSection,
-    items: mergedFaqItems
-  };
-  // Advanced's 2-Year Safety AMC (annual visits for 2 years) is a
-  // founder-approved offer. A previously published CMS subtitle must not put
-  // retired check-up copy back on the public cards while the editor updates
-  // the document.
-  next.packagesSection.subtitle = base.packagesSection.subtitle;
-  next.processSection.primaryCta = base.processSection.primaryCta;
-  next.finalCtaSection.primaryCta = base.finalCtaSection.primaryCta;
   next.finalCtaSection.secondaryLabel = `Call ${PHONE_DISPLAY}`;
 
   return next;
 }
 
-export function applySanityPackages(content: HomepageContent, packages: SanityPackage[] | null | undefined, allFeatures: SanityFeature[] | null | undefined) {
-  const lockedPackages = (packages || [])
-    .filter((pkg) => pkg.code === "package-standard" || pkg.code === "package-advanced")
-    .filter((pkg) => pkg.name === "Standard" || pkg.name === "Advanced")
-    .sort((left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0));
-
-  if (!lockedPackages.length) {
-    return content;
-  }
-
-  const approvedFeatureIds = new Set(content.packagesSection.features.map((feature) => feature.id));
-  const toPublicFeature = (item: SanityFeature | null | undefined) =>
-    item?.publicLabel && item.key && approvedFeatureIds.has(item.key) ? toFeature(item) : null;
-  const baseFeatures = (allFeatures || []).map(toPublicFeature).filter((item): item is PackageFeatureItem => Boolean(item));
-  const planFeatures = lockedPackages.flatMap((pkg) => (pkg.includedFeatures || []).map(toPublicFeature).filter((item): item is PackageFeatureItem => Boolean(item)));
-
-  const plans: PackagePlanContent[] = lockedPackages.map((pkg, index) => {
-    const included = (pkg.includedFeatures || []).map(toPublicFeature).filter((item): item is PackageFeatureItem => Boolean(item));
-    const fallbackPlan = content.packagesSection.plans.find((plan) => plan.id === pkg.code);
-    const fallbackFeatureIds = fallbackPlan?.includedFeatureIds ?? [];
-    const includedFeatureIds =
-      included.length === fallbackFeatureIds.length && fallbackFeatureIds.every((id) => included.some((feature) => feature.id === id))
-        ? included.map((feature) => feature.id)
-        : fallbackFeatureIds;
-
-    return {
-      id: pkg.code!,
-      name: pkg.name as PackagePlanContent["name"],
-      price: fallbackPlan?.currentPrice || fallbackPlan?.price || pkg.currentPrice || pkg.name!,
-      referencePrice: pkg.referencePrice || fallbackPlan?.referencePrice,
-      currentPrice: fallbackPlan?.currentPrice || fallbackPlan?.price || pkg.currentPrice || undefined,
-      savings: pkg.savings || fallbackPlan?.savings || (index === 0 ? "Core package" : "Premium package"),
-      // Launch copy follows the approved shared kit while legacy CMS packages await cleanup.
-      bestFor: fallbackPlan?.bestFor || pkg.bestFor || undefined,
-      outcome: fallbackPlan?.outcome || pkg.outcome || undefined,
-      summary: fallbackPlan?.summary || fallbackPlan?.outcome,
-      badge: fallbackPlan?.badge || pkg.badge || undefined,
-      titleDescriptor: fallbackPlan?.titleDescriptor || pkg.titleDescriptor || undefined,
-      isFeatured: pkg.name === "Standard",
-      visual: toVisualAsset(pkg.visual, pkg.name || "Package visual", imageTransformSpecs.package) || fallbackPlan?.visual,
-      visualHighlights: fallbackPlan?.visualHighlights,
-      includedFeatureIds,
-      // The locked Standard and Advanced offers have no optional maintenance add-on.
-      // Keep the legacy API fields available elsewhere, but never surface legacy
-      // AMC references from an un-migrated CMS document.
-      availableAddOnIds: [],
-      ctaLabel: pkg.ctaLabel || fallbackPlan?.ctaLabel || `Book ${pkg.name}`
-    };
-  });
-
+/* Package plans and components for the legacy content shape (compare,
+   package detail and checkout pages). They come from the one canonical
+   resolver in lib/cms, so every page shows the same prices and kit. */
+export function toLegacyFeature(component: ResolvedComponent): PackageFeatureItem {
   return {
-    ...content,
-    packagesSection: {
-      ...content.packagesSection,
-      features: uniqueFeatures([...baseFeatures, ...planFeatures, ...content.packagesSection.features]).map((feature) =>
-        feature.id === "raised-toilet-seat"
-          ? content.packagesSection.features.find((approved) => approved.id === feature.id) || feature
-          : feature
-      ),
-      addOnFeatures: [],
-      plans
-    }
+    id: component.id,
+    label: component.title,
+    ...(component.description ? { description: component.description } : {}),
+    ...(component.quantity !== undefined ? { quantity: component.quantity } : {})
   };
 }
 
-export function applyFounderPackageOffer(content: HomepageContent): HomepageContent {
-  const approvedPlans = new Map(homepageContent.packagesSection.plans.map((plan) => [plan.id, plan]));
-  const raisedSeat = homepageContent.packagesSection.features.find((feature) => feature.id === "raised-toilet-seat")!;
+export function toLegacyPlan(plan: ResolvedPlan, visualSource?: PackagePlanContent): PackagePlanContent {
+  return {
+    id: plan.code,
+    name: plan.name,
+    price: plan.price,
+    currentPrice: plan.price,
+    ...(plan.referencePrice ? { referencePrice: plan.referencePrice } : {}),
+    savings: plan.savings,
+    bestFor: plan.bestFor,
+    outcome: plan.outcome,
+    summary: plan.outcome,
+    badge: plan.badge,
+    titleDescriptor: plan.titleDescriptor,
+    isFeatured: plan.isPopular,
+    ...(visualSource?.visual ? { visual: visualSource.visual } : {}),
+    visualHighlights: plan.visualHighlights,
+    includedFeatureIds: plan.componentIds,
+    availableAddOnIds: [],
+    ctaLabel: plan.ctaLabel
+  };
+}
+
+export function applyResolvedPackages(content: HomepageContent, packages: PackagesContent): HomepageContent {
   return {
     ...content,
     packagesSection: {
       ...content.packagesSection,
-      features: uniqueFeatures([...content.packagesSection.features, raisedSeat]).map((feature) =>
-        feature.id === raisedSeat.id ? raisedSeat : feature
-      ),
-      plans: content.packagesSection.plans.map((plan) => {
-        const approved = approvedPlans.get(plan.id);
-        return approved ? {
-          ...plan,
-          price: approved.currentPrice || approved.price,
-          currentPrice: approved.currentPrice,
-          includedFeatureIds: approved.includedFeatureIds
-        } : plan;
-      })
+      features: packages.components.map(toLegacyFeature),
+      addOnFeatures: [],
+      plans: packages.plans.map((plan) => toLegacyPlan(plan, content.packagesSection.plans.find((item) => item.id === plan.code)))
     }
   };
 }
@@ -477,22 +394,6 @@ function applySanityTestimonials(content: HomepageContent, testimonials: SanityT
         }
       }
     : content;
-}
-
-export function applyFounderTestimonialNames(content: HomepageContent): HomepageContent {
-  const fallback = homepageContent.testimonialsSection.items;
-  const items = Array.from({ length: Math.max(4, content.testimonialsSection.items.length) }, (_, index) => {
-    const item = content.testimonialsSection.items[index] || fallback[index];
-    const author = index === 0 || index === 1 || index === 3 ? fallback[index].author : item.author;
-    return {
-      ...item,
-      author,
-      // Launch is Goa only, so every published testimonial reads as Goa.
-      city: "Goa",
-      photo: item.photo && author !== item.author ? { ...item.photo, alt: author } : item.photo
-    };
-  });
-  return { ...content, testimonialsSection: { ...content.testimonialsSection, items } };
 }
 
 function applySanityDoctors(content: HomepageContent, doctors: SanityDoctor[] | null | undefined) {
@@ -620,14 +521,12 @@ async function fetchSanityContent(options: SiteContentFetchOptions = {}) {
 async function buildContent(base: HomepageContent, view: "homepage" | "compare-packages", options: SiteContentFetchOptions = {}) {
   const payload = await fetchSanityContent(options);
   if (!payload) {
-    return base;
+    return applyResolvedPackages(base, (await getPublicSiteContent()).packages);
   }
 
   let content = applySanityHomepage(base, payload.homepage, payload.siteSettings);
-  content = applySanityPackages(content, payload.packages, payload.packageFeatures);
-  content = applyFounderPackageOffer(content);
+  content = applyResolvedPackages(content, (await getPublicSiteContent()).packages);
   content = applySanityTestimonials(content, payload.testimonials);
-  content = applyFounderTestimonialNames(content);
   content = applySanityDoctors(content, payload.doctors);
   content = applySanityGallery(content, payload.gallery);
   content = applySanityRiskQuiz(content, payload.riskQuiz);
@@ -656,19 +555,16 @@ export async function getComparePackagesContentData(options: SiteContentFetchOpt
 }
 
 export async function getPackageCatalogEntryData(packageId?: string | null): Promise<PackageCatalogEntry | null> {
-  const content = await getComparePackagesContentData();
-  const section = content.packagesSection;
-  const plan = section.plans.find((item) => item.id === packageId);
-  if (!plan) {
-    return packageCatalog.find((entry) => entry.plan.id === packageId) ?? null;
-  }
-
+  const { packages, home } = await getPublicSiteContent();
+  const plan = packages.plans.find((item) => item.code === packageId);
+  if (!plan) return null;
+  const visualSource = comparePackagesContent.packagesSection.plans.find((item) => item.id === plan.code) ?? homepageContent.packagesSection.plans.find((item) => item.id === plan.code);
   return {
-    sectionTitle: section.title,
-    sectionSubtitle: section.subtitle,
-    plan,
-    features: section.features,
-    addOnFeatures: section.addOnFeatures ?? []
+    sectionTitle: home.packages.heading.text.replace(/\s*\n\s*/g, " "),
+    sectionSubtitle: home.packages.subtitle,
+    plan: toLegacyPlan(plan, visualSource),
+    features: packages.components.map(toLegacyFeature),
+    addOnFeatures: []
   };
 }
 

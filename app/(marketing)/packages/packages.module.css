@@ -248,3 +248,9 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* In-page anchor targets (e.g. #components). The page's scroll-padding
+   already clears the sticky-header offset; this adds a little breathing room. */
+.anchorSection {
+  scroll-margin-top: 1rem;
+}

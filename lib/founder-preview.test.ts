@@ -5,8 +5,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 const { JSDOM } = require("jsdom");
 import { homepageContent } from "../content/homepage.content";
-import { getPackageCatalogEntry, getIncludedFeatures } from "../content/package-catalog";
-import { packageCardFromPlan } from "../components/packages-data";
+import { fallbackPackages, fallbackHome } from "./cms/fallback";
+import { resolvePublicSite } from "./cms/resolve";
 import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
 
 Object.defineProperty(globalThis, "React", { value: React, configurable: true });
@@ -18,71 +18,60 @@ const Cta = require("../components/Cta.tsx").default as typeof import("../compon
 if (previousCssLoader) require.extensions[".css"] = previousCssLoader;
 else delete require.extensions[".css"];
 
+const cardProps = (plan: (typeof fallbackPackages.plans)[number], home: boolean) => ({
+  plan, rows: fallbackPackages.rows.map((row) => ({ ...row, label: row.label.replace("{count}", String(fallbackPackages.components.length)) })),
+  popularLabel: fallbackPackages.popularLabel, ctaLabel: home ? fallbackPackages.homeCardCta : fallbackPackages.pageCardCta, tone: home ? "green" as const : "paper" as const
+});
+
 test("package cards use context-specific CTA copy and retain each package destination", () => {
-  for (const plan of homepageContent.packagesSection.plans) {
-    const pkg = packageCardFromPlan(plan, 0);
-    const slug = plan.name.toLowerCase();
-    const home = new JSDOM(renderToStaticMarkup(React.createElement(PackageCard, { pkg, tone: "green" })));
-    const dedicated = new JSDOM(renderToStaticMarkup(React.createElement(PackageCard, { pkg, tone: "paper" })));
-    assert.equal(home.window.document.querySelector(`a[href="/packages/${slug}"]`)?.textContent?.trim(), "View Details");
+  for (const plan of fallbackPackages.plans) {
+    const home = new JSDOM(renderToStaticMarkup(React.createElement(PackageCard, cardProps(plan, true))));
+    const dedicated = new JSDOM(renderToStaticMarkup(React.createElement(PackageCard, cardProps(plan, false))));
+    assert.equal(home.window.document.querySelector(`a[href="/packages/${plan.slug}"]`)?.textContent?.trim(), "View Details");
     assert.equal(dedicated.window.document.querySelector('a[href="#book"]')?.textContent?.trim(), "Book Free Inspection");
-    assert.ok((home.window.document.body.textContent || "").includes(plan.currentPrice!));
+    assert.ok((home.window.document.body.textContent || "").includes(plan.price));
     home.window.close();
     dedicated.window.close();
   }
 });
 
 test("both packages include one Raised Toilet Seat among 13 component categories", () => {
-  for (const plan of homepageContent.packagesSection.plans) {
-    const entry = getPackageCatalogEntry(plan.id);
-    assert.ok(entry);
-    assert.equal(getIncludedFeatures(entry).length, 13);
-    const raisedSeat = getIncludedFeatures(entry).find((feature) => feature.id === "raised-toilet-seat");
-    assert.equal(raisedSeat?.label, "Raised Toilet Seat");
+  const { packages } = resolvePublicSite(null);
+  for (const plan of packages.plans) {
+    assert.equal(plan.componentIds.length, 13);
+    const raisedSeat = packages.components.find((component) => component.id === "raised-toilet-seat");
+    assert.equal(raisedSeat?.title, "Raised Toilet Seat");
     assert.equal(raisedSeat?.quantity, 1);
   }
 });
 
-test("founder copy and testimonial names are exact", () => {
-  assert.equal(homepageContent.hero.heading, "Most falls happen in the bathroom. We make sure yours don't.");
-  assert.equal(homepageContent.faqSection.items.find((item) => item.question === "Do you renovate the entire bathroom?")?.answer,
+test("founder copy and testimonial names are exact in the fallback content", () => {
+  assert.equal(fallbackHome.hero.heading.text, "Most falls happen in the bathroom. We make sure yours don't.");
+  assert.equal(fallbackHome.faq.items.find((item) => item.question === "Do you renovate the entire bathroom?")?.answer,
     "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation.");
-  assert.deepEqual(homepageContent.testimonialsSection.items.slice(0, 4).map((item) => item.author),
-    ["Maria Pereira", "Rohan Naik", "Neha Shah", "Karl Fernandes"]);
+  assert.deepEqual(fallbackHome.testimonials.items.map((item) => item.name), ["Maria Pereira", "Rohan Naik", "Neha Shah", "Karl Fernandes"]);
+  assert.deepEqual(fallbackHome.testimonials.items.map((item) => item.city), ["Goa", "Goa", "Goa", "Goa"]);
 });
 
-test("older CMS copy cannot override founder-approved hero, FAQ or testimonial names", async () => {
-  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "testproject";
-  const { applySanityHomepage, applyFounderTestimonialNames } = await import("./site-content");
-  const withOldCms = applySanityHomepage(homepageContent, {
-    hero: { heading: "Previous title", primaryCta: "Previous CTA" },
-    processSection: { ...homepageContent.processSection, primaryCta: "Book a Safety Visit" },
-    faqSection: {
-      ...homepageContent.faqSection,
-      items: homepageContent.faqSection.items.map((item) => item.question === "Do you renovate the entire bathroom?"
-        ? { ...item, answer: "Previous answer" } : item)
-    },
-    testimonialsSection: {
-      ...homepageContent.testimonialsSection,
-      items: homepageContent.testimonialsSection.items.map((item, index) => ({ ...item, author: `Old name ${index + 1}`, city: "Delhi" }))
-    }
-  }, null);
-  const approved = applyFounderTestimonialNames(withOldCms);
-  assert.equal(approved.hero.heading, homepageContent.hero.heading);
-  assert.equal(approved.hero.primaryCta, "Book Free Inspection");
-  assert.equal(approved.processSection.primaryCta, "Book Free Inspection");
-  assert.equal(approved.faqSection.items.find((item) => item.question === "Do you renovate the entire bathroom?")?.answer,
-    homepageContent.faqSection.items.find((item) => item.question === "Do you renovate the entire bathroom?")?.answer);
-  assert.deepEqual(approved.testimonialsSection.items.slice(0, 4).map((item) => item.author),
-    ["Maria Pereira", "Rohan Naik", "Old name 3", "Karl Fernandes"]);
-  assert.deepEqual(approved.testimonialsSection.items.map((item) => item.city), approved.testimonialsSection.items.map(() => "Goa"));
+test("published CMS values win over code fallbacks (no founder locks)", () => {
+  const site = resolvePublicSite({
+    homepage: { hero: { heading: "New Founder Hero", headingHighlights: ["Founder"], primaryCta: "Start here" }, processSection: { primaryCta: "Get started" } },
+    faqs: { items: [{ question: "Do you renovate the entire bathroom?", answer: "Edited answer" }] },
+    testimonials: [{ name: "New Customer", relation: "Son", city: "Panaji", quote: "Edited quote" }]
+  });
+  assert.deepEqual(site.home.hero.heading, { text: "New Founder Hero", highlights: ["Founder"] });
+  assert.equal(site.home.hero.primaryCta, "Start here");
+  assert.equal(site.home.process.ctaLabel, "Get started");
+  assert.deepEqual(site.home.faq.items, [{ question: "Do you renovate the entire bathroom?", answer: "Edited answer" }]);
+  assert.deepEqual(site.home.testimonials.items, [{ name: "New Customer", relation: "Son", city: "Panaji", quote: "Edited quote" }]);
 });
 
-test("form notice is the exact 8px legal sentence with only the policy names linked", () => {
+test("form notice is the exact 10px legal sentence with only the policy names linked", () => {
   const dom = new JSDOM(renderToStaticMarkup(React.createElement(LeadPrivacyNotice)));
   const notice = dom.window.document.querySelector("p");
   assert.equal(notice?.textContent, "By submitting, you agree to our Privacy Policy and Terms.");
-  assert.equal(notice?.style.fontSize, "0.5rem");
+  assert.equal(notice?.style.fontSize, "0.625rem");
+  assert.equal(notice?.style.lineHeight, "1.4");
   const links = Array.from((notice?.querySelectorAll("a") || []) as ArrayLike<HTMLAnchorElement>, (link) => [link.textContent, link.getAttribute("href")]);
   assert.deepEqual(links, [["Privacy Policy", "/privacy"], ["Terms", "/terms"]]);
   dom.window.close();
@@ -134,8 +123,8 @@ test("homepage View Details reports select_package with the current selling pric
   Object.defineProperty(globalThis, "document", { configurable: true, value: { referrer: "", title: "Mason Company" } });
   try {
     for (const [name, expectedPrice] of [["Standard", 29999], ["Advanced", 36999]] as const) {
-      const plan = homepageContent.packagesSection.plans.find((item) => item.name === name)!;
-      const cta = findCta(PackageCard({ pkg: packageCardFromPlan(plan, 0), tone: "green" }));
+      const plan = fallbackPackages.plans.find((item) => item.name === name)!;
+      const cta = findCta(PackageCard(cardProps(plan, true)));
       assert.equal(cta?.props.href, `/packages/${name.toLowerCase()}`);
       // Render the real Cta so its hooks run, then fire the link's own click handler.
       let link: React.ReactElement<{ onClick?: (event: unknown) => void }> | null = null;
@@ -158,11 +147,10 @@ const AMC_SHORT = "2-Year Safety AMC Included";
 const AMC_DETAIL = "Includes annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.";
 
 test("Advanced is described as a 2-Year Safety AMC with annual visits, everywhere it is shown", () => {
-  const { PACKAGES, PACKAGE_ROWS } = require("../components/packages-data.ts") as typeof import("../components/packages-data");
-  const advancedCard = PACKAGES.find((pkg) => pkg.name === "Advanced")!;
+  const advancedCard = fallbackPackages.plans.find((plan) => plan.name === "Advanced")!;
   assert.equal(advancedCard.badge, AMC_SHORT);
   assert.equal(advancedCard.bestFor, AMC_DETAIL);
-  assert.deepEqual(PACKAGE_ROWS.filter((row) => row.advanced && !row.standard).map((row) => row.label), [AMC_SHORT]);
+  assert.deepEqual(fallbackPackages.rows.filter((row) => row.advanced && !row.standard).map((row) => row.label), [AMC_SHORT]);
   const advancedPlan = homepageContent.packagesSection.plans.find((plan) => plan.name === "Advanced")!;
   assert.equal(advancedPlan.badge, AMC_SHORT);
   assert.equal(advancedPlan.bestFor, AMC_DETAIL);
@@ -175,7 +163,7 @@ test("Advanced is described as a 2-Year Safety AMC with annual visits, everywher
   // Wording that implies a single visit, a mere check-up, or the retired first-year cover.
   const retired = /check-?up|first year|1-year|one (safety |follow-up )?visit (in|within|during|after)|only one visit|two years on|two years of cover/i;
   for (const source of [
-    "../components/packages-data.ts", "../components/FAQ.tsx", "../components/Packages.tsx", "../content/homepage.content.ts",
+    "../lib/cms/fallback.ts", "../components/FAQ.tsx", "../components/Packages.tsx", "../content/homepage.content.ts",
     "../content/compare-packages.content.ts", "../app/(marketing)/compare-packages/compare-packages-view.tsx",
     "../app/(marketing)/compare-packages/page.tsx", "../app/(marketing)/checkout/components/checkout-experience.tsx",
     "../app/(marketing)/packages/[slug]/page.tsx", "../app/(public)/packages/page.tsx"
@@ -185,11 +173,10 @@ test("Advanced is described as a 2-Year Safety AMC with annual visits, everywher
 });
 
 test("Packages page heading highlights Free, not inspection", () => {
+  const { packagesPage } = resolvePublicSite(null);
+  assert.deepEqual(packagesPage.heading, { text: "Book a free bathroom inspection.", highlights: ["free"] });
   const source = readFileSync(new URL("../app/(public)/packages/page.tsx", import.meta.url), "utf8");
-  const heading = source.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)![1];
-  assert.match(heading, /<span className="accent-word">free<\/span>/);
-  assert.doesNotMatch(heading, /<span[^>]*>\s*inspection/);
-  assert.equal(heading.replace(/<[^>]+>|\{" "\}/g, " ").replace(/\s+/g, " ").trim(), "Book a free bathroom inspection.");
+  assert.match(source, /<HighlightedText value=\{page\.heading\} \/>/);
 });
 
 test("customer phone fields show Mason's number only as an empty-field example", () => {
@@ -203,8 +190,7 @@ test("customer phone fields show Mason's number only as an empty-field example",
 });
 
 test("Raised Toilet Seat shows a quantity of 1 and other quantities are unchanged", () => {
-  const { KIT } = require("../components/kit.ts") as typeof import("../components/kit");
-  assert.deepEqual(KIT.map((item) => [item.id, item.qty]), [
+  assert.deepEqual(fallbackPackages.components.map((item) => [item.id, item.quantity]), [
     ["vertical-grab-bars", 3], ["angled-grab-bar", 1], ["folding-bar", 1], ["anti-slip-coating", 1],
     ["anti-slip-mat-shower", 1], ["anti-slip-mat-post-shower", 1], ["shower-stool", 1], ["two-way-lock", 1],
     ["corner-safety", 1], ["drainage-solution", 4], ["slippers-one", 1], ["total-support-solution", 1],
@@ -212,8 +198,7 @@ test("Raised Toilet Seat shows a quantity of 1 and other quantities are unchange
   ]);
   // The Packages page falls back to "Included" only for a component without a
   // quantity, so every canonical component must carry one.
-  assert.ok(homepageContent.packagesSection.features.every((feature) => typeof feature.quantity === "number"));
-  assert.equal(homepageContent.packagesSection.features.find((feature) => feature.id === "raised-toilet-seat")?.quantity, 1);
+  assert.ok(fallbackPackages.components.every((component) => typeof component.quantity === "number"));
 });
 
 test("old form legal copy is gone from every customer form", () => {
@@ -241,7 +226,7 @@ test("customer support email and hours are the founder-approved values everywher
 
   const stale = /care@masoncompany\.in|Mon\s*-\s*Sat|9\s?am|saturday|sunday|weekend|24\s*\/\s*7|24x7/i;
   for (const surface of ["../components/contact-details.ts", "../components/legal-data.ts", "../components/Footer.tsx",
-    "../app/(public)/contact/page.tsx", "../components/FAQ.tsx", "../content/homepage.content.ts"]) {
+    "../app/(public)/contact/page.tsx", "../components/FAQ.tsx", "../content/homepage.content.ts", "../lib/cms/fallback.ts"]) {
     assert.doesNotMatch(readFileSync(new URL(surface, import.meta.url), "utf8"), stale, surface);
   }
 });

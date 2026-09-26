@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useRef, useState } from "react";
 import Reveal from "./Reveal";
-import { GALLERY } from "./gallery-data";
-import type { TransformationGallerySectionContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { CmsImage, HomeContent } from "@/lib/cms/model";
 
-function BeforeAfter() {
+function BeforeAfter({ before, after }: { before: CmsImage; after: CmsImage }) {
   const [pos, setPos] = useState(52);
   const [cursor, setCursor] = useState({ x: 0, y: 0, show: false });
   const ref = useRef<HTMLDivElement>(null);
@@ -88,8 +90,8 @@ function BeforeAfter() {
       </div>
       {/* after (color) */}
       <Image
-        src="/prerna/images/bath-1.jpg"
-        alt="After the Mason safety upgrade"
+        src={after.src}
+        alt={after.alt}
         fill
         draggable={false}
         sizes="(max-width: 1024px) 100vw, 66vw"
@@ -106,8 +108,8 @@ function BeforeAfter() {
         style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
       >
         <Image
-          src="/prerna/images/bath-1.jpg"
-          alt="Before the Mason safety upgrade"
+          src={before.src}
+          alt={before.alt}
           fill
           draggable={false}
           sizes="(max-width: 1024px) 100vw, 66vw"
@@ -150,11 +152,13 @@ function el(e: React.PointerEvent) {
 function Tile({
   img,
   label,
+  alt,
   className,
   sizes,
 }: {
   img: string;
   label: string;
+  alt: string;
   className: string;
   sizes: string;
 }) {
@@ -164,7 +168,7 @@ function Tile({
     >
       <Image
         src={img}
-        alt={label}
+        alt={alt || label}
         fill
         sizes={sizes}
         className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -174,20 +178,22 @@ function Tile({
   );
 }
 
-export default function Transformations({ content }: { content?: TransformationGallerySectionContent }) {
+export default function Transformations({ content }: { content: HomeContent["transformations"] }) {
+  const edit = useEditProps(DOCS.gallery);
   return (
     <section
       id="transformations"
+      {...edit}
       className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-28"
     >
       <Reveal className="mx-auto max-w-7xl px-6 lg:px-10">
         <div className="max-w-2xl">
-          <p className="reveal eyebrow mb-5">Transformations</p>
+          <p className="reveal eyebrow mb-5">{content.eyebrow}</p>
           <h2 className="reveal h-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-            {content?.title || <>A <span className="accent-word">reassurance</span>. Not a renovation.</>}
+            <HighlightedText value={content.heading} />
           </h2>
           <p className="reveal mt-3 text-lg leading-relaxed text-cream-dim lg:mt-6">
-            {content?.subtitle || "We make bathrooms safer through thoughtful additions - grip, balance, comfort, ease. Drag to see the difference."}
+            {content.subtitle}
           </p>
         </div>
 
@@ -199,13 +205,15 @@ export default function Transformations({ content }: { content?: TransformationG
             to the slider full-width over a 2×2 of photos. */}
         <div className="reveal mt-5 grid grid-cols-2 gap-4 sm:gap-6 lg:mt-12 lg:aspect-[5/4] lg:grid-cols-3 lg:grid-rows-2">
           <div className="col-span-2 lg:row-start-1">
-            <BeforeAfter />
+            <BeforeAfter before={content.sliderBefore} after={content.sliderAfter} />
           </div>
 
-          {GALLERY.map((g, i) => (
+          {content.tiles.map((g, i) => (
             <Tile
-              key={g.label}
-              {...g}
+              key={`${g.label}-${i}`}
+              img={g.image.src}
+              label={g.label}
+              alt={g.image.alt}
               className={`aspect-[3/4] lg:aspect-auto lg:h-full ${
                 i === 0 ? "lg:col-start-3 lg:row-start-1" : "lg:row-start-2"
               }`}

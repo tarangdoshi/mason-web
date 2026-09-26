@@ -1,116 +1,84 @@
 import { defineField, defineType } from "sanity";
 import { cmsImageSpecs, defineGuidedImageField } from "./image-guidance";
+import { legacy, plainList } from "./fields";
 
-const lockedPackageNames = ["Standard", "Advanced"];
-const lockedPackageCodes = ["package-standard", "package-advanced"];
-const expectedPackageNamesByCode: Record<string, string> = {
-  "package-standard": "Standard",
-  "package-advanced": "Advanced"
-};
-const lockedPricesByCode: Record<string, { referencePrice: string; currentPrice: string }> = {
-  "package-standard": { referencePrice: "₹35,000", currentPrice: "₹29,999" },
-  "package-advanced": { referencePrice: "₹44,000", currentPrice: "₹36,999" }
-};
+/* Standard and Advanced. The package name and code are identifiers used by
+   analytics and the CRM, so they are read-only here; everything customers read
+   — including the price — is editable. */
+
+const MIN_PRICE = 1000;
+const MAX_PRICE = 10_000_000;
+
+const priceRule = (rule: import("sanity").NumberRule) => rule.integer().min(MIN_PRICE).max(MAX_PRICE);
 
 export const packageSchema = defineType({
   name: "package",
   title: "Package",
   type: "document",
+  groups: [
+    { name: "content", title: "Package", default: true },
+    { name: "price", title: "Price" },
+    { name: "components", title: "Components" }
+  ],
   fields: [
+    defineField({ name: "name", title: "Package name", type: "string", readOnly: true, group: "content", description: "Fixed — the name is used by analytics and the CRM." }),
+    defineField({ name: "code", title: "Package code", type: "string", readOnly: true, hidden: true }),
+    defineField({ name: "badge", title: "Badge", type: "string", group: "content", description: "Short label, e.g. “2-Year Safety AMC Included”." }),
+    defineField({ name: "titleDescriptor", title: "Short descriptor", type: "string", group: "content" }),
     defineField({
-      name: "code",
-      title: "Package code",
-      type: "string",
-      options: { list: lockedPackageCodes },
+      name: "bestFor",
+      title: "Description",
+      type: "text",
+      rows: 3,
+      group: "content",
+      description: "Shown under the price on the cards and package page."
+    }),
+    defineField({ name: "outcome", title: "Outcome line", type: "text", rows: 2, group: "content" }),
+    defineField({ name: "isFeatured", title: "Show the “Most popular” badge", type: "boolean", group: "content" }),
+    plainList("visualHighlights", "Highlight chips", "Short phrases shown on the package page.", { group: "content" }),
+    defineField({
+      name: "priceInr",
+      title: "Price (₹)",
+      type: "number",
+      group: "price",
+      description:
+        "Numbers only, e.g. 29999. Used everywhere the price appears: cards, package page, checkout and analytics. The team still confirms the final amount before sending a payment link.",
+      validation: (rule) => priceRule(rule).required()
+    }),
+    defineField({
+      name: "referencePriceInr",
+      title: "Struck-through price (₹)",
+      type: "number",
+      group: "price",
+      description: "Optional. Shown crossed out next to the price. Must be higher than the price; leave empty to show no struck-through price.",
       validation: (rule) =>
-        rule
-          .required()
-          .custom((value, context) => {
-            if (!value || !lockedPackageCodes.includes(value)) {
-              return "Use package-standard or package-advanced.";
-            }
-            const packageName = context.document?.name;
-            if (typeof packageName === "string" && expectedPackageNamesByCode[value] !== packageName) {
-              return `${value} must use the ${expectedPackageNamesByCode[value]} package name.`;
-            }
-            return true;
-          })
+        priceRule(rule).custom((value, context) => {
+          const price = (context.document as { priceInr?: number } | undefined)?.priceInr;
+          if (typeof value !== "number" || typeof price !== "number") return true;
+          return value > price ? true : "The struck-through price must be higher than the price.";
+        })
     }),
-    defineField({
-      name: "name",
-      title: "Package name",
-      type: "string",
-      options: { list: lockedPackageNames },
-      validation: (rule) =>
-        rule
-          .required()
-          .custom((value, context) => {
-            if (!value || !lockedPackageNames.includes(value)) {
-              return "Package name must be Standard or Advanced.";
-            }
-            const packageCode = context.document?.code;
-            if (typeof packageCode === "string" && expectedPackageNamesByCode[packageCode] !== value) {
-              return `${value} must use the ${value === "Standard" ? "package-standard" : "package-advanced"} package code.`;
-            }
-            return true;
-          })
-    }),
-    defineField({ name: "badge", title: "Badge", type: "string" }),
-    defineField({ name: "titleDescriptor", title: "Title descriptor", type: "string" }),
-    defineField({ name: "bestFor", title: "Best for", type: "text", rows: 3 }),
-    defineField({ name: "outcome", title: "Outcome", type: "text", rows: 3 }),
-    defineField({ name: "summary", title: "Summary", type: "text", rows: 3 }),
-    defineField({ name: "ctaLabel", title: "CTA label", type: "string" }),
-    defineField({ name: "priceLabel", title: "Price label", type: "string" }),
-    defineField({
-      name: "referencePrice",
-      title: "Reference / list price",
-      type: "string",
-      description: "Displayed struck through on public package cards.",
-      validation: (rule) => rule.required().custom((value, context) => {
-        const code = context.document?.code;
-        return typeof code === "string" && lockedPricesByCode[code]?.referencePrice === value
-          ? true
-          : "Use ₹35,000 for Standard or ₹44,000 for Advanced.";
-      })
-    }),
-    defineField({
-      name: "currentPrice",
-      title: "Current price",
-      type: "string",
-      description: "Actual package price shown prominently and used for the package request.",
-      validation: (rule) => rule.required().custom((value, context) => {
-        const code = context.document?.code;
-        return typeof code === "string" && lockedPricesByCode[code]?.currentPrice === value
-          ? true
-          : "Use ₹29,999 for Standard or ₹36,999 for Advanced.";
-      })
-    }),
-    defineField({ name: "followUpLabel", title: "Included follow-up", type: "string", description: "For Advanced: 2-Year Safety AMC Included (annual safety visits for 2 years after installation)." }),
-    defineField({ name: "savings", title: "Savings / tier label", type: "string" }),
-    defineField({ name: "isFeatured", title: "Featured", type: "boolean", initialValue: false }),
-    defineField({ name: "sortOrder", title: "Sort order", type: "number", initialValue: 0 }),
-    defineGuidedImageField({
-      name: "visual",
-      title: "Visual",
-      spec: cmsImageSpecs.package,
-      description: "Used on package cards and checkout summaries. Keep important detail near the focal point."
-    }),
-    defineField({ name: "visualHighlights", title: "Visual highlights", type: "array", of: [{ type: "string" }] }),
     defineField({
       name: "includedFeatures",
-      title: "Included features",
+      title: "Components included",
       type: "array",
+      group: "components",
+      description: "Drag to reorder. Edit a component’s name, quantity or photo under Package Components — changes appear on both packages.",
       of: [{ type: "reference", to: [{ type: "packageFeature" }] }]
     }),
-    defineField({
-      name: "availableAddOns",
-      title: "Available add-ons",
-      type: "array",
-      of: [{ type: "reference", to: [{ type: "packageFeature" }] }]
-    })
+    legacy(defineField({ name: "ctaLabel", title: "CTA label", type: "string" })),
+    legacy(defineField({ name: "savings", title: "Savings / tier label", type: "string" })),
+    legacy(defineField({ name: "summary", title: "Summary", type: "text" })),
+    legacy(defineField({ name: "priceLabel", title: "Price label", type: "string" })),
+    legacy(defineField({ name: "referencePrice", title: "Reference price (old text field)", type: "string" })),
+    legacy(defineField({ name: "currentPrice", title: "Current price (old text field)", type: "string" })),
+    legacy(defineField({ name: "followUpLabel", title: "Included follow-up", type: "string" })),
+    legacy(defineField({ name: "sortOrder", title: "Sort order", type: "number" })),
+    legacy(defineGuidedImageField({ name: "visual", title: "Visual", spec: cmsImageSpecs.package })),
+    legacy(defineField({ name: "availableAddOns", title: "Available add-ons", type: "array", of: [{ type: "reference", to: [{ type: "packageFeature" }] }] }))
   ],
   preview: {
-    select: { title: "name", subtitle: "code" }
+    select: { title: "name", price: "priceInr" },
+    prepare: ({ title, price }) => ({ title, subtitle: typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : undefined })
   }
 });

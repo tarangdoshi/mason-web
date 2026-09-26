@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Cta from "./Cta";
 import AnalyticsViewTracker from "../app/components/analytics-view-tracker";
-import { PACKAGE_ROWS, type Package } from "./packages-data";
+import type { PackageRow, ResolvedPlan } from "@/lib/cms/model";
 
 /* One package, stated as a card. Shared by the homepage section and /packages
    so the two can't drift — the same offer described two different ways was the
@@ -71,17 +71,36 @@ function skin(tone: Tone, featured: boolean): Skin {
 }
 
 export default function PackageCard({
-  pkg,
+  plan,
+  rows,
+  popularLabel,
+  ctaLabel,
   tone = "paper",
   /** h2 where the card sits under a page h1, h3 under a section h2. */
   headingLevel = 3,
   className = "",
+  editAttributes,
 }: {
-  pkg: Package;
+  plan: ResolvedPlan;
+  /** Comparison rows shared by both cards (from the Packages page settings). */
+  rows: PackageRow[];
+  popularLabel: string;
+  ctaLabel: string;
   tone?: Tone;
   headingLevel?: 2 | 3;
   className?: string;
+  /** `data-sanity` for Sanity Presentation (only passed while previewing drafts). */
+  editAttributes?: { "data-sanity"?: string };
 }) {
+  const pkg = {
+    name: plan.name,
+    advanced: plan.code === "package-advanced",
+    popular: plan.isPopular,
+    bestFor: plan.bestFor,
+    outcome: plan.outcome,
+    currentPrice: plan.price,
+    referencePrice: plan.referencePrice
+  };
   const Heading = `h${headingLevel}` as "h2" | "h3";
   const s = skin(tone, pkg.popular);
   const light = tone === "green" && !pkg.popular;
@@ -89,7 +108,13 @@ export default function PackageCard({
 
   return (
     <div
-      className={`flex flex-col rounded-3xl p-7 lg:p-9 ${s.card} ${className}`}
+      {...editAttributes}
+      /* Side by side (lg), both cards share the parent grid's six row tracks
+         through subgrid, so header, price, description, the component list
+         (and its top rule), outcome and CTA start at the same height in both
+         cards whatever the copy length. Stacked below lg, each card is a plain
+         column with its natural height. */
+      className={`flex flex-col rounded-3xl p-7 lg:row-span-6 lg:grid lg:grid-rows-subgrid lg:gap-y-0 lg:p-9 ${s.card} ${className}`}
     >
       <AnalyticsViewTracker event="view_package" packageName={pkg.name} packagePrice={pkg.currentPrice} />
       {/* items-center, not items-baseline: the pill has its own padding, so
@@ -105,7 +130,7 @@ export default function PackageCard({
         </Heading>
         {pkg.popular && (
           <span className="rounded-full bg-forest-700 px-3 py-1.5 text-[0.7rem] font-semibold leading-none text-sand-100">
-            Most popular
+            {popularLabel}
           </span>
         )}
       </div>
@@ -124,7 +149,7 @@ export default function PackageCard({
       {/* The first row and the one that differs carry the emphasis, the middle
           rows recede, an absence is muted rather than struck through. */}
       <ul className={`mt-7 space-y-3 border-t pt-7 ${s.rule}`}>
-        {PACKAGE_ROWS.map((row, i) => {
+        {rows.map((row, i) => {
           const on = pkg.advanced ? row.advanced : row.standard;
           const differentiator = row.standard !== row.advanced;
           return (
@@ -163,7 +188,7 @@ export default function PackageCard({
               >
                 {row.label}
                 {onHome && i === 0 && (
-                  <Link href="/packages" className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
+                  <Link href={`/packages/${plan.slug}#components`} className={`ml-2 inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold underline-offset-2 hover:underline ${s.mark}`}>
                     Learn more <span aria-hidden="true">&rarr;</span>
                   </Link>
                 )}
@@ -181,9 +206,9 @@ export default function PackageCard({
       </p>
 
       {/* mt-auto so the buttons sit on one line however the copy above wraps */}
-      <div className="mt-auto pt-8">
-        <Cta packageName={pkg.name} packagePrice={pkg.currentPrice} href={onHome ? `/packages/${pkg.name.toLowerCase()}` : "#book"} size="block" variant={s.cta}>
-          {onHome ? "View Details" : "Book Free Inspection"}
+      <div className="mt-auto pt-8 lg:mt-0 lg:self-end">
+        <Cta packageName={pkg.name} packagePrice={pkg.currentPrice} href={onHome ? `/packages/${plan.slug}` : "#book"} size="block" variant={s.cta}>
+          {ctaLabel}
         </Cta>
       </div>
     </div>

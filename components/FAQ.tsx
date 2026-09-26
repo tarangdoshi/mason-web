@@ -1,67 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import type { FaqSectionContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-const FAQS = [
-  {
-    q: "What does Mason Company do?",
-    a: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support.",
-  },
-  {
-    q: "Who is Mason Company for?",
-    a: "Mason is designed for families with ageing parents, seniors living independently, people with balance concerns, and households that want to reduce bathroom risk before an incident happens.",
-  },
-  {
-    q: "Do you renovate the entire bathroom?",
-    a: "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation.",
-  },
-  {
-    q: "Will the bathroom look clinical?",
-    a: "No. Mason’s solution is designed to feel premium and home-first. The goal is to improve safety while preserving the comfort and dignity of the space.",
-  },
-  {
-    q: "What packages do you offer?",
-    a: "Mason currently offers two packages: Standard at ₹29,999 and Advanced at ₹36,999. Both install exactly the same complete kit. Advanced also includes a 2-Year Safety AMC: annual safety visits for 2 years after installation.",
-  },
-  {
-    q: "What is included in Standard?",
-    a: "The complete 13-component kit includes three vertical grab bars, one L / angled bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included.",
-  },
-  {
-    q: "What is included in Advanced?",
-    a: "Exactly the same 13-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required.",
-  },
-  {
-    q: "Can I buy only one product, like a grab bar?",
-    a: "Mason is designed as a package-first service. We focus on complete bathroom safety coverage rather than isolated product installation.",
-  },
-  {
-    q: "How does booking work?",
-    a: "Leave your details and a Mason advisor will call to arrange the visit.",
-  },
-  {
-    q: "How can I pay?",
-    a: "Our team will confirm the package and payment details with you after your visit request.",
-  },
-  {
-    q: "Can I cancel after booking?",
-    a: "Yes. Full refund any time before installation.",
-  },
-  {
-    q: "Do you inspect the bathroom before installation?",
-    a: "Yes. Depending on location and logistics, Mason may complete a virtual or physical inspection before installation.",
-  },
-  {
-    q: "Who installs the package?",
-    a: "Mason-trained technicians handle the installation, site verification, fitting, and final handover.",
-  },
-];
 
 function Item({
   q,
@@ -114,21 +62,11 @@ function Item({
   );
 }
 
-function renderTitle(title?: string) {
-  if (!title || title === "Questions, answered") {
-    return (
-      <>
-        Questions, <span className="font-serif font-normal italic text-forest-700">answered</span>
-      </>
-    );
-  }
-  return title;
-}
-
-export default function FAQ({ content }: { content?: FaqSectionContent }) {
+export default function FAQ({ content }: { content: HomeContent["faq"] }) {
+  const edit = useEditProps(DOCS.faqs);
   const container = useRef<HTMLElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const displayFaqs = content?.items?.length ? content.items.map((item) => ({ q: item.question, a: item.answer })) : FAQS;
+  const displayFaqs = content.items.map((item) => ({ q: item.question, a: item.answer }));
 
   useGSAP(
     () => {
@@ -161,6 +99,7 @@ export default function FAQ({ content }: { content?: FaqSectionContent }) {
   return (
     <section
       id="faq"
+      {...edit}
       ref={container}
       /* No overflow-hidden: an ancestor with it becomes the scroll container
          for descendants, which silently kills the sticky header below. */
@@ -173,13 +112,13 @@ export default function FAQ({ content }: { content?: FaqSectionContent }) {
             item has nothing to travel within. top clears the fixed nav. */}
         <div className="faq-reveal lg:sticky lg:top-28 lg:self-start lg:pt-2">
           <span className="block font-sans text-sm font-bold uppercase tracking-[0.35em] text-forest-700">
-            FAQ
+            {content.eyebrow}
           </span>
           <h2 className="mt-4 font-display text-3xl font-extrabold leading-[1.05] tracking-tight text-cream sm:text-4xl lg:text-5xl">
-            {renderTitle(content?.title)}
+            <HighlightedText value={content.heading} accentClassName="font-serif font-normal italic text-forest-700" />
           </h2>
           <p className="mt-4 max-w-sm text-base leading-relaxed text-sand-600">
-            {content?.subtitle || "Everything about packages, booking, and installation. Still unsure? Request a visit and we'll talk it through."}
+            {content.subtitle}
           </p>
         </div>
 
@@ -187,7 +126,7 @@ export default function FAQ({ content }: { content?: FaqSectionContent }) {
         <div className="faq-reveal">
           {displayFaqs.map((item, i) => (
             <Item
-              key={item.q}
+              key={`${i}-${item.q}`}
               q={item.q}
               a={item.a}
               open={openIndex === i}

@@ -1,43 +1,34 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import Cta from "./Cta";
-import type { HeroContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
-/* The full-bleed backdrop. A real Mason install — a fitter fixing a grab bar
-   while the parents look on. Two crops of the same scene, art-directed by a
-   <picture>: a landscape frame on desktop (subject right, bare wall left for the
-   headline to sit over), and a portrait frame on mobile where the whole scene
-   fits a tall viewport without cropping the couple out. The <picture> media
-   query means the browser downloads only the crop it needs, not both. */
-const BACKGROUND = {
-  /** below lg — portrait, fills a tall phone screen */
-  mobile: "/prerna/images/hero-install-portrait.jpg",
-  /** lg and up — landscape, subject to the right of the headline */
-  desktop: "/prerna/images/hero-install.jpg",
-};
-
+/* The full-bleed backdrop: a real Mason install. One master image (from
+   Sanity) serves every screen, cropped around its focal point; an optional
+   mobile override supplies a separate portrait crop. The <picture> media query
+   means the browser downloads only the version it needs, at a size that fits
+   the screen. */
 /** The lg breakpoint (1024px), where the layout switches to the left-aligned
     split — the same point we switch to the landscape crop. */
 const DESKTOP_MEDIA = "(min-width: 1024px)";
 
-function renderHeading(heading: string) {
-  if (heading === "Most falls happen in the bathroom. We make sure yours don't.") {
-    return (
-      <>
-        <span className="lg:block">
-          Most <span className="accent-word on-dark">falls</span> happen in the bathroom.
-        </span>{" "}
-        <span className="lg:block">We make sure yours don&apos;t.</span>
-      </>
-    );
-  }
-  return heading;
+/* Sentences sit on their own line from lg (the left-aligned split); below lg
+   they flow as one balanced run. An explicit line break in the CMS heading
+   overrides the sentence split. */
+function heroLines(text: string) {
+  return text.includes("\n") ? text : text.split(/(?<=[.!?])\s+/).join("\n");
 }
 
-export default function Hero({ content }: { content?: HeroContent }) {
+export default function Hero({ content }: { content: HomeContent["hero"] }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "hero" });
+  const desktopBg = content.background.desktop;
+  const mobileBg = content.background.mobile ?? desktopBg;
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -71,18 +62,22 @@ export default function Hero({ content }: { content?: HeroContent }) {
     <section
       ref={ref}
       id="top"
+      {...edit}
       className="relative isolate flex min-h-[100svh] flex-col overflow-hidden text-white"
     >
       {/* full-bleed backdrop + left-heavy scrim */}
       <div aria-hidden="true" className="hero-bg absolute inset-0 -z-20">
         <picture>
-          <source media={DESKTOP_MEDIA} srcSet={BACKGROUND.desktop} />
+          <source media={DESKTOP_MEDIA} srcSet={desktopBg.srcSet ?? desktopBg.src} sizes="100vw" />
           <img
-            src={BACKGROUND.mobile}
+            src={mobileBg.src}
+            srcSet={mobileBg.srcSet}
+            sizes="100vw"
             alt=""
             fetchPriority="high"
             decoding="async"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover object-[var(--hero-pos-mobile)] lg:object-[var(--hero-pos-desktop)]"
+            style={{ "--hero-pos-mobile": mobileBg.objectPosition ?? "50% 50%", "--hero-pos-desktop": desktopBg.objectPosition ?? "50% 50%" } as CSSProperties}
           />
         </picture>
       </div>
@@ -101,16 +96,25 @@ export default function Hero({ content }: { content?: HeroContent }) {
                 even out the centred lines. The deliberate two-line split
                 returns at lg, where it's left-aligned. */}
             <h1 className="hero-rise text-balance font-display text-[9vw] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl sm:leading-[1.02] lg:text-6xl">
-              {renderHeading(content?.heading || "Most falls happen in the bathroom. We make sure yours don't.")}
+              <HighlightedText
+                value={{ ...content.heading, text: heroLines(content.heading.text) }}
+                accentClassName="accent-word on-dark"
+                renderLine={(line, index) => (
+                  <>
+                    {index > 0 ? " " : null}
+                    <span className="lg:block">{line}</span>
+                  </>
+                )}
+              />
             </h1>
 
             <p className="hero-rise mx-auto mt-5 max-w-md text-base leading-relaxed text-white/75 sm:mt-6 sm:text-lg lg:mx-0">
-              {content?.subcopy || "You can’t always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety."}
+              {content.subcopy}
             </p>
 
             <div className="hero-rise mt-9 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center sm:items-center lg:justify-start">
               <Cta href="#book" arrow={false} className="w-full justify-center sm:w-auto">
-                {content?.primaryCta || "Book Free Inspection"}
+                {content.primaryCta}
               </Cta>
               <Cta
                 href="#transformations"
@@ -118,7 +122,7 @@ export default function Hero({ content }: { content?: HeroContent }) {
                 arrow={false}
                 className="w-full justify-center sm:w-auto"
               >
-                {content?.secondaryCta || "See Transformations"}
+                {content.secondaryCta}
               </Cta>
             </div>
           </div>

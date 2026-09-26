@@ -9,6 +9,7 @@ import {
   getIncludedFeaturesFromEntry,
   getPackageCatalogEntryData
 } from "../../../../lib/site-content";
+import { cmsMetadata } from "../../../../lib/cms/seo";
 import styles from "../packages.module.css";
 
 const SITE_URL = "https://www.masoncompany.in";
@@ -17,6 +18,10 @@ const SLUGS = ["standard", "advanced"] as const;
 type Slug = (typeof SLUGS)[number];
 
 export const dynamicParams = false;
+
+/* Package content and prices come from Sanity via the one package resolver;
+   published changes appear within a minute. */
+export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -60,7 +65,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const url = `${SITE_URL}/packages/${slug}`;
   const ogImage = absoluteImageUrl(entry.plan.visual?.src);
 
-  return {
+  return cmsMetadata(slug === "standard" ? "packageStandard" : "packageAdvanced", {
     title,
     description,
     alternates: { canonical: url },
@@ -76,7 +81,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description
     }
-  };
+  });
 }
 
 export default async function PackageDetailPage({ params }: PageProps) {
@@ -181,8 +186,9 @@ export default async function PackageDetailPage({ params }: PageProps) {
         ) : null}
 
         {includedFeatures.length > 0 ? (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>What&apos;s included</h2>
+          /* Stable anchor: the homepage package cards' "Learn more" links land here. */
+          <section className={`${styles.section} ${styles.anchorSection}`} id="components" aria-labelledby="components-heading">
+            <h2 className={styles.sectionTitle} id="components-heading">What&apos;s included</h2>
             <ul className={styles.featureList}>
               {includedFeatures.map((feature) => (
                 <li key={feature.id} className={styles.featureItem}>

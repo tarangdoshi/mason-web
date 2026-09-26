@@ -1,50 +1,26 @@
 import Reveal from "./Reveal";
-import type { EvidenceSnapshotCardContent } from "../content/types";
+import { serverEditProps } from "@/lib/cms/edit-server";
+import { DOCS } from "@/lib/cms/edit";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
 /* The figure is the thing someone repeats to their sibling that evening, so
    it is rounded to something sayable and the precision moves into the copy
    below it. `prefix` carries a qualifier like "Up to" at a fraction of the
    size — inline rather than on its own line, so one card having it doesn't
    push its label out of step with the other three. */
-const stats = [
-  {
-    value: "25%",
-    label: "Reported injury and/or fall",
-    copy: "Among Indians aged 60+, 1 in 4 reported an injury and/or fall in the previous two years.",
-  },
-  {
-    value: "81%",
-    label: "Bathroom injuries from falls",
-    copy: "Falls are the dominant risk around wet zones, toilets, and transfers.",
-  },
-  {
-    value: "66%",
-    label: "Falls that led to injury",
-    copy: "A review of older adults in India put the pooled injury rate at 65.6% among those who fell.",
-  },
-  {
-    prefix: "Up to",
-    value: "38%",
-    label: "Fewer falls after home changes",
-    copy: "Home hazard interventions cut fall rates by 26–38%, with the largest effect for higher-risk adults.",
-  },
-];
-
-type DisplayStat = { prefix?: string; value: string; label: string; copy: string };
-
-export default function Stats({ cards }: { cards?: EvidenceSnapshotCardContent[] }) {
-  const displayStats: DisplayStat[] = cards?.length
-    ? cards.slice(0, 4).map((card) => ({ prefix: card.prefix, value: card.value, label: card.kicker || card.sourceLabel, copy: card.label }))
-    : stats;
+export default async function Stats({ content }: { content: HomeContent["stats"] }) {
+  const edit = await serverEditProps({ ...DOCS.homepage, path: "evidenceSection" });
+  const displayStats = content.cards;
   return (
-    <section id="why" className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-24">
+    <section id="why"
+      {...edit} className="border-t border-line bg-sand-100 py-14 sm:py-20 lg:py-24">
       <Reveal className="mx-auto max-w-7xl px-6 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-2xl">
-            <p className="reveal eyebrow mb-5">The risk is real</p>
+            <p className="reveal eyebrow mb-5">{content.eyebrow}</p>
             <h2 className="reveal h-display text-3xl text-cream sm:text-4xl lg:text-5xl">
-              The response should be{" "}
-              <span className="accent-word">thoughtful</span>.
+              <HighlightedText value={content.heading} />
             </h2>
           </div>
 
@@ -61,14 +37,14 @@ export default function Stats({ cards }: { cards?: EvidenceSnapshotCardContent[]
               items-end row. */}
           <div className="reveal rounded-2xl bg-brick-deep px-7 py-6">
             <p className="text-xs uppercase tracking-[0.16em] text-on-accent/75">
-              The cost of doing nothing
+              {content.costLabel}
             </p>
             {/* "Potential ... ₹3L–₹10L" asked the reader to hold a qualifier
                 and a range at once. One number they can carry, with the
                 qualifier shrunk to the size of the job it does. */}
             <p className="mt-2 font-display text-4xl font-bold text-on-accent lg:text-5xl">
               <span className="mr-2 align-middle text-lg font-semibold text-on-accent/70">
-                Up to
+                {content.costPrefix}
               </span>
               {/* Struck through: the whole point is that this is the number
                   you don't pay if the fall never happens. Only the figure is
@@ -76,7 +52,7 @@ export default function Stats({ cards }: { cards?: EvidenceSnapshotCardContent[]
                   breaks after "Up to" rather than stranding "lakh" away from
                   the number. */}
               <span className="align-middle line-through decoration-[3px] decoration-on-accent">
-                &#8377;10&nbsp;lakh
+                {content.costFigure.replace(/ (?=\S+$)/, "\u00a0")}
               </span>
             </p>
           </div>
@@ -112,8 +88,7 @@ export default function Stats({ cards }: { cards?: EvidenceSnapshotCardContent[]
         </div>
 
         <p className="reveal mt-6 text-xs text-cream-faint">
-          Sources: LASI India, CDC bathroom-injury report, India falls-injury
-          systematic review, Cochrane home-hazard reduction review.
+          {content.sourcesNote}
         </p>
       </Reveal>
     </section>

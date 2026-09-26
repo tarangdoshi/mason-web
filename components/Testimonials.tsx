@@ -1,53 +1,21 @@
 "use client";
 
 import { useRef } from "react";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import type { TestimonialContent } from "../content/types";
+import HighlightedText from "./HighlightedText";
+import type { HomeContent } from "@/lib/cms/model";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const TESTIMONIALS = [
-  {
-    name: "Maria Pereira",
-    role: "Daughter",
-    city: "Goa",
-    quote:
-      "We wanted the bathroom to be safer for my father, but we were worried it would look too clinical. Mason made the space feel more secure without changing the warmth of the home.",
-    tag: "Safer movement, premium finish",
-  },
-  {
-    name: "Rohan Naik",
-    role: "Son",
-    city: "Goa",
-    quote:
-      "The process was clear from the first call. The team explained the package, inspected the bathroom, and installed everything neatly. My mother now has support exactly where she needs it.",
-    tag: "Clear process, confident handover",
-  },
-  {
-    name: "Neha Shah",
-    role: "Daughter-in-law",
-    city: "Goa",
-    quote:
-      "The biggest relief was not having to coordinate multiple vendors. Mason handled the planning, products, installation, and walkthrough as one complete solution.",
-    tag: "One accountable team",
-  },
-  {
-    name: "Karl Fernandes",
-    role: "Son",
-    city: "Goa",
-    quote:
-      "The before-and-after difference was obvious. The bathroom feels safer, but it still looks like a well-designed home bathroom, not a medical facility.",
-    tag: null,
-  },
-];
 
-export default function Testimonials({ items }: { items?: TestimonialContent[] }) {
+export default function Testimonials({ content }: { content: HomeContent["testimonials"] }) {
+  const edit = useEditProps({ ...DOCS.homepage, path: "testimonialsSection" });
   const container = useRef<HTMLElement>(null);
-  const displayTestimonials = items?.length
-    ? items.slice(0, 4).map((item) => ({ name: item.author, role: item.relation, city: "Goa", quote: item.quote }))
-    : TESTIMONIALS;
+  const displayTestimonials = content.items.map((item) => ({ name: item.name, role: item.relation, city: item.city, quote: item.quote }));
 
   useGSAP(
     () => {
@@ -80,6 +48,7 @@ export default function Testimonials({ items }: { items?: TestimonialContent[] }
   return (
     <section
       id="testimonials"
+      {...edit}
       ref={container}
       /* Sized by its padding — see Doctors. */
       className="flex flex-col overflow-hidden bg-forest-700 px-6 py-14 sm:px-10 sm:py-20 lg:px-16 lg:py-24"
@@ -89,26 +58,21 @@ export default function Testimonials({ items }: { items?: TestimonialContent[] }
             section on the page. */}
         <div className="max-w-2xl">
           <span className="tm-reveal block font-sans text-sm font-bold uppercase tracking-[0.35em] text-forest-200">
-            Testimonials
+            {content.eyebrow}
           </span>
           <h2 className="tm-reveal mt-4 font-display text-3xl font-extrabold leading-[1.05] tracking-tight text-sand-100 sm:text-4xl lg:text-5xl">
-            What{" "}
-            <span className="font-serif font-normal italic text-forest-200">
-              families
-            </span>{" "}
-            say after installation
+            <HighlightedText value={content.heading} accentClassName="font-serif font-normal italic text-forest-200" />
           </h2>
           <p className="tm-reveal mt-4 text-base leading-relaxed text-sand-100/75 sm:text-lg">
-            Families choose Mason Company because the upgrade feels thoughtful,
-            premium, and reassuring - not like a temporary hospital setup.
+            {content.subtitle}
           </p>
         </div>
 
         {/* Testimonial grid */}
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
-          {displayTestimonials.map((t) => (
+          {displayTestimonials.map((t, i) => (
             <figure
-              key={t.name}
+              key={`${t.name}-${i}`}
               className="tm-reveal flex flex-col rounded-3xl bg-sand-50 p-6 sm:p-7"
             >
               <blockquote className="flex-1 text-[15px] leading-relaxed text-cream">
@@ -125,7 +89,7 @@ export default function Testimonials({ items }: { items?: TestimonialContent[] }
                       {t.name}
                     </p>
                     <p className="text-xs text-sand-600">
-                      {t.role} &middot; {t.city}
+                      {[t.role, t.city].filter(Boolean).join(" · ")}
                     </p>
                   </div>
                 </div>

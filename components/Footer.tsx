@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEditProps } from "./EditModeProvider";
+import { DOCS } from "@/lib/cms/edit";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -8,7 +10,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MasonWordmark } from "./Logo";
 import Cta from "./Cta";
 import { CITIES } from "./ServiceArea";
-import { CARE_EMAIL } from "./contact-details";
+import HighlightedText from "./HighlightedText";
+import { useSiteSettings } from "./SiteSettingsProvider";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -46,7 +49,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 ];
 
 export default function Footer() {
+  const edit = useEditProps({ ...DOCS.settings, path: "footerHeading" });
   const container = useRef<HTMLElement>(null);
+  const { contact, footer } = useSiteSettings();
 
   useGSAP(
     () => {
@@ -79,6 +84,7 @@ export default function Footer() {
   return (
     <footer
       ref={container}
+      {...edit}
       /* pt matches the section rhythm; pb doesn't, deliberately. Every other
          section's bottom padding is half of a gap to the next section — here
          there is no next section, so 40px below the legal line is the page
@@ -89,17 +95,14 @@ export default function Footer() {
         {/* Closing CTA */}
         <div className="ft-reveal flex flex-col items-start justify-between gap-8 border-b border-white/10 pb-12 lg:flex-row lg:items-end">
           <h2 className="max-w-2xl font-display text-3xl font-extrabold leading-[1.08] tracking-tight text-sand-100 sm:text-4xl lg:text-5xl">
-            A safer bathroom, without the{" "}
-            <span className="font-serif font-normal italic text-forest-200">
-              compromise
-            </span>
+            <HighlightedText value={footer.heading} accentClassName="font-serif font-normal italic text-forest-200" />
           </h2>
           <Cta
             href="/#book"
             variant="light"
             className="w-full shrink-0 justify-center sm:w-auto"
           >
-            Book Free Inspection
+            {footer.ctaLabel}
           </Cta>
         </div>
 
@@ -119,15 +122,13 @@ export default function Footer() {
               <MasonWordmark size={30} />
             </Link>
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-sand-100/60">
-              Complete bathroom safety for ageing adults - planned with
-              medical input, fitted by trained experts, and finished to feel
-              like home.
+              {footer.tagline}
             </p>
             <a
-              href={`mailto:${CARE_EMAIL}`}
+              href={`mailto:${contact.supportEmail}`}
               className="mt-5 inline-block text-sm text-sand-100/80 transition-colors hover:text-forest-200"
             >
-              {CARE_EMAIL}
+              {contact.supportEmail}
             </a>
           </div>
 
