@@ -14,6 +14,7 @@ const previousCssLoader = require.extensions[".css"];
 require.extensions[".css"] = (module: { exports: unknown }) => { module.exports = {}; };
 const PackageCard = require("../components/PackageCard.tsx").default as typeof import("../components/PackageCard").default;
 const Footer = require("../components/Footer.tsx").default as typeof import("../components/Footer").default;
+const Cta = require("../components/Cta.tsx").default as typeof import("../components/Cta").default;
 if (previousCssLoader) require.extensions[".css"] = previousCssLoader;
 else delete require.extensions[".css"];
 
@@ -107,5 +108,46 @@ test("active customer-facing booking surfaces never say Safety Visit", () => {
     const source = readFileSync(new URL(surface, import.meta.url), "utf8");
     // Headings split the phrase across an accent span, so match through markup.
     assert.doesNotMatch(source, /safety(\s|<[^>]*>|\{" "\})+(visit|assessment)/i, surface);
+  }
+});
+
+test("homepage View Details reports select_package with the current selling price", () => {
+  const findCta = (node: unknown): React.ReactElement<Record<string, unknown>> | null => {
+    if (!node || typeof node !== "object") return null;
+    if (Array.isArray(node)) return node.map(findCta).find(Boolean) || null;
+    const element = node as React.ReactElement<{ children?: unknown }>;
+    if (element.type === Cta) return element as React.ReactElement<Record<string, unknown>>;
+    return findCta(element.props?.children);
+  };
+  const gtagCalls: unknown[][] = [];
+  const storage = new Map<string, string>();
+  const previousGa = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID = "G-TEST123";
+  Object.defineProperty(globalThis, "window", { configurable: true, value: {
+    location: { href: "https://www.masoncompany.in/", origin: "https://www.masoncompany.in", pathname: "/", search: "" },
+    sessionStorage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => void storage.set(key, value), removeItem: (key: string) => void storage.delete(key) },
+    crypto: { randomUUID: () => "test-session" },
+    gtag: (...args: unknown[]) => void gtagCalls.push(args)
+  } });
+  Object.defineProperty(globalThis, "document", { configurable: true, value: { referrer: "", title: "Mason Company" } });
+  try {
+    for (const [name, expectedPrice] of [["Standard", 29999], ["Advanced", 36999]] as const) {
+      const plan = homepageContent.packagesSection.plans.find((item) => item.name === name)!;
+      const cta = findCta(PackageCard({ pkg: packageCardFromPlan(plan, 0), tone: "green" }));
+      assert.equal(cta?.props.href, `/packages/${name.toLowerCase()}`);
+      // Render the real Cta so its hooks run, then fire the link's own click handler.
+      let link: React.ReactElement<{ onClick?: (event: unknown) => void }> | null = null;
+      const Probe = () => { link = Cta(cta!.props as Parameters<typeof Cta>[0]) as typeof link; return null; };
+      renderToStaticMarkup(React.createElement(Probe));
+      gtagCalls.length = 0;
+      link!.props.onClick?.({ currentTarget: { closest: () => ({ id: "packages" }) } });
+      const selected = gtagCalls.filter((call) => call[0] === "event" && call[1] === "select_package").map((call) => call[2] as Record<string, unknown>);
+      assert.deepEqual(selected.map((event) => [event.package_name, event.package_price]), [[name, expectedPrice]]);
+    }
+  } finally {
+    Reflect.deleteProperty(globalThis, "window");
+    Reflect.deleteProperty(globalThis, "document");
+    if (previousGa === undefined) delete process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    else process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID = previousGa;
   }
 });
