@@ -95,10 +95,11 @@ export const packagesPage = defineType({
     defineField({ name: "kitFootnote", title: "Line below the component list", type: "text", rows: 2, group: "page", description: "Write {count} to insert the number of components." }),
     defineField({
       name: "cardRows",
-      title: "Card checklist",
+      title: "Package comparison (fixed)",
       type: "array",
       group: "cards",
-      description: "Lines shown on both package cards. Tick which package includes each line. Write {count} to insert the number of components.",
+      readOnly: true,
+      description: "These inclusion ticks describe the approved Standard and Advanced offers. Request a product change to alter the checklist; edit package descriptions and badges in the package documents.",
       of: [
         defineArrayMember({
           type: "object",

@@ -105,11 +105,11 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     // Singletons are opened from the menu, never created from "New document".
-    templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType) && schemaType !== "package")
+    templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType) && schemaType !== "package" && schemaType !== "packageFeature")
   },
   document: {
     actions: (actions, { schemaType }) =>
-      singletonTypes.has(schemaType) || schemaType === "package"
+      singletonTypes.has(schemaType) || schemaType === "package" || schemaType === "packageFeature"
         ? actions.filter(({ action }) => action !== "duplicate" && action !== "delete" && action !== "unpublish")
         : actions
   }
