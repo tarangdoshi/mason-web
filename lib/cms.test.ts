@@ -154,6 +154,22 @@ test("founder portraits use supplied alt and render decorative uploads with alt=
   assert.match(aboutPage, /alt=\{f\.photo\?\.alt \?\? ""\}/, "the actual About page passes CMS alt to PhotoSlot");
 });
 
+test("About Our approach renders uploaded images with blank or supplied alt", () => {
+  const aboutPage = readFileSync(new URL("../app/(public)/about/page.tsx", import.meta.url), "utf8");
+  assert.match(aboutPage, /alt=\{about\.approach\.image\?\.alt\}/, "the actual About page passes resolved alt to PhotoSlot");
+  for (const [alt, expected] of [[undefined, ""], ["Installer fitting a grab bar", "Installer fitting a grab bar"]] as const) {
+    const photo = resolvePublicSite({ aboutPage: { approach: { image: upload("image-approach-1200x900-jpg", { alt }) } } }).about.approach.image;
+    assert.equal(photo?.alt, expected);
+    const markup = renderToStaticMarkup(React.createElement(PhotoSlot, {
+      src: "/prerna/images/bath-2.jpg",
+      alt: photo?.alt,
+      label: "Installer at work"
+    }));
+    assert.match(markup, new RegExp(`alt="${expected}"`));
+    assert.doesNotMatch(markup, /alt="(?:undefined|null|image-approach-1200x900-jpg)"/);
+  }
+});
+
 test("contact details are validated and reach the legal pages", () => {
   const good = resolvePublicSite({ siteSettings: { supportEmail: "help@masoncompany.in", supportHours: "Every weekday, 9 am to 6 pm", phoneDisplay: "+91 98200 12345", phoneTel: "+919820012345" } }).settings.contact;
   assert.deepEqual(good, { supportEmail: "help@masoncompany.in", supportHours: "Every weekday, 9 am to 6 pm", phoneDisplay: "+91 98200 12345", phoneHref: "tel:+919820012345", whatsappUrl: fallbackSettings.contact.whatsappUrl });

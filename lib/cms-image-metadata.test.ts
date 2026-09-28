@@ -72,6 +72,26 @@ test("only About founder portraits waive alt validation; the photo itself stays 
   assert.equal(customValidator(field(field(about, "hero"), "image"))(image, { ...otherAboutPath, path: ["hero", "image"] }), "Add descriptive alt text before publishing this image.");
 });
 
+test("only About Our approach image waives alt validation; the image itself stays optional", () => {
+  const about = document("aboutPage");
+  const photo = field(field(about, "approach"), "image");
+  const alt = field(document("imageWithAlt"), "alt");
+  const context = { document: { _type: "aboutPage" }, path: ["approach", "image", "alt"] };
+  noRequiredMarker(photo);
+  assert.match(photo.description ?? "", /Alt text is optional/);
+  assert.equal(customValidator(photo)(undefined, { ...context, path: ["approach", "image"] }), true);
+  assert.equal(customValidator(photo)(image, { ...context, path: ["approach", "image"] }), true);
+  assert.equal(customValidator(alt)(undefined, context), true);
+  assert.equal(customValidator(alt)("Installer fitting a grab bar", context), true);
+
+  for (const section of ["hero", "story", "closing"]) {
+    const otherPhoto = field(field(about, section), "image");
+    assert.match(otherPhoto.description ?? "", /Alt text is required/);
+    assert.equal(customValidator(otherPhoto)(image, { ...context, path: [section, "image"] }), "Add descriptive alt text before publishing this image.");
+    assert.equal(customValidator(alt)(undefined, { ...context, path: [section, "image", "alt"] }), "Alt text is required.");
+  }
+});
+
 test("other CMS imagery and legacy gallery retain descriptive alt validation", () => {
   const alt = customValidator(field(document("imageWithAlt"), "alt"));
   for (const type of ["homepage", "packagesPage", "packageFeature", "galleryItem", "contactPage"]) {
@@ -81,7 +101,7 @@ test("other CMS imagery and legacy gallery retain descriptive alt validation", (
   assert.equal(customValidator(field(oldGallery, "beforeImage"))(image, { document: { _type: "galleryItem" }, path: ["beforeImage"] }), "Add descriptive alt text before publishing this image.");
 });
 
-test("Sanity's document validator accepts blank founder/Gallery metadata but rejects blank alt elsewhere", async () => {
+test("Sanity's document validator accepts blank founder/Gallery/approach metadata but rejects blank alt elsewhere", async () => {
   const browser = new JSDOM("<!doctype html>", { url: "https://studio.test" });
   const originals = new Map(["window", "document", "navigator"].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   Object.defineProperty(globalThis, "window", { configurable: true, value: browser.window });
@@ -103,6 +123,13 @@ test("Sanity's document validator accepts blank founder/Gallery metadata but rej
       ] }
     });
     assert.deepEqual(founder, []);
+
+    const approachBlankAlt = await validate({ _id: "aboutPage", _type: "aboutPage", approach: { image: uploaded } });
+    assert.deepEqual(approachBlankAlt, []);
+    const approachSuppliedAlt = await validate({ _id: "aboutPage", _type: "aboutPage", approach: { image: { ...uploaded, alt: "Installer fitting a grab bar" } } });
+    assert.deepEqual(approachSuppliedAlt, []);
+    const approachNoImage = await validate({ _id: "aboutPage", _type: "aboutPage", approach: {} });
+    assert.deepEqual(approachNoImage, []);
 
     const gallery = await validate({
       _id: "gallery", _type: "gallery", tiles: [
