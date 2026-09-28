@@ -84,7 +84,6 @@ export default async function PackageCheckoutPage({ params }: PageProps) {
                 {entry.plan.visual?.src ? (
                   <CmsImage
                     visual={entry.plan.visual}
-                    fallbackAlt={entry.plan.name}
                     width={1200}
                     height={960}
                     sizes="(max-width: 900px) calc(100vw - 2rem), 420px"

@@ -35,12 +35,11 @@ type ImageSpecName = keyof typeof cmsImageSpecs;
 const draftImageHint = "Seeing ‘Read only’? Switch the Studio perspective from Published to Drafts before editing this photo.";
 
 /** One high-quality master image (the site creates every size it needs). */
-export function imageField(name: string, title: string, spec: ImageSpecName, extra: { description?: string; group?: string; fieldset?: string; altOptional?: boolean } = {}) {
+export function imageField(name: string, title: string, spec: ImageSpecName, extra: { description?: string; group?: string; fieldset?: string } = {}) {
   const field = defineGuidedImageField({
     name,
     title,
     spec: cmsImageSpecs[spec],
-    altOptional: extra.altOptional,
     description: [
       "Upload one high-resolution image — the website makes the right size for phones, tablets and desktops.",
       "Click the crop icon to set the focal point; it stays in view on every screen.",

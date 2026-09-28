@@ -73,7 +73,7 @@ export default function Hero({ content }: { content: HomeContent["hero"] }) {
             src={mobileBg.src}
             srcSet={mobileBg.srcSet}
             sizes="100vw"
-            alt=""
+            alt={mobileBg.alt}
             fetchPriority="high"
             decoding="async"
             className="h-full w-full object-cover object-[var(--hero-pos-mobile)] lg:object-[var(--hero-pos-desktop)]"

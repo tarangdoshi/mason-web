@@ -179,12 +179,10 @@ export default async function PackagesPage() {
                   key={item.id}
                   className="flex items-center gap-4 border-b border-dashed border-sand-200 py-3"
                 >
-                  {/* alt is empty on purpose - the title sits right beside it,
-                      so a screen reader would otherwise hear it twice. */}
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:h-14 sm:w-14">
                     <Image
                       src={item.image.src}
-                      alt=""
+                      alt={item.image.alt}
                       fill
                       sizes="56px"
                       className="object-cover"

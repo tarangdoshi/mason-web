@@ -30,40 +30,58 @@ const arrayMember = (type: CompiledType): CompiledType => {
   assert.ok(type.of?.[0], "missing array member schema");
   return type.of[0];
 };
-const noRequiredMarker = (type: CompiledType) => {
-  assert.ok(type.validation?.every((rule) => rule._required !== "required"));
-};
-const customValidator = (type: CompiledType) => {
-  const custom = type.validation?.flatMap((rule) => rule._rules).find((rule) => rule.flag === "custom");
-  assert.ok(custom, "expected Sanity custom validation");
-  assert.equal(typeof custom.constraint, "function", "expected Sanity custom validation");
-  return custom.constraint as (value: unknown, context: { document: { _type: string }; path: unknown[] }) => true | string;
-};
-const image = { asset: { _ref: "image-test-1200x1500-jpg" } };
+const customResults = (type: CompiledType, value: unknown, documentType: string, path: string[]) =>
+  (type.validation ?? []).flatMap((rule) => rule._rules)
+    .filter((rule) => rule.flag === "custom")
+    .map((rule) => {
+      assert.equal(typeof rule.constraint, "function");
+      return (rule.constraint as (value: unknown, context: object) => unknown)(value, { document: { _type: documentType }, path, parent: {} });
+    });
 
-test("every current public CMS image stays editable in Drafts while package structure stays protected", () => {
-  assert.equal(document("imageWithAlt").options?.hotspot, true, "current CMS images must retain crop and focal-point controls");
-  const currentImages: [string, string[]][] = [
-    ["homepage", ["hero", "backgroundImage"]],
-    ["homepage", ["hero", "backgroundImageMobile"]],
-    ["homepage", ["whatWeDoSection", "sideImage"]],
-    ["homepage", ["finalCtaSection", "backgroundImage"]],
-    ["aboutPage", ["hero", "image"]],
-    ["aboutPage", ["story", "image"]],
-    ["aboutPage", ["team", "founders", "[]", "photo"]],
-    ["aboutPage", ["approach", "image"]],
-    ["aboutPage", ["closing", "image"]],
-    ["packagesPage", ["image"]],
-    ["packageFeature", ["image"]],
-    ["testimonial", ["photo"]],
-    ["doctor", ["photo"]],
-    ["gallery", ["sliderBefore"]],
-    ["gallery", ["sliderAfter"]],
-    ["gallery", ["tiles", "[]", "image"]],
-    ["siteSettings", ["contactImage"]],
-    ...["home", "about", "packages", "packageStandard", "packageAdvanced", "contact", "why", "privacy", "terms"]
-      .map((page): [string, string[]] => ["seo", [page, "socialImage"]])
+const currentImages: [string, string[]][] = [
+  ["homepage", ["hero", "backgroundImage"]],
+  ["homepage", ["hero", "backgroundImageMobile"]],
+  ["homepage", ["whatWeDoSection", "sideImage"]],
+  ["homepage", ["finalCtaSection", "backgroundImage"]],
+  ["aboutPage", ["hero", "image"]],
+  ["aboutPage", ["story", "image"]],
+  ["aboutPage", ["team", "founders", "[]", "photo"]],
+  ["aboutPage", ["approach", "image"]],
+  ["aboutPage", ["closing", "image"]],
+  ["packagesPage", ["image"]],
+  ["packageFeature", ["image"]],
+  ["testimonial", ["photo"]],
+  ["doctor", ["photo"]],
+  ["gallery", ["sliderBefore"]],
+  ["gallery", ["sliderAfter"]],
+  ["gallery", ["tiles", "[]", "image"]],
+  ["siteSettings", ["contactImage"]],
+  ...["home", "about", "packages", "packageStandard", "packageAdvanced", "contact", "why", "privacy", "terms"]
+    .map((page): [string, string[]] => ["seo", [page, "socialImage"]])
+];
+
+function visibleImagePaths(type: CompiledType, path: string[] = []): string[] {
+  if (type.hidden === true) return [];
+  if (type.name === "imageWithAlt") return [path.join(".")];
+  return [
+    ...(type.fields ?? []).flatMap((entry) => visibleImagePaths(entry.type, [...path, entry.name])),
+    ...(type.of ?? []).flatMap((member) => visibleImagePaths(member, [...path, "[]"]))
   ];
+}
+
+const uploaded = { _type: "imageWithAlt", asset: { _type: "reference", _ref: "image-test-1200x1500-jpg" } };
+
+test("all 26 current public CMS image paths accept blank and supplied alt without weakening image controls", () => {
+  assert.equal(currentImages.length, 26);
+  const currentDocumentTypes = ["homepage", "aboutPage", "package", "packagesPage", "packageFeature", "testimonial", "doctor", "gallery", "siteSettings", "seo", "faqs"];
+  const discovered = currentDocumentTypes.flatMap((type) => visibleImagePaths(document(type), [type])).sort();
+  const expected = currentImages.map(([type, path]) => [type, ...path].join(".")).sort();
+  assert.deepEqual(discovered, expected, "the image-path audit must cover every visible current CMS field");
+  assert.equal(document("imageWithAlt").options?.hotspot, true);
+  const alt = field(document("imageWithAlt"), "alt");
+  assert.ok(alt.validation?.every((rule) => rule._required !== "required") ?? true);
+  assert.doesNotMatch(alt.description ?? "", /required/i);
+
   for (const [documentType, path] of currentImages) {
     let type = document(documentType);
     for (const segment of path) {
@@ -71,10 +89,19 @@ test("every current public CMS image stays editable in Drafts while package stru
       assert.ok(type.readOnly === undefined || type.readOnly === false, `${documentType}.${path.join(".")} is read-only`);
       assert.ok(type.hidden === undefined || type.hidden === false, `${documentType}.${path.join(".")} is hidden`);
     }
-    assert.equal(type.name, "imageWithAlt", `${documentType}.${path.join(".")} must be a CMS image`);
+    const label = `${documentType}.${path.join(".")}`;
+    assert.equal(type.name, "imageWithAlt", `${label} must remain a CMS image`);
+    assert.match(type.description ?? "", /Alt text is optional/);
+    assert.doesNotMatch(type.description ?? "", /Alt text is required/);
     assert.match(type.description ?? "", /Switch the Studio perspective from Published to Drafts/);
+    for (const value of [uploaded, { ...uploaded, alt: "Meaningful description" }]) {
+      assert.ok(type.validation?.every((rule) => rule._required !== "required") ?? true, `${label} image became required`);
+      assert.ok(customResults(type, value, documentType, path).every((result) => result === true), `${label} rejected image metadata`);
+    }
   }
+});
 
+test("package identity and the shared kit stay protected", () => {
   for (const [documentType, fieldName] of [
     ["package", "name"], ["package", "code"], ["package", "includedFeatures"],
     ["packageFeature", "key"], ["packageFeature", "quantity"], ["packagesPage", "cardRows"]
@@ -86,77 +113,12 @@ test("every current public CMS image stays editable in Drafts while package stru
   }
 });
 
-test("current public Gallery has optional alt and caption in the compiled Studio schema", () => {
-  const gallery = document("gallery");
-  const tile = arrayMember(field(gallery, "tiles"));
-  const caption = field(tile, "label");
-  const photo = field(tile, "image");
-  const alt = field(document("imageWithAlt"), "alt");
-  noRequiredMarker(caption);
-  noRequiredMarker(alt);
-  assert.match(photo.description ?? "", /Alt text is optional/);
-  assert.equal(customValidator(photo)(image, { document: { _type: "gallery" }, path: ["tiles", { _key: "tile" }, "image"] }), true);
-  assert.equal(customValidator(alt)(undefined, { document: { _type: "gallery" }, path: ["tiles", { _key: "tile" }, "image", "alt"] }), true);
-  for (const name of ["sliderBefore", "sliderAfter"]) {
-    assert.match(field(gallery, name).description ?? "", /Alt text is optional/);
-    assert.equal(customValidator(field(gallery, name))(image, { document: { _type: "gallery" }, path: [name] }), true);
-  }
-});
-
-test("only About founder portraits waive alt validation; the photo itself stays optional", () => {
-  const about = document("aboutPage");
-  const portrait = field(arrayMember(field(field(about, "team"), "founders")), "photo");
-  const alt = field(document("imageWithAlt"), "alt");
-  const founderContext = { document: { _type: "aboutPage" }, path: ["team", "founders", { _key: "founder" }, "photo", "alt"] };
-  noRequiredMarker(portrait);
-  noRequiredMarker(alt);
-  assert.match(portrait.description ?? "", /Alt text is optional/);
-  assert.equal(customValidator(portrait)(undefined, { ...founderContext, path: founderContext.path.slice(0, -1) }), true);
-  assert.equal(customValidator(portrait)(image, { ...founderContext, path: founderContext.path.slice(0, -1) }), true);
-  assert.equal(customValidator(alt)(undefined, founderContext), true);
-  assert.equal(customValidator(alt)("Portrait in the workshop", founderContext), true);
-
-  const otherAboutPath = { document: { _type: "aboutPage" }, path: ["hero", "image", "alt"] };
-  assert.equal(customValidator(alt)(undefined, otherAboutPath), "Alt text is required.");
-  assert.equal(customValidator(field(field(about, "hero"), "image"))(image, { ...otherAboutPath, path: ["hero", "image"] }), "Add descriptive alt text before publishing this image.");
-});
-
-test("only About Our approach image waives alt validation; the image itself stays optional", () => {
-  const about = document("aboutPage");
-  const photo = field(field(about, "approach"), "image");
-  const alt = field(document("imageWithAlt"), "alt");
-  const context = { document: { _type: "aboutPage" }, path: ["approach", "image", "alt"] };
-  noRequiredMarker(photo);
-  assert.match(photo.description ?? "", /Alt text is optional/);
-  assert.equal(customValidator(photo)(undefined, { ...context, path: ["approach", "image"] }), true);
-  assert.equal(customValidator(photo)(image, { ...context, path: ["approach", "image"] }), true);
-  assert.equal(customValidator(alt)(undefined, context), true);
-  assert.equal(customValidator(alt)("Installer fitting a grab bar", context), true);
-
-  for (const section of ["hero", "story", "closing"]) {
-    const otherPhoto = field(field(about, section), "image");
-    assert.match(otherPhoto.description ?? "", /Alt text is required/);
-    assert.equal(customValidator(otherPhoto)(image, { ...context, path: [section, "image"] }), "Add descriptive alt text before publishing this image.");
-    assert.equal(customValidator(alt)(undefined, { ...context, path: [section, "image", "alt"] }), "Alt text is required.");
-  }
-});
-
-test("other CMS imagery and legacy gallery retain descriptive alt validation", () => {
-  const alt = customValidator(field(document("imageWithAlt"), "alt"));
-  for (const type of ["homepage", "packagesPage", "packageFeature", "galleryItem", "contactPage"]) {
-    assert.equal(alt(undefined, { document: { _type: type }, path: ["image", "alt"] }), "Alt text is required.", type);
-  }
-  const oldGallery = document("galleryItem");
-  assert.equal(customValidator(field(oldGallery, "beforeImage"))(image, { document: { _type: "galleryItem" }, path: ["beforeImage"] }), "Add descriptive alt text before publishing this image.");
-});
-
-test("Sanity's document validator accepts blank founder/Gallery/approach metadata but rejects blank alt elsewhere", async () => {
+test("Sanity validates images with blank or supplied alt across current document types", async () => {
   const browser = new JSDOM("<!doctype html>", { url: "https://studio.test" });
   const originals = new Map(["window", "document", "navigator"].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   Object.defineProperty(globalThis, "window", { configurable: true, value: browser.window });
   Object.defineProperty(globalThis, "document", { configurable: true, value: browser.window.document });
   Object.defineProperty(globalThis, "navigator", { configurable: true, value: browser.window.navigator });
-  const uploaded = { _type: "imageWithAlt", asset: { _type: "reference", _ref: "image-test-1200x1500-jpg" } };
   const validate = async (value: Record<string, unknown>) => validateDocument({
     workspace: { schema } as never,
     document: value as never,
@@ -164,35 +126,22 @@ test("Sanity's document validator accepts blank founder/Gallery/approach metadat
     getDocumentExists: async () => true
   });
   try {
-    const founder = await validate({
-      _id: "aboutPage", _type: "aboutPage",
-      team: { founders: [
-        { _key: "one", _type: "founder", name: "One", bio: "Bio", photo: uploaded },
-        { _key: "two", _type: "founder", name: "Two", bio: "Bio", photo: { ...uploaded, alt: "Founder in the studio" } }
-      ] }
-    });
-    assert.deepEqual(founder, []);
-
-    const approachBlankAlt = await validate({ _id: "aboutPage", _type: "aboutPage", approach: { image: uploaded } });
-    assert.deepEqual(approachBlankAlt, []);
-    const approachSuppliedAlt = await validate({ _id: "aboutPage", _type: "aboutPage", approach: { image: { ...uploaded, alt: "Installer fitting a grab bar" } } });
-    assert.deepEqual(approachSuppliedAlt, []);
-    const approachNoImage = await validate({ _id: "aboutPage", _type: "aboutPage", approach: {} });
-    assert.deepEqual(approachNoImage, []);
-
-    const gallery = await validate({
-      _id: "gallery", _type: "gallery", tiles: [
-        { _key: "both", _type: "galleryTile", label: "Caption", image: { ...uploaded, alt: "Described photo" } },
-        { _key: "neither", _type: "galleryTile", image: uploaded },
-        { _key: "alt", _type: "galleryTile", image: { ...uploaded, alt: "Described photo" } },
-        { _key: "caption", _type: "galleryTile", label: "Caption", image: uploaded }
-      ]
-    });
-    assert.deepEqual(gallery, []);
-
-    const aboutHero = await validate({ _id: "aboutPage", _type: "aboutPage", hero: { image: uploaded } });
-    assert.ok(aboutHero.some((marker) => marker.message === "Alt text is required."));
-    assert.ok(aboutHero.some((marker) => marker.message === "Add descriptive alt text before publishing this image."));
+    for (const image of [uploaded, { ...uploaded, alt: "Meaningful description" }]) {
+      const documents = [
+        { _id: "homepage", _type: "homepage", hero: { backgroundImage: image, backgroundImageMobile: image }, whatWeDoSection: { sideImage: image }, finalCtaSection: { backgroundImage: image } },
+        { _id: "aboutPage", _type: "aboutPage", hero: { image }, story: { image }, team: { founders: [{ _key: "one", _type: "founder", name: "Founder", bio: "Bio", photo: image }] }, approach: { image }, closing: { image } },
+        { _id: "packagesPage", _type: "packagesPage", image },
+        { _id: "packageFeature-one", _type: "packageFeature", key: "grab-bar", label: "Grab bar", quantity: 3, image },
+        { _id: "testimonial-one", _type: "testimonial", name: "Customer", quote: "Quote", photo: image },
+        { _id: "doctor-one", _type: "doctor", name: "Expert", specialty: "MD", registration: "Goa", quote: "Quote", photo: image },
+        { _id: "gallery", _type: "gallery", sliderBefore: image, sliderAfter: image, tiles: [{ _key: "one", _type: "galleryTile", image }] },
+        { _id: "siteSettings", _type: "siteSettings", contactImage: image, supportEmail: "help@masoncompany.in", supportHours: "Weekdays", phoneDisplay: "+91 81494 33383", phoneTel: "+918149433383", whatsappUrl: "https://wa.me/918149433383", doctorDisclaimer: "Medical advice varies." },
+        { _id: "seo", _type: "seo", home: { socialImage: image }, about: { socialImage: image }, packages: { socialImage: image }, packageStandard: { socialImage: image }, packageAdvanced: { socialImage: image }, contact: { socialImage: image }, why: { socialImage: image }, privacy: { socialImage: image }, terms: { socialImage: image } }
+      ];
+      for (const value of documents) {
+        assert.deepEqual(await validate(value), [], `${value._type} rejected ${"alt" in image ? "supplied" : "blank"} alt`);
+      }
+    }
   } finally {
     for (const [key, descriptor] of originals) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor);
