@@ -212,7 +212,7 @@ export const aboutPage = defineType({
       defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
       ...headingFields(),
       plainList("paragraphs", "Paragraphs"),
-      imageField("image", "Photo", "landscape"),
+      imageField("image", "Photo", "landscape", { altOptional: true }),
       defineField({ name: "routineLabel", title: "Routine list heading", type: "string" }),
       plainList("routine", "Routine list")
     ]),
