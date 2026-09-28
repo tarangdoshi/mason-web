@@ -9,7 +9,6 @@ type ImageSpec = {
 };
 
 type ImageValue = {
-  alt?: string;
   asset?: { _ref?: string };
 };
 
@@ -22,7 +21,7 @@ function dimensionsFromAssetRef(value: unknown) {
 function imageDescription(spec: ImageSpec, extra?: string) {
   const cropGuidance = spec.crop === "cover" ? "The saved crop and focal-point hotspot are respected." : "The complete image is kept visible.";
   const matchingGuidance = spec.matchingField ? " Use matching pixel dimensions for the paired image." : "";
-  return `${extra ? `${extra} ` : ""}Recommended ${spec.aspectRatio}; minimum ${spec.minWidth}×${spec.minHeight}px. Alt text is required. ${cropGuidance}${matchingGuidance}`;
+  return `${extra ? `${extra} ` : ""}Recommended ${spec.aspectRatio}; minimum ${spec.minWidth}×${spec.minHeight}px. Alt text is optional. ${cropGuidance}${matchingGuidance}`;
 }
 
 export function defineGuidedImageField({
@@ -42,11 +41,6 @@ export function defineGuidedImageField({
     type: "imageWithAlt",
     description: imageDescription(spec, description),
     validation: (rule) => [
-      rule.custom((value) => {
-        const image = value as ImageValue | undefined;
-        if (!image?.asset?._ref) return true;
-        return image.alt?.trim() ? true : "Add descriptive alt text before publishing this image.";
-      }),
       rule
         .custom((value) => {
           const dimensions = dimensionsFromAssetRef(value);

@@ -226,7 +226,7 @@ export default async function AboutPage() {
                       src={f.photo?.src}
                       objectPosition={f.photo?.objectPosition}
                       label={`Portrait — ${f.name}`}
-                      alt={f.name}
+                      alt={f.photo?.alt ?? ""}
                       initials={initials(f.name)}
                       className="h-20 w-20 rounded-full text-lg sm:h-24 sm:w-24 sm:text-xl"
                       sizes="96px"

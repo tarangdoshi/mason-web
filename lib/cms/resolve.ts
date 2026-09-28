@@ -131,7 +131,7 @@ export function image(value: unknown, fallback: CmsImage): CmsImage {
   return {
     src,
     ...(raw?.resolvedSrcSet ? { srcSet: raw.resolvedSrcSet } : {}),
-    alt: optionalText(raw?.alt) ?? fallback.alt,
+    alt: optionalText(raw?.alt) ?? "",
     ...(() => {
       // An uploaded image is framed by its hotspot (the editor's focal point);
       // an explicit position only ever applies to a bundled site image.
@@ -416,8 +416,9 @@ export function resolveHome(payload: RawPayload, packages: PackagesContent): Hom
           if (tile?.hidden === true) return null;
           const label = optionalText(tile?.label);
           const fallbackTile = fb.transformations.tiles[index] ?? fb.transformations.tiles[0];
-          const tileImage = image(tile?.image, { ...fallbackTile.image, alt: label ?? fallbackTile.image.alt });
-          return label ? { image: tileImage, label } : null;
+          const rawImage = asObj(tile?.image) as RawImage;
+          if (!label && !rawImage?.resolvedSrc && !rawImage?.fallbackSrc) return null;
+          return { image: image(tile?.image, fallbackTile.image), label: label ?? "" };
         },
         fb.transformations.tiles
       )
@@ -460,7 +461,7 @@ export function resolveHome(payload: RawPayload, packages: PackagesContent): Hom
                 credentials: text(doc?.specialty, ""),
                 meta: text(doc?.registration, ""),
                 quote,
-                ...(photo && (photo.resolvedSrc || photo.fallbackSrc) ? { photo: image(photo, { src: "", alt: name }) } : {})
+                ...(photo && (photo.resolvedSrc || photo.fallbackSrc) ? { photo: image(photo, { src: "", alt: "" }) } : {})
               };
             },
             fb.doctors.items
@@ -601,7 +602,7 @@ export function resolveAbout(raw: Obj): AboutContent {
         const name = optionalText(founder?.name);
         const bio = optionalText(founder?.bio);
         if (!name || !bio) return null;
-        const photo = optionalImage(founder?.photo, name);
+        const photo = optionalImage(founder?.photo, "");
         return { name, role: text(founder?.role, ""), bio, credentials: textList(founder?.credentials, []), ...(photo ? { photo } : {}) };
       }, fb.team.founders)
     },

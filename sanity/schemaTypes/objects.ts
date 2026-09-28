@@ -11,8 +11,7 @@ export const imageWithAlt = defineType({
       name: "alt",
       title: "Alt text",
       type: "string",
-      description: "Describe the photo for people using screen readers, e.g. “Grab bar fitted beside a shower”.",
-      validation: (rule) => rule.required()
+      description: "Optional. Add a description when the image conveys information not already explained by surrounding text."
     }),
     // Set by the website for its own bundled photos; replaced by an upload.
     defineField({ name: "fallbackSrc", title: "Website photo", type: "string", hidden: true }),

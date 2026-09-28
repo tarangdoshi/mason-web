@@ -107,7 +107,7 @@ export default function Doctors({ content, disclaimer }: { content: HomeContent[
                 {doc.photo ? (
                   <Image
                     src={doc.photo.src}
-                    alt={doc.photo.alt || doc.name}
+                    alt={doc.photo.alt}
                     width={96}
                     height={96}
                     /* No `sizes`: at "48px" Next served a 48-wide file, which

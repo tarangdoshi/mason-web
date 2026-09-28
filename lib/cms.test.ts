@@ -9,6 +9,8 @@ import { hotspotPosition, resolvePublicSite, type RawPayload } from "./cms/resol
 import { parsePackagePrice } from "./analytics";
 import { PRIVACY, TERMS } from "../components/legal-data";
 import HighlightedText from "../components/HighlightedText";
+import PhotoSlot from "../components/PhotoSlot";
+import CmsImage from "../app/components/cms-image";
 
 process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "testproject";
 Object.defineProperty(globalThis, "React", { value: React, configurable: true });
@@ -73,6 +75,81 @@ test("an uploaded image replaces the bundled one, is framed by its hotspot and c
   assert.equal(hotspotPosition({ x: 0.333, y: 1.4 }), "33.3% 100%");
 });
 
+test("every current rendered CMS photo keeps supplied alt or renders blank alt", () => {
+  const bare = upload("image-bare-1200x1500-jpg", { alt: undefined });
+  const site = resolvePublicSite({
+    homepage: {
+      hero: { backgroundImage: bare, backgroundImageMobile: bare },
+      whatWeDoSection: { sideImage: bare },
+      finalCtaSection: { backgroundImage: bare }
+    },
+    aboutPage: {
+      hero: { image: bare }, story: { image: bare }, approach: { image: bare }, closing: { image: bare },
+      team: { founders: [{ name: "Founder", bio: "Bio", photo: bare }] }
+    },
+    packagesPage: { image: bare },
+    packages: [
+      { code: "package-standard", includedFeatures: [{ key: "shower-stool", label: "Shower stool", image: bare }] },
+      { code: "package-advanced", includedFeatures: [{ key: "shower-stool", label: "Shower stool", image: bare }] }
+    ],
+    doctors: [{ name: "Dr. Sample", quote: "Quote", photo: bare }],
+    gallery: { sliderBefore: bare, sliderAfter: bare, tiles: [{ image: bare }] },
+    siteSettings: { contactImage: bare }
+  });
+  const images = [
+    site.home.hero.background.desktop, site.home.hero.background.mobile, site.home.safer.image,
+    site.home.finalCta.image, site.about.hero.image, site.about.story.image,
+    site.about.approach.image, site.about.closing.image, site.about.team.founders[0].photo,
+    site.packagesPage.image, site.packages.components[0].image, site.home.doctors.items[0].photo,
+    site.home.transformations.sliderBefore, site.home.transformations.sliderAfter,
+    site.home.transformations.tiles[0].image, site.contactPage.image
+  ];
+  assert.ok(images.every((photo) => photo?.alt === ""));
+  assert.ok(images.every((photo) => photo?.src.includes("image-bare")));
+
+  const described = resolvePublicSite({
+    homepage: { hero: { backgroundImage: upload("image-described-1200x1500-jpg", { alt: "Installed support beside the shower" }) } },
+    doctors: [{ name: "Dr. Sample", quote: "Quote", photo: upload("image-doctor-1200x1500-jpg", { alt: "Doctor in the clinic" }) }]
+  });
+  assert.equal(described.home.hero.background.desktop.alt, "Installed support beside the shower");
+  assert.equal(described.home.doctors.items[0].photo?.alt, "Doctor in the clinic");
+  assert.equal(resolvePublicSite({ homepage: { whatWeDoSection: { sideImage: { fallbackSrc: "/prerna/images/bath-2.jpg", alt: null } } } }).home.safer.image.alt, "");
+
+  for (const alt of ["", "Installed support beside the shower"]) {
+    const markup = renderToStaticMarkup(React.createElement(CmsImage, {
+      visual: { src: "/prerna/images/bath-2.jpg", alt }, width: 1200, height: 900
+    }));
+    assert.match(markup, new RegExp(`alt="${alt}"`));
+    assert.doesNotMatch(markup, /alt="(?:undefined|null|image-bare-1200x1500-jpg|Dr\. Sample)"/);
+  }
+  const doctorsSource = readFileSync(new URL("../components/Doctors.tsx", import.meta.url), "utf8");
+  assert.match(doctorsSource, /alt=\{doc\.photo\.alt\}/);
+  const packagesPageSource = readFileSync(new URL("../app/(public)/packages/page.tsx", import.meta.url), "utf8");
+  assert.match(packagesPageSource, /alt=\{item\.image\.alt\}/);
+  const heroSource = readFileSync(new URL("../components/Hero.tsx", import.meta.url), "utf8");
+  assert.match(heroSource, /alt=\{mobileBg\.alt\}/);
+});
+
+test("legacy Sanity image mapping does not turn blank alt into fallback copy", async () => {
+  const { applySanityHomepage } = await import("./site-content");
+  const { homepageContent } = await import("../content/homepage.content");
+  const result = applySanityHomepage(homepageContent, {
+    hero: {
+      beforeVisual: { url: "https://cdn.sanity.io/images/p/d/before.jpg", alt: null },
+      afterVisual: { url: "https://cdn.sanity.io/images/p/d/after.jpg", alt: "" }
+    },
+    whatWeDoSection: { visual: { url: "https://cdn.sanity.io/images/p/d/visit.jpg", alt: undefined } }
+  }, null);
+  assert.equal(result.hero.visual.beforeAlt, "");
+  assert.equal(result.hero.visual.afterAlt, "");
+  assert.equal(result.hero.visual.alt, "");
+  assert.equal(result.whatWeDoSection.visual?.alt, "");
+  const described = applySanityHomepage(homepageContent, {
+    hero: { afterVisual: { url: "https://cdn.sanity.io/images/p/d/after.jpg", alt: "Grab bar fitted beside a shower" } }
+  }, null);
+  assert.equal(described.hero.visual.afterAlt, "Grab bar fitted beside a shower");
+});
+
 test("hero background: one master serves every screen; the mobile override is optional", () => {
   const masterOnly = resolvePublicSite({ homepage: { hero: { backgroundImage: upload("image-hero-2400x1600-jpg") } } }).home.hero.background;
   assert.equal(masterOnly.mobile, undefined, "the master alone replaces the bundled portrait crop too");
@@ -82,6 +159,91 @@ test("hero background: one master serves every screen; the mobile override is op
   assert.match(withOverride.mobile?.src ?? "", /heroport/);
   const none = resolvePublicSite(null).home.hero.background;
   assert.deepEqual(none, fallbackHome.hero.background);
+});
+
+test("Gallery resolves and renders every alt/caption combination without empty markup", async () => {
+  const site = resolvePublicSite({
+    gallery: {
+      sliderBefore: upload("image-before-1200x900-jpg", { alt: undefined }),
+      sliderAfter: upload("image-after-1200x900-jpg", { alt: "After installation" }),
+      tiles: [
+        { label: "Alt and caption", image: upload("image-tile1-800x1000-jpg", { alt: "Described tile" }) },
+        { image: upload("image-tile2-800x1000-jpg", { alt: undefined }) },
+        { image: upload("image-tile3-800x1000-jpg", { alt: "Alt only" }) },
+        { label: "Caption only", image: upload("image-tile4-800x1000-jpg", { alt: undefined }) },
+        { label: "", image: null }
+      ]
+    },
+    homepage: { whatWeDoSection: { sideImage: upload("image-side-1200x900-jpg", { alt: "Safer bathroom" }) } }
+  });
+  assert.equal(site.home.transformations.sliderBefore.alt, "");
+  assert.equal(site.home.transformations.sliderAfter.alt, "After installation");
+  assert.deepEqual(site.home.transformations.tiles.map((tile) => [tile.label, tile.image.alt]), [
+    ["Alt and caption", "Described tile"], ["", ""], ["", "Alt only"], ["Caption only", ""]
+  ]);
+  assert.match(site.home.transformations.tiles[1].image.src, /image-tile2-800x1000-jpg/);
+  assert.equal(site.home.safer.image.alt, "Safer bathroom");
+  assert.deepEqual(resolvePublicSite(null).home.transformations, fallbackHome.transformations);
+  const transformationsModule = await import("../components/Transformations");
+  const Transformations = typeof transformationsModule.default === "function"
+    ? transformationsModule.default
+    : (transformationsModule.default as unknown as { default: typeof transformationsModule.default }).default;
+  const content = {
+    ...site.home.transformations,
+    sliderBefore: { ...site.home.transformations.sliderBefore, src: "/prerna/images/bath-1.jpg" },
+    sliderAfter: { ...site.home.transformations.sliderAfter, src: "/prerna/images/bath-1.jpg" },
+    tiles: site.home.transformations.tiles.map((tile) => ({ ...tile, image: { ...tile.image, src: "/prerna/images/bath-2.jpg" } }))
+  };
+  const markup = renderToStaticMarkup(React.createElement(Transformations, { content }));
+  assert.match(markup, /alt=""/);
+  assert.match(markup, /alt="Described tile"/);
+  assert.match(markup, /alt="Alt only"/);
+  assert.match(markup, /<figcaption[^>]*>Alt and caption<\/figcaption>/);
+  assert.match(markup, /<figcaption[^>]*>Caption only<\/figcaption>/);
+  assert.equal((markup.match(/<figcaption/g) ?? []).length, 2);
+  assert.doesNotMatch(markup, /<figcaption[^>]*>\s*<\/figcaption>|undefined/);
+});
+
+test("founder portraits use supplied alt and render decorative uploads with alt=\"\"", () => {
+  const founders = resolvePublicSite({
+    aboutPage: {
+      team: {
+        founders: [
+          { name: "First Founder", bio: "Founder bio", photo: upload("image-first-800x1000-jpg", { alt: "First founder in the studio" }) },
+          { name: "Second Founder", bio: "Founder bio", photo: upload("image-second-800x1000-jpg", { alt: undefined }) }
+        ]
+      }
+    }
+  }).about.team.founders;
+  assert.deepEqual(founders.map((founder) => founder.photo?.alt), ["First founder in the studio", ""]);
+  for (const founder of founders) {
+    const markup = renderToStaticMarkup(React.createElement(PhotoSlot, {
+      src: "/prerna/images/bath-2.jpg",
+      alt: founder.photo?.alt ?? "",
+      label: `Portrait — ${founder.name}`,
+      className: "w-24 h-24"
+    }));
+    assert.match(markup, new RegExp(`alt="${founder.photo?.alt ?? ""}"`));
+    assert.doesNotMatch(markup, /alt="(?:First|Second) Founder"|undefined/);
+  }
+  const aboutPage = readFileSync(new URL("../app/(public)/about/page.tsx", import.meta.url), "utf8");
+  assert.match(aboutPage, /alt=\{f\.photo\?\.alt \?\? ""\}/, "the actual About page passes CMS alt to PhotoSlot");
+});
+
+test("About Our approach renders uploaded images with blank or supplied alt", () => {
+  const aboutPage = readFileSync(new URL("../app/(public)/about/page.tsx", import.meta.url), "utf8");
+  assert.match(aboutPage, /alt=\{about\.approach\.image\?\.alt\}/, "the actual About page passes resolved alt to PhotoSlot");
+  for (const [alt, expected] of [[undefined, ""], ["Installer fitting a grab bar", "Installer fitting a grab bar"]] as const) {
+    const photo = resolvePublicSite({ aboutPage: { approach: { image: upload("image-approach-1200x900-jpg", { alt }) } } }).about.approach.image;
+    assert.equal(photo?.alt, expected);
+    const markup = renderToStaticMarkup(React.createElement(PhotoSlot, {
+      src: "/prerna/images/bath-2.jpg",
+      alt: photo?.alt,
+      label: "Installer at work"
+    }));
+    assert.match(markup, new RegExp(`alt="${expected}"`));
+    assert.doesNotMatch(markup, /alt="(?:undefined|null|image-approach-1200x900-jpg)"/);
+  }
 });
 
 test("contact details are validated and reach the legal pages", () => {

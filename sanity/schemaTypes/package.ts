@@ -2,9 +2,8 @@ import { defineField, defineType } from "sanity";
 import { cmsImageSpecs, defineGuidedImageField } from "./image-guidance";
 import { legacy, plainList } from "./fields";
 
-/* Standard and Advanced. The package name and code are identifiers used by
-   analytics and the CRM, so they are read-only here; everything customers read
-   — including the price — is editable. */
+/* Standard and Advanced. Their identity and shared physical kit are fixed;
+   presentation copy and commercial prices remain editable. */
 
 const MIN_PRICE = 1000;
 const MAX_PRICE = 10_000_000;
@@ -17,8 +16,8 @@ export const packageSchema = defineType({
   type: "document",
   groups: [
     { name: "content", title: "Package", default: true },
-    { name: "price", title: "Price" },
-    { name: "components", title: "Components" }
+    { name: "price", title: "Commercial pricing — review before publishing" },
+    { name: "components", title: "Included kit (fixed)" }
   ],
   fields: [
     defineField({ name: "name", title: "Package name", type: "string", readOnly: true, group: "content", description: "Fixed — the name is used by analytics and the CRM." }),
@@ -42,7 +41,7 @@ export const packageSchema = defineType({
       type: "number",
       group: "price",
       description:
-        "Numbers only, e.g. 29999. Used everywhere the price appears: cards, package page, checkout and analytics. The team still confirms the final amount before sending a payment link.",
+        "Commercial/business information. Numbers only, e.g. 29999. This value reaches cards, package pages, checkout and analytics. Review changes before publishing; the team confirms the final amount before sending a payment link.",
       validation: (rule) => priceRule(rule).required()
     }),
     defineField({
@@ -50,7 +49,7 @@ export const packageSchema = defineType({
       title: "Struck-through price (₹)",
       type: "number",
       group: "price",
-      description: "Optional. Shown crossed out next to the price. Must be higher than the price; leave empty to show no struck-through price.",
+      description: "Commercial/business information. Optional. Shown crossed out next to the price; it must exceed the selling price. Review changes before publishing.",
       validation: (rule) =>
         priceRule(rule).custom((value, context) => {
           const price = (context.document as { priceInr?: number } | undefined)?.priceInr;
@@ -60,10 +59,11 @@ export const packageSchema = defineType({
     }),
     defineField({
       name: "includedFeatures",
-      title: "Components included",
+      title: "Shared 13-component kit (fixed)",
       type: "array",
       group: "components",
-      description: "Drag to reorder. Edit a component’s name, quantity or photo under Package Components — changes appear on both packages.",
+      readOnly: true,
+      description: "Standard and Advanced share the approved physical kit. Edit customer-facing component names, descriptions and photos under Package Components; request a product change to alter inclusions.",
       of: [{ type: "reference", to: [{ type: "packageFeature" }] }]
     }),
     legacy(defineField({ name: "ctaLabel", title: "CTA label", type: "string" })),
