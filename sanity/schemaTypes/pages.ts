@@ -201,7 +201,7 @@ export const aboutPage = defineType({
               defineField({ name: "role", title: "Role", type: "string" }),
               defineField({ name: "bio", title: "Bio", type: "text", rows: 4, validation: (rule) => rule.required() }),
               plainList("credentials", "Credentials"),
-              imageField("photo", "Portrait", "portrait", { description: "Until a photo is added the page shows initials." })
+              imageField("photo", "Portrait", "portrait", { description: "Until a photo is added the page shows initials.", altOptional: true })
             ],
             preview: { select: { title: "name", subtitle: "role", media: "photo" } }
           })

@@ -12,13 +12,18 @@ export const imageWithAlt = defineType({
       title: "Alt text",
       type: "string",
       description: "Describe the photo for people using screen readers, e.g. “Grab bar fitted beside a shower”.",
-      // Gallery keeps existing imageWithAlt values, but its images may be decorative.
-      // Every other document continues to require descriptive alt text.
-      validation: (rule) => rule.custom((value, context) =>
-        context.document?._type === "gallery" || (typeof value === "string" && Boolean(value.trim()))
+      // Gallery images and founder portraits can be decorative when adjacent
+      // copy already identifies them. Other image fields still require alt text.
+      validation: (rule) => rule.custom((value, context) => {
+        const founderPortrait = context.document?._type === "aboutPage"
+          && context.path?.[0] === "team"
+          && context.path?.[1] === "founders"
+          && context.path?.[3] === "photo"
+          && context.path?.[4] === "alt";
+        return context.document?._type === "gallery" || founderPortrait || (typeof value === "string" && Boolean(value.trim()))
           ? true
-          : "Alt text is required."
-      )
+          : "Alt text is required.";
+      })
     }),
     // Set by the website for its own bundled photos; replaced by an upload.
     defineField({ name: "fallbackSrc", title: "Website photo", type: "string", hidden: true }),

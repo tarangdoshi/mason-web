@@ -22,7 +22,7 @@ function dimensionsFromAssetRef(value: unknown) {
 function imageDescription(spec: ImageSpec, extra?: string, altOptional = false) {
   const cropGuidance = spec.crop === "cover" ? "The saved crop and focal-point hotspot are respected." : "The complete image is kept visible.";
   const matchingGuidance = spec.matchingField ? " Use matching pixel dimensions for the paired image." : "";
-  return `${extra ? `${extra} ` : ""}Recommended ${spec.aspectRatio}; minimum ${spec.minWidth}×${spec.minHeight}px. ${altOptional ? "Alt text is optional for Gallery images." : "Alt text is required."} ${cropGuidance}${matchingGuidance}`;
+  return `${extra ? `${extra} ` : ""}Recommended ${spec.aspectRatio}; minimum ${spec.minWidth}×${spec.minHeight}px. ${altOptional ? "Alt text is optional for this image." : "Alt text is required."} ${cropGuidance}${matchingGuidance}`;
 }
 
 export function defineGuidedImageField({

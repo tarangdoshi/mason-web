@@ -612,7 +612,7 @@ export function resolveAbout(raw: Obj): AboutContent {
         const name = optionalText(founder?.name);
         const bio = optionalText(founder?.bio);
         if (!name || !bio) return null;
-        const photo = optionalImage(founder?.photo, name);
+        const photo = optionalImage(founder?.photo, "");
         return { name, role: text(founder?.role, ""), bio, credentials: textList(founder?.credentials, []), ...(photo ? { photo } : {}) };
       }, fb.team.founders)
     },
