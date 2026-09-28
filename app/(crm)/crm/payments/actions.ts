@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { getCrmSessionToken, requireAdminCrmUser, requireCrmUser } from "../../../../lib/crm";
+import { issueIfEnabled, PAYMENT_STATUS_PATH } from "../../../../lib/payment-issuance";
 
 function field(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -103,7 +104,10 @@ export async function createPaymentLinkAction(formData: FormData) {
   const authToken = await token();
   const caseId = field(formData, "caseId");
   try {
-    await apiFetch(`/api/v1/internal/commercial-cases/${caseId}/payment-links`, { method: "POST", token: authToken });
+    // The API's issuance switch is authoritative; the CRM also refuses to send the request while it is off.
+    const outcome = await issueIfEnabled(() => apiFetch(PAYMENT_STATUS_PATH, { token: authToken }),
+      () => apiFetch(`/api/v1/internal/commercial-cases/${caseId}/payment-links`, { method: "POST", token: authToken }));
+    if (!outcome.issued) redirect(detailUrl(caseId, outcome.message));
     revalidatePath(detailUrl(caseId));
     redirect(detailUrl(caseId, undefined, "Payment Link created. Review its amount before sharing."));
   } catch (error) {

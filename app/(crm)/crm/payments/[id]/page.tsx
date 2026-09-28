@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApiError, apiFetch } from "../../../../../lib/api";
 import { getCrmSessionToken, requireCrmUser } from "../../../../../lib/crm";
+import { issuanceNotice, PAYMENT_STATUS_PATH, readPaymentIssuance } from "../../../../../lib/payment-issuance";
 import CrmShell from "../../crm-shell";
 import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction, verifyLocationAction } from "../actions";
 import PlacePicker from "../place-picker";
@@ -33,6 +34,8 @@ export default async function PaymentCasePage({ params, searchParams }: {
   }
   const packages = user.role === "ADMIN" ? (await apiFetch<{ data: PackageOption[] }>("/api/v1/internal/content/packages", { token: token ?? undefined })).data
     .filter((option) => option.active && option.city === item.city) : [];
+  const issuance = await readPaymentIssuance(() => apiFetch(PAYMENT_STATUS_PATH, { token: token ?? undefined }));
+  const issuanceMessage = issuanceNotice(issuance);
   const currentRevision = item.revisions.find((revision) => revision.id === item.order?.currentRevisionId);
   const active = item.order?.paymentRequests.find((request) => request.status === "ACTIVE" && request.url);
   const locationVerifiedGoa = item.verifiedLocationMarket === "GOA" && item.city === "Goa";
@@ -106,7 +109,10 @@ export default async function PaymentCasePage({ params, searchParams }: {
       <section className={styles.panel}>
         <h3>Razorpay Payment Links</h3>
         <p>Only a case with verified Goa location evidence and an approved outstanding balance can receive a new link. Share the link after checking the amount below.</p>
-        {canIssue && <form action={createPaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><button type="submit">Create link for {rupees(item.balance!.balancePaise)}</button></form>}
+        {issuanceMessage && <div className={styles.notice} role="status">{issuanceMessage}{user.role === "ADMIN" && issuance.problems.length > 0 && <> Configuration: {issuance.problems.join(", ")}.</>}</div>}
+        {canIssue && (issuance.enabled
+          ? <form action={createPaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><button type="submit">Create link for {rupees(item.balance!.balancePaise)}</button></form>
+          : <button type="button" disabled aria-disabled="true">Create link for {rupees(item.balance!.balancePaise)} (issuance not enabled)</button>)}
         {active && <p className={styles.linkCallout}>Active link for {rupees(active.amountPaise)}: <a href={active.url!} target="_blank" rel="noopener noreferrer">Open Razorpay link</a></p>}
         {item.order?.paymentRequests.length ? <div className={styles.tableWrap}><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Provider ID</th><th>Actions</th></tr></thead><tbody>
           {item.order.paymentRequests.map((request) => <tr key={request.id}>
