@@ -1,9 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "git": {
-    "deploymentEnabled": {
-      "feature/v1-payments-ui": false
-    }
-  }
+  "framework": "nextjs"
 }
