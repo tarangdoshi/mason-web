@@ -9,7 +9,11 @@ const { JSDOM } = createRequire(import.meta.url)("jsdom") as {
 };
 
 type CompiledType = {
+  name?: string;
   description?: string;
+  options?: { hotspot?: boolean };
+  readOnly?: unknown;
+  hidden?: unknown;
   fields?: { name: string; type: CompiledType }[];
   of?: CompiledType[];
   validation?: { _required?: string; _rules: { flag: string; constraint: unknown }[] }[];
@@ -36,6 +40,51 @@ const customValidator = (type: CompiledType) => {
   return custom.constraint as (value: unknown, context: { document: { _type: string }; path: unknown[] }) => true | string;
 };
 const image = { asset: { _ref: "image-test-1200x1500-jpg" } };
+
+test("every current public CMS image stays editable in Drafts while package structure stays protected", () => {
+  assert.equal(document("imageWithAlt").options?.hotspot, true, "current CMS images must retain crop and focal-point controls");
+  const currentImages: [string, string[]][] = [
+    ["homepage", ["hero", "backgroundImage"]],
+    ["homepage", ["hero", "backgroundImageMobile"]],
+    ["homepage", ["whatWeDoSection", "sideImage"]],
+    ["homepage", ["finalCtaSection", "backgroundImage"]],
+    ["aboutPage", ["hero", "image"]],
+    ["aboutPage", ["story", "image"]],
+    ["aboutPage", ["team", "founders", "[]", "photo"]],
+    ["aboutPage", ["approach", "image"]],
+    ["aboutPage", ["closing", "image"]],
+    ["packagesPage", ["image"]],
+    ["packageFeature", ["image"]],
+    ["testimonial", ["photo"]],
+    ["doctor", ["photo"]],
+    ["gallery", ["sliderBefore"]],
+    ["gallery", ["sliderAfter"]],
+    ["gallery", ["tiles", "[]", "image"]],
+    ["siteSettings", ["contactImage"]],
+    ...["home", "about", "packages", "packageStandard", "packageAdvanced", "contact", "why", "privacy", "terms"]
+      .map((page): [string, string[]] => ["seo", [page, "socialImage"]])
+  ];
+  for (const [documentType, path] of currentImages) {
+    let type = document(documentType);
+    for (const segment of path) {
+      type = segment === "[]" ? arrayMember(type) : field(type, segment);
+      assert.ok(type.readOnly === undefined || type.readOnly === false, `${documentType}.${path.join(".")} is read-only`);
+      assert.ok(type.hidden === undefined || type.hidden === false, `${documentType}.${path.join(".")} is hidden`);
+    }
+    assert.equal(type.name, "imageWithAlt", `${documentType}.${path.join(".")} must be a CMS image`);
+    assert.match(type.description ?? "", /Switch the Studio perspective from Published to Drafts/);
+  }
+
+  for (const [documentType, fieldName] of [
+    ["package", "name"], ["package", "code"], ["package", "includedFeatures"],
+    ["packageFeature", "key"], ["packageFeature", "quantity"], ["packagesPage", "cardRows"]
+  ]) {
+    assert.equal(field(document(documentType), fieldName).readOnly, true, `${documentType}.${fieldName} must stay protected`);
+  }
+  for (const fieldName of ["priceInr", "referencePriceInr"]) {
+    assert.equal(field(document("package"), fieldName).readOnly, undefined, `package.${fieldName} must stay editable`);
+  }
+});
 
 test("current public Gallery has optional alt and caption in the compiled Studio schema", () => {
   const gallery = document("gallery");

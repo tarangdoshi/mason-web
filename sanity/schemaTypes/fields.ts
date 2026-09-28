@@ -32,6 +32,8 @@ export function headingFields(options: { name?: string; highlightsName?: string;
 
 type ImageSpecName = keyof typeof cmsImageSpecs;
 
+const draftImageHint = "Seeing ‘Read only’? Switch the Studio perspective from Published to Drafts before editing this photo.";
+
 /** One high-quality master image (the site creates every size it needs). */
 export function imageField(name: string, title: string, spec: ImageSpecName, extra: { description?: string; group?: string; fieldset?: string; altOptional?: boolean } = {}) {
   const field = defineGuidedImageField({
@@ -42,6 +44,7 @@ export function imageField(name: string, title: string, spec: ImageSpecName, ext
     description: [
       "Upload one high-resolution image — the website makes the right size for phones, tablets and desktops.",
       "Click the crop icon to set the focal point; it stays in view on every screen.",
+      draftImageHint,
       extra.description
     ]
       .filter(Boolean)
@@ -57,7 +60,7 @@ export function mobileOverrideField(name: string, title = "Mobile image override
     title,
     spec: cmsImageSpecs.portrait,
     description:
-      "Leave empty in most cases — the main image is used on phones too. Only add one when phones need a different crop (for example a tall portrait version)."
+      `Leave empty in most cases — the main image is used on phones too. Only add one when phones need a different crop (for example a tall portrait version). ${draftImageHint}`
   });
   return { ...field, ...(extra.group ? { group: extra.group } : {}), ...(extra.fieldset ? { fieldset: extra.fieldset } : {}) };
 }
