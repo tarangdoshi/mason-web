@@ -46,8 +46,8 @@ export const gallery = defineType({
     defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
     ...headingFields(),
     defineField({ name: "subtitle", title: "Supporting text", type: "text", rows: 2 }),
-    imageField("sliderBefore", "Before/after slider — before image", "landscape", { description: "Pair with the after image; use the same size and framing.", altOptional: true }),
-    imageField("sliderAfter", "Before/after slider — after image", "landscape", { altOptional: true }),
+    imageField("sliderBefore", "Before/after slider — before image", "landscape", { description: "Pair with the after image; use the same size and framing." }),
+    imageField("sliderAfter", "Before/after slider — after image", "landscape"),
     defineField({
       name: "tiles",
       title: "Gallery photos",
@@ -58,7 +58,7 @@ export const gallery = defineType({
           type: "object",
           name: "galleryTile",
           fields: [
-            imageField("image", "Photo", "portrait", { altOptional: true }),
+            imageField("image", "Photo", "portrait"),
             defineField({ name: "label", title: "Caption", type: "string" }),
             defineField({ name: "hidden", title: "Hide from website", type: "boolean", initialValue: false })
           ],
@@ -201,7 +201,7 @@ export const aboutPage = defineType({
               defineField({ name: "role", title: "Role", type: "string" }),
               defineField({ name: "bio", title: "Bio", type: "text", rows: 4, validation: (rule) => rule.required() }),
               plainList("credentials", "Credentials"),
-              imageField("photo", "Portrait", "portrait", { description: "Until a photo is added the page shows initials.", altOptional: true })
+              imageField("photo", "Portrait", "portrait", { description: "Until a photo is added the page shows initials." })
             ],
             preview: { select: { title: "name", subtitle: "role", media: "photo" } }
           })
@@ -212,7 +212,7 @@ export const aboutPage = defineType({
       defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
       ...headingFields(),
       plainList("paragraphs", "Paragraphs"),
-      imageField("image", "Photo", "landscape", { altOptional: true }),
+      imageField("image", "Photo", "landscape"),
       defineField({ name: "routineLabel", title: "Routine list heading", type: "string" }),
       plainList("routine", "Routine list")
     ]),

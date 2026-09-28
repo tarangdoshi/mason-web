@@ -280,8 +280,8 @@ export default async function HomePageView({
               beforeImageDesktop={hero.visual.beforeImageDesktop}
               afterImageMobile={hero.visual.afterImageMobile}
               afterImageDesktop={hero.visual.afterImageDesktop}
-              beforeAlt={hero.visual.beforeAlt || `${hero.visual.alt} before`}
-              afterAlt={hero.visual.afterAlt || `${hero.visual.alt} after`}
+              beforeAlt={hero.visual.beforeAlt ?? hero.visual.alt}
+              afterAlt={hero.visual.afterAlt ?? hero.visual.alt}
               beforeLabel={hero.visual.beforeLabel || "Before"}
               afterLabel={hero.visual.afterLabel || "After"}
               autoplayMs={hero.visual.autoplayMs}
@@ -345,12 +345,12 @@ export default async function HomePageView({
                 <BeforeAfterSlider
                   beforeImage={featuredTransformation.before.src}
                   afterImage={featuredTransformation.after.src}
-                  beforeAlt={featuredTransformation.before.alt || `${featuredTransformation.title} before`}
-                  afterAlt={featuredTransformation.after.alt || `${featuredTransformation.title} after`}
+                  beforeAlt={featuredTransformation.before.alt}
+                  afterAlt={featuredTransformation.after.alt}
                   beforeLabel={featuredTransformation.before.label || "Before"}
                   afterLabel={featuredTransformation.after.label || "After"}
                   fallbackImage={featuredTransformation.after.src || featuredTransformation.before.src || hero.visual.image}
-                  fallbackAlt={featuredTransformation.after.alt || featuredTransformation.before.alt || featuredTransformation.title}
+                  fallbackAlt={featuredTransformation.after.alt ?? featuredTransformation.before.alt ?? ""}
                 />
               </div>
               <div className={styles.transformationFeaturedCopy}>
@@ -370,7 +370,6 @@ export default async function HomePageView({
                     <div className={styles.transformationMiniImageWrap}>
                       <CmsImage
                         visual={item.before}
-                        fallbackAlt={item.before.alt || `${item.title} before`}
                         width={600}
                         height={450}
                         sizes="(max-width: 720px) 50vw, 180px"
@@ -381,7 +380,6 @@ export default async function HomePageView({
                     <div className={styles.transformationMiniImageWrap}>
                       <CmsImage
                         visual={item.after}
-                        fallbackAlt={item.after.alt || `${item.title} after`}
                         width={600}
                         height={450}
                         sizes="(max-width: 720px) 50vw, 180px"

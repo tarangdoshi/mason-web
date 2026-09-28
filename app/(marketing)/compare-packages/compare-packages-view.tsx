@@ -114,7 +114,6 @@ export default function ComparePackagesView({
                   {plan.visual?.src ? (
                     <CmsImage
                       visual={plan.visual}
-                      fallbackAlt={plan.name}
                       width={1200}
                       height={960}
                       sizes="(max-width: 760px) calc(100vw - 2rem), 560px"

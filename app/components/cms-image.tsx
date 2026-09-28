@@ -4,7 +4,6 @@ import type { VisualAsset } from "../../content/types";
 type CmsImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "alt" | "height" | "src" | "srcSet" | "width"> & {
   visual?: VisualAsset;
   fallbackSrc?: string;
-  fallbackAlt: string;
   width: number;
   height: number;
 };
@@ -12,7 +11,6 @@ type CmsImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "alt" | "height" 
 export default function CmsImage({
   visual,
   fallbackSrc,
-  fallbackAlt,
   width,
   height,
   sizes = "100vw",
@@ -30,7 +28,7 @@ export default function CmsImage({
       src={src}
       srcSet={visual?.srcSet}
       sizes={visual?.srcSet ? sizes : undefined}
-      alt={visual?.alt || fallbackAlt}
+      alt={visual?.alt ?? ""}
       width={visual?.width || width}
       height={visual?.height || height}
       loading={loading}

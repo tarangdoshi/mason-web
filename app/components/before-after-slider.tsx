@@ -228,7 +228,7 @@ export default function BeforeAfterSlider({
           {beforeImageDesktop ? <source media="(min-width: 768px)" srcSet={beforeImageDesktop} /> : null}
           <img
             src={resolvedBeforeImage}
-            alt={beforeAlt || fallbackAlt}
+            alt={beforeAlt ?? ""}
             width={1200}
             height={900}
             sizes="(max-width: 767px) 100vw, 588px"
@@ -250,7 +250,7 @@ export default function BeforeAfterSlider({
             {afterImageDesktop ? <source media="(min-width: 768px)" srcSet={afterImageDesktop} /> : null}
             <img
               src={resolvedAfterImage}
-              alt={afterAlt || fallbackAlt}
+              alt={afterAlt ?? ""}
               width={1200}
               height={900}
               sizes="(max-width: 767px) 100vw, 588px"

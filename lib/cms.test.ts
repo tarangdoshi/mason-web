@@ -10,6 +10,7 @@ import { parsePackagePrice } from "./analytics";
 import { PRIVACY, TERMS } from "../components/legal-data";
 import HighlightedText from "../components/HighlightedText";
 import PhotoSlot from "../components/PhotoSlot";
+import CmsImage from "../app/components/cms-image";
 
 process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "testproject";
 Object.defineProperty(globalThis, "React", { value: React, configurable: true });
@@ -72,6 +73,81 @@ test("an uploaded image replaces the bundled one, is framed by its hotspot and c
   assert.match(photo.srcSet ?? "", /480w/);
   assert.equal(photo.objectPosition, "30% 70%", "hotspot wins for uploads; the old bundled position is ignored");
   assert.equal(hotspotPosition({ x: 0.333, y: 1.4 }), "33.3% 100%");
+});
+
+test("every current rendered CMS photo keeps supplied alt or renders blank alt", () => {
+  const bare = upload("image-bare-1200x1500-jpg", { alt: undefined });
+  const site = resolvePublicSite({
+    homepage: {
+      hero: { backgroundImage: bare, backgroundImageMobile: bare },
+      whatWeDoSection: { sideImage: bare },
+      finalCtaSection: { backgroundImage: bare }
+    },
+    aboutPage: {
+      hero: { image: bare }, story: { image: bare }, approach: { image: bare }, closing: { image: bare },
+      team: { founders: [{ name: "Founder", bio: "Bio", photo: bare }] }
+    },
+    packagesPage: { image: bare },
+    packages: [
+      { code: "package-standard", includedFeatures: [{ key: "shower-stool", label: "Shower stool", image: bare }] },
+      { code: "package-advanced", includedFeatures: [{ key: "shower-stool", label: "Shower stool", image: bare }] }
+    ],
+    doctors: [{ name: "Dr. Sample", quote: "Quote", photo: bare }],
+    gallery: { sliderBefore: bare, sliderAfter: bare, tiles: [{ image: bare }] },
+    siteSettings: { contactImage: bare }
+  });
+  const images = [
+    site.home.hero.background.desktop, site.home.hero.background.mobile, site.home.safer.image,
+    site.home.finalCta.image, site.about.hero.image, site.about.story.image,
+    site.about.approach.image, site.about.closing.image, site.about.team.founders[0].photo,
+    site.packagesPage.image, site.packages.components[0].image, site.home.doctors.items[0].photo,
+    site.home.transformations.sliderBefore, site.home.transformations.sliderAfter,
+    site.home.transformations.tiles[0].image, site.contactPage.image
+  ];
+  assert.ok(images.every((photo) => photo?.alt === ""));
+  assert.ok(images.every((photo) => photo?.src.includes("image-bare")));
+
+  const described = resolvePublicSite({
+    homepage: { hero: { backgroundImage: upload("image-described-1200x1500-jpg", { alt: "Installed support beside the shower" }) } },
+    doctors: [{ name: "Dr. Sample", quote: "Quote", photo: upload("image-doctor-1200x1500-jpg", { alt: "Doctor in the clinic" }) }]
+  });
+  assert.equal(described.home.hero.background.desktop.alt, "Installed support beside the shower");
+  assert.equal(described.home.doctors.items[0].photo?.alt, "Doctor in the clinic");
+  assert.equal(resolvePublicSite({ homepage: { whatWeDoSection: { sideImage: { fallbackSrc: "/prerna/images/bath-2.jpg", alt: null } } } }).home.safer.image.alt, "");
+
+  for (const alt of ["", "Installed support beside the shower"]) {
+    const markup = renderToStaticMarkup(React.createElement(CmsImage, {
+      visual: { src: "/prerna/images/bath-2.jpg", alt }, width: 1200, height: 900
+    }));
+    assert.match(markup, new RegExp(`alt="${alt}"`));
+    assert.doesNotMatch(markup, /alt="(?:undefined|null|image-bare-1200x1500-jpg|Dr\. Sample)"/);
+  }
+  const doctorsSource = readFileSync(new URL("../components/Doctors.tsx", import.meta.url), "utf8");
+  assert.match(doctorsSource, /alt=\{doc\.photo\.alt\}/);
+  const packagesPageSource = readFileSync(new URL("../app/(public)/packages/page.tsx", import.meta.url), "utf8");
+  assert.match(packagesPageSource, /alt=\{item\.image\.alt\}/);
+  const heroSource = readFileSync(new URL("../components/Hero.tsx", import.meta.url), "utf8");
+  assert.match(heroSource, /alt=\{mobileBg\.alt\}/);
+});
+
+test("legacy Sanity image mapping does not turn blank alt into fallback copy", async () => {
+  const { applySanityHomepage } = await import("./site-content");
+  const { homepageContent } = await import("../content/homepage.content");
+  const result = applySanityHomepage(homepageContent, {
+    hero: {
+      beforeVisual: { url: "https://cdn.sanity.io/images/p/d/before.jpg", alt: null },
+      afterVisual: { url: "https://cdn.sanity.io/images/p/d/after.jpg", alt: "" }
+    },
+    whatWeDoSection: { visual: { url: "https://cdn.sanity.io/images/p/d/visit.jpg", alt: undefined } }
+  }, null);
+  assert.equal(result.hero.visual.beforeAlt, "");
+  assert.equal(result.hero.visual.afterAlt, "");
+  assert.equal(result.hero.visual.alt, "");
+  assert.equal(result.whatWeDoSection.visual?.alt, "");
+  const described = applySanityHomepage(homepageContent, {
+    hero: { afterVisual: { url: "https://cdn.sanity.io/images/p/d/after.jpg", alt: "Grab bar fitted beside a shower" } }
+  }, null);
+  assert.equal(described.hero.visual.afterAlt, "Grab bar fitted beside a shower");
 });
 
 test("hero background: one master serves every screen; the mobile override is optional", () => {

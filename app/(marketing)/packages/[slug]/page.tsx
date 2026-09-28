@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url,
       type: "website",
-      ...(ogImage ? { images: [{ url: ogImage, alt: entry.plan.visual?.alt || `${name} package` }] } : {})
+      ...(ogImage ? { images: [{ url: ogImage, ...(entry.plan.visual?.alt ? { alt: entry.plan.visual.alt } : {}) }] } : {})
     },
     twitter: {
       card: ogImage ? "summary_large_image" : "summary",
@@ -169,7 +169,6 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <div className={styles.heroVisual}>
               <CmsImage
                 visual={plan.visual}
-                fallbackAlt={`${plan.name} package`}
                 width={1200}
                 height={960}
                 sizes="(max-width: 860px) calc(100vw - 2rem), 540px"

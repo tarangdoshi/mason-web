@@ -176,7 +176,6 @@ function transformedSanityImageUrl(image: SanityImageValue, width: number, heigh
 
 function toVisualAsset(
   image: SanityImageValue | null | undefined,
-  fallbackAlt: string,
   spec: ImageTransformSpec = imageTransformSpecs.landscape
 ): VisualAsset | undefined {
   const transformedSrc = image?.assetRef ? transformedSanityImageUrl(image, spec.width, spec.height) : undefined;
@@ -199,7 +198,7 @@ function toVisualAsset(
     srcSet,
     width: spec.width,
     height: spec.height,
-    alt: image?.alt || fallbackAlt,
+    alt: typeof image?.alt === "string" ? image.alt.trim() : "",
     label: image?.label || undefined,
     objectPosition: image?.objectPosition || undefined
   };
@@ -251,15 +250,13 @@ export function applySanityHomepage(base: HomepageContent, homepage: SanityHomep
 
   if (homepage.hero) {
     const { beforeVisual, afterVisual, visual, ...heroFields } = homepage.hero;
-    const legacyHeroVisual = toVisualAsset(visual, next.hero.visual.alt, imageTransformSpecs.hero);
+    const legacyHeroVisual = toVisualAsset(visual, imageTransformSpecs.hero);
     const heroBeforeVisual = toVisualAsset(
       beforeVisual,
-      next.hero.visual.beforeAlt || `${next.hero.visual.alt} before`,
       imageTransformSpecs.hero
     );
     const heroAfterVisual = toVisualAsset(
       afterVisual,
-      next.hero.visual.afterAlt || `${next.hero.visual.alt} after`,
       imageTransformSpecs.hero
     );
     next.hero = {
@@ -268,15 +265,15 @@ export function applySanityHomepage(base: HomepageContent, homepage: SanityHomep
       visual: {
         ...next.hero.visual,
         image: heroAfterVisual?.src || legacyHeroVisual?.src || next.hero.visual.image,
-        alt: heroAfterVisual?.alt || legacyHeroVisual?.alt || next.hero.visual.alt,
+        alt: heroAfterVisual?.alt ?? legacyHeroVisual?.alt ?? next.hero.visual.alt,
         beforeImage: heroBeforeVisual?.src || next.hero.visual.beforeImage,
         beforeImageMobile: heroBeforeVisual?.srcSet || heroBeforeVisual?.src || next.hero.visual.beforeImageMobile,
         beforeImageDesktop: heroBeforeVisual?.srcSet || heroBeforeVisual?.src || next.hero.visual.beforeImageDesktop,
         afterImage: heroAfterVisual?.src || next.hero.visual.afterImage,
         afterImageMobile: heroAfterVisual?.srcSet || heroAfterVisual?.src || next.hero.visual.afterImageMobile,
         afterImageDesktop: heroAfterVisual?.srcSet || heroAfterVisual?.src || next.hero.visual.afterImageDesktop,
-        beforeAlt: heroBeforeVisual?.alt || next.hero.visual.beforeAlt,
-        afterAlt: heroAfterVisual?.alt || next.hero.visual.afterAlt
+        beforeAlt: heroBeforeVisual?.alt ?? next.hero.visual.beforeAlt,
+        afterAlt: heroAfterVisual?.alt ?? next.hero.visual.afterAlt
       }
     };
   }
@@ -285,7 +282,6 @@ export function applySanityHomepage(base: HomepageContent, homepage: SanityHomep
     const { visual, ...whatWeDoFields } = homepage.whatWeDoSection;
     const whatWeDoVisual = toVisualAsset(
       visual,
-      next.whatWeDoSection.visual?.alt || "What we do bathroom visual",
       imageTransformSpecs.landscape
     );
     next.whatWeDoSection = {
@@ -382,7 +378,7 @@ function applySanityTestimonials(content: HomepageContent, testimonials: SanityT
       relation: item.relation || "Customer",
       city: item.city || "",
       outcomeLine: item.outcomeLine || undefined,
-      photo: toVisualAsset(item.photo, item.name!, imageTransformSpecs.portrait)
+      photo: toVisualAsset(item.photo, imageTransformSpecs.portrait)
     }));
 
   return items.length
@@ -410,7 +406,7 @@ function applySanityDoctors(content: HomepageContent, doctors: SanityDoctor[] | 
       specialty: item.specialty!,
       registration: item.registration!,
       city: "",
-      photo: toVisualAsset(item.photo, item.name!, imageTransformSpecs.portrait)
+      photo: toVisualAsset(item.photo, imageTransformSpecs.portrait)
     }));
 
   return items.length
@@ -435,8 +431,8 @@ function applySanityGallery(content: HomepageContent, gallery: SanityGalleryItem
       id: item._id || item.title!,
       title: item.title!,
       caption: item.caption!,
-      before: toVisualAsset(item.beforeImage, `${item.title} before`) || { alt: `${item.title} before` },
-      after: toVisualAsset(item.afterImage, `${item.title} after`) || { alt: `${item.title} after` },
+      before: toVisualAsset(item.beforeImage) || { alt: "" },
+      after: toVisualAsset(item.afterImage) || { alt: "" },
       tags: item.tags?.filter((tag): tag is string => Boolean(tag))
     }))
     .filter((item) => item.before.src && item.after.src);
