@@ -1,0 +1,964 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "c2975d67668ad1349e877c620e5a302615ecad99",
+  "preparedOn": "2026-09-28",
+  "sourceFolders": {
+    "general": "https://drive.google.com/drive/folders/1kkDwwCGftCTTahEH57zqPg41XbWVAFsN",
+    "componentsAndAbout": "https://drive.google.com/drive/folders/1xaRkJx8M9udJGQ9q6y_HHQd-zlkWiVUl"
+  },
+  "readOnly": true,
+  "notes": [
+    "This is a planning manifest, not an executable upload or patch script.",
+    "Field paths containing [_key==...] identify existing array items for editorial review; validate against a fresh published read before any future write.",
+    "Recommended alt text is provisional and must be checked against the selected image.",
+    "HEIC/HEIF candidates require a web-safe JPEG master copy or a verified Studio upload test before use; do not alter the originals.",
+    "DNU and IMG_xxxx assets are intentionally excluded from all candidate mappings.",
+    "The optional homepage mobile override is outside this phase. A new hero master will also be used on mobile unless a separate mobile asset is set."
+  ],
+  "excluded": {
+    "dnuCount": 12,
+    "futureImgCount": 8
+  },
+  "entries": [
+    {
+      "destination": "Homepage hero",
+      "sanityDocumentType": "homepage",
+      "sanityDocumentId": "homepage",
+      "sanityFieldPath": "hero.backgroundImage",
+      "currentFallbackSrc": "/prerna/images/hero-install.jpg",
+      "recommendedAltText": "Mason bathroom safety installation",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the installation subject clear of the left-hand headline; check crop at 390 px.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "01_Hero_Installation.png",
+          "driveFileId": "1wirmJ0akfyLCX6-_Pqm8YhGUQEb7psKB",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Homepage visit / inspection image",
+      "sanityDocumentType": "homepage",
+      "sanityDocumentId": "homepage",
+      "sanityFieldPath": "whatWeDoSection.sideImage",
+      "currentFallbackSrc": "/prerna/images/care-2.jpg",
+      "recommendedAltText": "Bathroom prepared for a Mason safety visit",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the bathroom detail visible at narrow widths.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "05_Book_Visit_Bathroom.png",
+          "driveFileId": "1soe8hSd-L10B7mw_4isV5vpv9DYOKfoK",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Transformations comparison — before",
+      "sanityDocumentType": "gallery",
+      "sanityDocumentId": "gallery",
+      "sanityFieldPath": "sliderBefore",
+      "currentFallbackSrc": "/prerna/images/bath-1.jpg",
+      "recommendedAltText": "Bathroom before Mason safety improvements",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Match the after image's framing and dimensions; keep the main fixtures aligned.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Transformations_Before_Image",
+          "driveFileId": "1u-xZP5vIiOul9VepotK3Ycztxl5psBg8",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Transformations comparison — after",
+      "sanityDocumentType": "gallery",
+      "sanityDocumentId": "gallery",
+      "sanityFieldPath": "sliderAfter",
+      "currentFallbackSrc": "/prerna/images/bath-1.jpg",
+      "recommendedAltText": "Bathroom after Mason safety improvements",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Match the before image's framing and dimensions; keep the main fixtures aligned.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Transformation_After_Image",
+          "driveFileId": "1jGtn4mdPuT4zSmmWc1FTAH7UKjePi6KX",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Transformations gallery — Guest bathroom after safety upgrade",
+      "sanityDocumentType": "gallery",
+      "sanityDocumentId": "gallery",
+      "sanityFieldPath": "tiles[_key==\"tile-1\"].image",
+      "currentFallbackSrc": "/prerna/images/bath-2.jpg",
+      "recommendedAltText": "Bathroom after Mason safety improvements; revise to match selected photograph",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Keep the primary bathroom feature inside the portrait crop.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Transformations_Gallery_1",
+          "driveFileId": "13-QLR7Mv1pTMWDrrIaKh6mYrg5EsM77r",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_3",
+          "driveFileId": "1cefhb0dbjof4PxsIekJaYHBjohfcpADW",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_4",
+          "driveFileId": "1sqpLTzJNaw2Mel9wt8TWl8GMSgDO78e2",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Transformations gallery — Walk-in shower · Goa",
+      "sanityDocumentType": "gallery",
+      "sanityDocumentId": "gallery",
+      "sanityFieldPath": "tiles[_key==\"tile-2\"].image",
+      "currentFallbackSrc": "/prerna/images/shower-2.jpg",
+      "recommendedAltText": "Bathroom after Mason safety improvements; revise to match selected photograph",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Keep the primary bathroom feature inside the portrait crop.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Transformations_Gallery_1",
+          "driveFileId": "13-QLR7Mv1pTMWDrrIaKh6mYrg5EsM77r",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_3",
+          "driveFileId": "1cefhb0dbjof4PxsIekJaYHBjohfcpADW",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_4",
+          "driveFileId": "1sqpLTzJNaw2Mel9wt8TWl8GMSgDO78e2",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Transformations gallery — Master bathroom after safety upgrade",
+      "sanityDocumentType": "gallery",
+      "sanityDocumentId": "gallery",
+      "sanityFieldPath": "tiles[_key==\"tile-3\"].image",
+      "currentFallbackSrc": "/prerna/images/bath-4.jpg",
+      "recommendedAltText": "Bathroom after Mason safety improvements; revise to match selected photograph",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Keep the primary bathroom feature inside the portrait crop.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Transformations_Gallery_1",
+          "driveFileId": "13-QLR7Mv1pTMWDrrIaKh6mYrg5EsM77r",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_3",
+          "driveFileId": "1cefhb0dbjof4PxsIekJaYHBjohfcpADW",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_4",
+          "driveFileId": "1sqpLTzJNaw2Mel9wt8TWl8GMSgDO78e2",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Transformations gallery — Ensuite shower · Goa",
+      "sanityDocumentType": "gallery",
+      "sanityDocumentId": "gallery",
+      "sanityFieldPath": "tiles[_key==\"tile-4\"].image",
+      "currentFallbackSrc": "/prerna/images/shower-3.jpg",
+      "recommendedAltText": "Bathroom after Mason safety improvements; revise to match selected photograph",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Keep the primary bathroom feature inside the portrait crop.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Transformations_Gallery_1",
+          "driveFileId": "13-QLR7Mv1pTMWDrrIaKh6mYrg5EsM77r",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_3",
+          "driveFileId": "1cefhb0dbjof4PxsIekJaYHBjohfcpADW",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Transformations_Gallery_4",
+          "driveFileId": "1sqpLTzJNaw2Mel9wt8TWl8GMSgDO78e2",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Homepage final booking CTA",
+      "sanityDocumentType": "homepage",
+      "sanityDocumentId": "homepage",
+      "sanityFieldPath": "finalCtaSection.backgroundImage",
+      "currentFallbackSrc": "/prerna/images/shower-1.jpg",
+      "recommendedAltText": "Bathroom setting for booking a Mason safety visit",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Preserve a quiet area behind CTA text; verify legibility on desktop and mobile.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "BookFreeInspection_Background_Homepage",
+          "driveFileId": "1vmSKGa5xTsXgekHZWuG9YrnHJWokdH-1",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "Form_Section_Homepage",
+          "driveFileId": "1N0vXOACx8HvrVdb8hRUJMVqpYd8hypxB",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Packages page top image",
+      "sanityDocumentType": "packagesPage",
+      "sanityDocumentId": "packagesPage",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/bath-2.jpg",
+      "recommendedAltText": "Mason bathroom safety installation",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep installer or bathroom detail visible beside the packages introduction.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "06_Installer_Packages_Top.png",
+          "driveFileId": "17FiOmMszXppth-bkbxDVvfYZK5_NUDhf",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "About page hero",
+      "sanityDocumentType": "aboutPage",
+      "sanityDocumentId": "aboutPage",
+      "sanityFieldPath": "hero.image",
+      "currentFallbackSrc": null,
+      "recommendedAltText": "Mason bathroom or founders; write precise alt text after the image is selected",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Choose a crop that supports the adjacent copy; inspect desktop and 390 px mobile.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "08_Second_Home_Bathroom_B.png",
+          "driveFileId": "1nJq_UZBR4SsafGlm3mjxuoCUCfxdEqkV",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "About story",
+      "sanityDocumentType": "aboutPage",
+      "sanityDocumentId": "aboutPage",
+      "sanityFieldPath": "story.image",
+      "currentFallbackSrc": null,
+      "recommendedAltText": "Mason bathroom or founders; write precise alt text after the image is selected",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Choose a crop that supports the adjacent copy; inspect desktop and 390 px mobile.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "08_Second_Home_Bathroom_B.png",
+          "driveFileId": "1nJq_UZBR4SsafGlm3mjxuoCUCfxdEqkV",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "PranayTarang_About_Together.heic",
+          "driveFileId": "1KOmrhGcIXiLYrfhdXJS3x8jtEuAiKZel",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "About approach",
+      "sanityDocumentType": "aboutPage",
+      "sanityDocumentId": "aboutPage",
+      "sanityFieldPath": "approach.image",
+      "currentFallbackSrc": null,
+      "recommendedAltText": "Mason bathroom or founders; write precise alt text after the image is selected",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Choose a crop that supports the adjacent copy; inspect desktop and 390 px mobile.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "08_Second_Home_Bathroom_B.png",
+          "driveFileId": "1nJq_UZBR4SsafGlm3mjxuoCUCfxdEqkV",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "About closing",
+      "sanityDocumentType": "aboutPage",
+      "sanityDocumentId": "aboutPage",
+      "sanityFieldPath": "closing.image",
+      "currentFallbackSrc": null,
+      "recommendedAltText": "Mason bathroom or founders; write precise alt text after the image is selected",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Choose a crop that supports the adjacent copy; inspect desktop and 390 px mobile.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "08_Second_Home_Bathroom_B.png",
+          "driveFileId": "1nJq_UZBR4SsafGlm3mjxuoCUCfxdEqkV",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        },
+        {
+          "driveFilename": "04_Bathroom_Gallery_A.png",
+          "driveFileId": "1fUCC16xmrM10jOjmGVpktpjoKxC2YBQz",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "About founder — Tarang Doshi",
+      "sanityDocumentType": "aboutPage",
+      "sanityDocumentId": "aboutPage",
+      "sanityFieldPath": "team.founders[_key==\"1-tarang-doshi\"].photo",
+      "currentFallbackSrc": null,
+      "recommendedAltText": "Portrait of Tarang Doshi",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Place Tarang's face inside the portrait focal area.",
+      "desktopMobileRole": "Responsive founder portrait",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Tarang_About_Profile.heic",
+          "driveFileId": "1ryzAm4gpymlyUDfAm13hnZirXGKalGAJ",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "About founder — Pranay Gupta",
+      "sanityDocumentType": "aboutPage",
+      "sanityDocumentId": "aboutPage",
+      "sanityFieldPath": "team.founders[_key==\"2-pranay-gupta\"].photo",
+      "currentFallbackSrc": null,
+      "recommendedAltText": "Portrait of Pranay Gupta",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Place Pranay's face inside the portrait focal area.",
+      "desktopMobileRole": "Responsive founder portrait",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Pranay_About_Profile",
+          "driveFileId": "1bTD7nqPtZNMSYzj4KcZVgdK29grh4bb5",
+          "mimeType": "image/jpeg",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Contact page image",
+      "sanityDocumentType": "siteSettings",
+      "sanityDocumentId": "siteSettings",
+      "sanityFieldPath": "contactImage",
+      "currentFallbackSrc": "/prerna/images/care-3.jpg",
+      "recommendedAltText": "Mason installer at a bathroom safety visit",
+      "expectedAspectRatio": "4:5 portrait; minimum 800×1000 px",
+      "cropHotspotRecommendation": "Place the main subject within the portrait crop; confirm against the actual photo.",
+      "desktopMobileRole": "Responsive master for desktop and mobile",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "10_Installer_Contact_Page.png",
+          "driveFileId": "1e6ca9CUbIAhEspKdXL8tFv_bNenMGvzC",
+          "mimeType": "image/png",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Vertical grab bars",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-vertical-grab-bars",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/bath-3.jpg",
+      "recommendedAltText": "Vertical grab bars installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Vertical_GrabBar_RoseGold6.HEIC",
+          "driveFileId": "19J_MnU6-OAf_dJeY6F3wA_m7TXD1kG6R",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_BlackLogo.heic",
+          "driveFileId": "16fcKeshMRDVaDhqJ2nwJcImjOsvEKwPP",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_Black2.HEIC",
+          "driveFileId": "1jRDIM5A2d58HFiEC0Q1c6Xyv6FKiM_vQ",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_RoseGold5.HEIC",
+          "driveFileId": "1piw7OwM_Y3nI3Za-TEb8Fqtg1Qrx-UPe",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_RoseGold3.heic",
+          "driveFileId": "1yWkOD0PAZCjM_HlGaKixMvnWARY1HFZQ",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_LongGrabBar_Silver2.heic",
+          "driveFileId": "1vBw1awuHM3K04XTUzbA5lYB10aj9tEQh",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_SilverLogo.heic",
+          "driveFileId": "1V5XuSadXXmixyDhA6XufMooizpWZVKFD",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_LongGrabBar_Silver1.HEIC",
+          "driveFileId": "1m49FkMZVQuWJGswBnWNRlIiBamOfOyg-",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_RoseGold3.HEIC",
+          "driveFileId": "1SwUv6zhfLmi-nY0J8W_PZIBMPYPS1-8P",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_RoseGold2.heic",
+          "driveFileId": "1ucnxngH57cgLYud2BMzCiik-Zwg1W--i",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_Silver2.heic",
+          "driveFileId": "17SkAkUMdTBK0oFCwj68E9hxx3fR2BbgL",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_Gold1.heic",
+          "driveFileId": "1ymlYK9hBYRvPJu9K17csnt7D9UUpg-Gb",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_Gold2.heic",
+          "driveFileId": "1defwrCtR4PK8jL8yz9_dGI_Qg6GE8bFv",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_RoseGold.heic",
+          "driveFileId": "1jhzI94l0S_iORGYZkJhAZe6f2Ra3J78Y",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_Silver.heic",
+          "driveFileId": "1X93CVAhbIVmJzupsAASWMWF2MQNPMBUK",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar_Variety1.HEIC",
+          "driveFileId": "1OZXiQpjTYIc1pD2yi0jHcvIQjBC5rQZd",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Vertical_GrabBar1",
+          "driveFileId": "187d6mMSQZKGBQM3I9Mye9TXJ5QqS1XOy",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — L / angled grab bar",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-angled-grab-bar",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/bath-5.jpg",
+      "recommendedAltText": "L / angled grab bar installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "LShaped_GrabBar3.HEIC",
+          "driveFileId": "1R_COXkEXO0av3cemkYg_iaFDEJWoCBWR",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "LShaped_GrabBar1.HEIC",
+          "driveFileId": "1OvWIj8hfOQaEUt5ia4F_ZQavCKstsX2T",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Folding support bar",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-folding-bar",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/bath-1.jpg",
+      "recommendedAltText": "Folding support bar installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Folding_SupportBar5.HEIC",
+          "driveFileId": "1B1CL4e39pg1tHfPXWoVFRNIcH2YXoMBW",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Folding_SupportBar4.HEIC",
+          "driveFileId": "19R4jIekkSdJfhNj6ofpmzndu7umDyrvo",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Folding_SupportBar3.HEIC",
+          "driveFileId": "1TbSb0eFETRInbBq-3IPDXtQ_Rk75OzqL",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Folding_SupportBar2.heic",
+          "driveFileId": "1oF09NikSrQyY986EXTa24UwLqSw2JSrS",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Folding_SupportBar1.HEIC",
+          "driveFileId": "1eraKBU6OUPqqivdWnvRIZTUxFucnDnG6",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Anti-slip treatment",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-anti-slip-coating",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/shower-3.jpg",
+      "recommendedAltText": "Anti-slip treatment installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "KEEP_CURRENT_FALLBACK",
+      "candidates": []
+    },
+    {
+      "destination": "Package component — Shower anti-slip mat",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-anti-slip-mat-shower",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/shower-4.jpg",
+      "recommendedAltText": "Shower anti-slip mat installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Shower_Anti-Slip_Mat4.HEIC",
+          "driveFileId": "1rW0bURICr30wUdGtbPxcupU66P0vV3vn",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Shower_Anti-Slip_Mat3.HEIC",
+          "driveFileId": "1_CQni9KZ1fQu1QEnoTR5ojcG2-waq3a4",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Shower_Anti-Slip_Mat2.HEIC",
+          "driveFileId": "1CX5IAHrcw6H1Xo_YxkhnP1O5DKl3hz_4",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Shower_Anti-Slip_Mat1.HEIC",
+          "driveFileId": "1hTJOswuoyLOIg1_LrKaRPYEv7oq3XRQ1",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Post-shower anti-slip mat",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-anti-slip-mat-post-shower",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/care-2.jpg",
+      "recommendedAltText": "Post-shower anti-slip mat installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Post_Shower_Mat3.HEIC",
+          "driveFileId": "18x8nhtMtoySq-uCnfHk2GTUjNeInFuvp",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Post_Shower_Mat2.HEIC",
+          "driveFileId": "1asuJQgT8SV_3jcyyHtFyUcF_abQTLm9B",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Post_Shower_Mat1.HEIC",
+          "driveFileId": "1jZxJEiroKkIXY46id3v7NxiSSSAV-zEI",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Shower stool",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-shower-stool",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/shower-2.jpg",
+      "recommendedAltText": "Shower stool installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Shower_Stool2.HEIC",
+          "driveFileId": "1bSpy_BORKzJ14Z4ppDBmVObEhEJxtRzU",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Shower_Stool.HEIC",
+          "driveFileId": "1qGlDU2eCOF8R3zo_J33iuB1Wut-2E_OX",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Two-way lock",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-two-way-lock",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/detail-1.jpg",
+      "recommendedAltText": "Two-way lock installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Two-way_Lock_Silver5.heic",
+          "driveFileId": "1R4dPibYesTlKox2zpkxQB2t1lrtMK3vl",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Black&Silver.heic",
+          "driveFileId": "1U8QXDm8ErGVeP0JBPJaCT5vycwCMqrDO",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Black3.heic",
+          "driveFileId": "1coqKnQEyZE_18g5L0wyJ9uKCZgOOvhcU",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Black2.heic",
+          "driveFileId": "1_zETh-6NPSq3m8lgm6r6_zY3vAuQuzt5",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Black1.heic",
+          "driveFileId": "17EoLb1F9dfmwJSMJ9c3s-u16T6GO8MrX",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Silver4.heic",
+          "driveFileId": "1v5qhs5DOJDJaxTqwqqKrxQsaXmCkehoE",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Silver3.heic",
+          "driveFileId": "1dFrE6delSbiPbw-d-31BCaPySKPIUVNh",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Two-way_Lock_Silver2.HEIC",
+          "driveFileId": "1DkCGIpG7IwVuzIebwA3NvtrEojYHTG2f",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Edge & Corner Protection",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-corner-safety",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/bath-2.jpg",
+      "recommendedAltText": "Edge & Corner Protection installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Edge_Proofing.webp",
+          "driveFileId": "1wSWqMOEgYuhO_GawkjNoleQOX_UWaE7X",
+          "mimeType": "image/webp",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Drainage Support",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-drainage-solution",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/shower-1.jpg",
+      "recommendedAltText": "Drainage Support installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Drain_Clear1.webp",
+          "driveFileId": "1EL0GfYsabGAcj5nL2xhtHvMM0Epmuns5",
+          "mimeType": "image/webp",
+          "needsJpegMaster": false
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Bathroom slippers",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-slippers-one",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/care-1.jpg",
+      "recommendedAltText": "Bathroom slippers installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "KEEP_CURRENT_FALLBACK",
+      "candidates": []
+    },
+    {
+      "destination": "Package component — Reinforced Fixture Support",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-total-support-solution",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/prerna/images/bath-4.jpg",
+      "recommendedAltText": "Reinforced Fixture Support installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "FOUNDER_SELECTION_REQUIRED",
+      "candidates": [
+        {
+          "driveFilename": "Reinforced_Fixture_Support8.HEIC",
+          "driveFileId": "1HRfp9wfxybVxbf1ldWGbpna_lE4bXF_A",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support7.HEIC",
+          "driveFileId": "1CE5yHT4rGyzDqL9JhUBn5go34nqu1sda",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support6HEIC",
+          "driveFileId": "1pKJJQKakUEtYOR3jSFVxZ9eu3Frs7np1",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support5.HEIC",
+          "driveFileId": "1RPK2jCI-rGbf3PwZ4z_xHnEFSJoUss27",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support4.HEIC",
+          "driveFileId": "16ecP1sPUIuNUQ1PtBNpE9ydAfUZu3BMX",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support3.HEIC",
+          "driveFileId": "1673JUtcbFc5IZ9YZAQmr3XM80OAtQZlT",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support2.HEIC",
+          "driveFileId": "1a9W6-xZVn-tbObRVRu76HGHFiccx3r_p",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        },
+        {
+          "driveFilename": "Reinforced_Fixture_Support1.HEIC",
+          "driveFileId": "1jlnj8JCjn5VhIEH14hIqeHWd7AHstNY1",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    },
+    {
+      "destination": "Package component — Raised Toilet Seat",
+      "sanityDocumentType": "packageFeature",
+      "sanityDocumentId": "packageFeature-raised-toilet-seat",
+      "sanityFieldPath": "image",
+      "currentFallbackSrc": "/images/stock-web/upgrades/upgrade-toilet-support.jpg",
+      "recommendedAltText": "Raised Toilet Seat installed in a bathroom",
+      "expectedAspectRatio": "4:3 landscape; minimum 1200×900 px",
+      "cropHotspotRecommendation": "Keep the component clearly visible in the small thumbnail crop.",
+      "desktopMobileRole": "Responsive component thumbnail",
+      "status": "READY_TO_UPLOAD",
+      "candidates": [
+        {
+          "driveFilename": "Raised_Toilet_Seat.HEIC",
+          "driveFileId": "1hh3LimRtpUozRqNQ2uAaNvKsm0tlOb9y",
+          "mimeType": "image/heif",
+          "needsJpegMaster": true
+        }
+      ]
+    }
+  ]
+}
