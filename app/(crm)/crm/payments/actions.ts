@@ -170,14 +170,19 @@ export async function reverseOfflineCollectionAction(formData: FormData) {
   await requireAdminCrmUser();
   const authToken = await token();
   const caseId = field(formData, "caseId");
+  let correctionMayBeNeeded = false;
   try {
-    await apiFetch(`/api/v1/internal/offline-collections/${field(formData, "paymentId")}/reverse`, {
-      method: "POST", token: authToken, body: { reason: field(formData, "reason") }
-    });
-    revalidatePath(detailUrl(caseId));
-    redirect(detailUrl(caseId, undefined, "Offline correction recorded without changing payment history."));
+    const response = await apiFetch<{ data: { acknowledgement?: { correctionMayBeNeeded?: boolean } } }>(
+      `/api/v1/internal/offline-collections/${field(formData, "paymentId")}/reverse`, {
+        method: "POST", token: authToken, body: { reason: field(formData, "reason") }
+      });
+    correctionMayBeNeeded = response.data.acknowledgement?.correctionMayBeNeeded === true;
   } catch (error) {
     if (error instanceof ApiError) redirect(detailUrl(caseId, errorMessage(error)));
     throw error;
   }
+  revalidatePath(detailUrl(caseId));
+  redirect(detailUrl(caseId, undefined, correctionMayBeNeeded
+    ? "Offline correction recorded. A payment acknowledgement for this entry had already been sent or was being sent; the customer may need a correction message."
+    : "Offline correction recorded without changing payment history. Any unsent acknowledgement was withdrawn."));
 }

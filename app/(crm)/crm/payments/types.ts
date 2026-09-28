@@ -19,6 +19,8 @@ export type PaymentRequestRow = {
   status: string;
   providerStatus: string | null;
   providerLinkId: string | null;
+  /** Sanitized provider reason for a rejected or unconfirmed Payment Link creation. */
+  providerError: string | null;
   url: string | null;
   createdAt: string;
 };

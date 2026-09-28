@@ -110,7 +110,7 @@ export default async function PaymentCasePage({ params, searchParams }: {
         {active && <p className={styles.linkCallout}>Active link for {rupees(active.amountPaise)}: <a href={active.url!} target="_blank" rel="noopener noreferrer">Open Razorpay link</a></p>}
         {item.order?.paymentRequests.length ? <div className={styles.tableWrap}><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Provider ID</th><th>Actions</th></tr></thead><tbody>
           {item.order.paymentRequests.map((request) => <tr key={request.id}>
-            <td>{new Date(request.createdAt).toLocaleString("en-IN")}</td><td>{rupees(request.amountPaise)}</td><td>{request.status} {request.providerStatus && `(${request.providerStatus})`}</td><td>{request.providerLinkId ?? "—"}</td>
+            <td>{new Date(request.createdAt).toLocaleString("en-IN")}</td><td>{rupees(request.amountPaise)}</td><td>{request.status} {request.providerStatus && `(${request.providerStatus})`}{request.providerError && <><br /><small>Razorpay: {request.providerError}</small></>}</td><td>{request.providerLinkId ?? "—"}</td>
             <td>{user.role === "ADMIN" && <div className={styles.inlineActions}>
               <form action={reconcilePaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><input type="hidden" name="requestId" value={request.id} /><button type="submit">Reconcile</button></form>
               {["ACTIVE", "CANCEL_PENDING"].includes(request.status) && <form action={cancelPaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><input type="hidden" name="requestId" value={request.id} /><button type="submit">Cancel</button></form>}
