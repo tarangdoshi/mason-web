@@ -33,11 +33,12 @@ export function headingFields(options: { name?: string; highlightsName?: string;
 type ImageSpecName = keyof typeof cmsImageSpecs;
 
 /** One high-quality master image (the site creates every size it needs). */
-export function imageField(name: string, title: string, spec: ImageSpecName, extra: { description?: string; group?: string; fieldset?: string } = {}) {
+export function imageField(name: string, title: string, spec: ImageSpecName, extra: { description?: string; group?: string; fieldset?: string; altOptional?: boolean } = {}) {
   const field = defineGuidedImageField({
     name,
     title,
     spec: cmsImageSpecs[spec],
+    altOptional: extra.altOptional,
     description: [
       "Upload one high-resolution image — the website makes the right size for phones, tablets and desktops.",
       "Click the crop icon to set the focal point; it stays in view on every screen.",

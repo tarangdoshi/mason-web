@@ -46,8 +46,8 @@ export const gallery = defineType({
     defineField({ name: "eyebrow", title: "Small label above the heading", type: "string" }),
     ...headingFields(),
     defineField({ name: "subtitle", title: "Supporting text", type: "text", rows: 2 }),
-    imageField("sliderBefore", "Before/after slider — before image", "landscape", { description: "Pair with the after image; use the same size and framing." }),
-    imageField("sliderAfter", "Before/after slider — after image", "landscape"),
+    imageField("sliderBefore", "Before/after slider — before image", "landscape", { description: "Pair with the after image; use the same size and framing.", altOptional: true }),
+    imageField("sliderAfter", "Before/after slider — after image", "landscape", { altOptional: true }),
     defineField({
       name: "tiles",
       title: "Gallery photos",
@@ -58,13 +58,13 @@ export const gallery = defineType({
           type: "object",
           name: "galleryTile",
           fields: [
-            imageField("image", "Photo", "portrait"),
-            defineField({ name: "label", title: "Caption", type: "string", validation: (rule) => rule.required() }),
+            imageField("image", "Photo", "portrait", { altOptional: true }),
+            defineField({ name: "label", title: "Caption", type: "string" }),
             defineField({ name: "hidden", title: "Hide from website", type: "boolean", initialValue: false })
           ],
           preview: {
             select: { title: "label", media: "image", hidden: "hidden" },
-            prepare: ({ title, media, hidden }) => ({ title, media, subtitle: hidden ? "Hidden from website" : undefined })
+            prepare: ({ title, media, hidden }) => ({ title: title || "Gallery photo", media, subtitle: hidden ? "Hidden from website" : undefined })
           }
         })
       ]

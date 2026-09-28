@@ -84,6 +84,40 @@ test("hero background: one master serves every screen; the mobile override is op
   assert.deepEqual(none, fallbackHome.hero.background);
 });
 
+test("Gallery keeps captionless photos and treats missing alt as decorative without changing other images", async () => {
+  const site = resolvePublicSite({
+    gallery: {
+      sliderBefore: upload("image-before-1200x900-jpg", { alt: undefined }),
+      sliderAfter: upload("image-after-1200x900-jpg", { alt: "After installation" }),
+      tiles: [
+        { image: upload("image-tile-800x1000-jpg", { alt: undefined }) },
+        { label: "Caption only", image: upload("image-tile2-800x1000-jpg", { alt: undefined }) },
+        { label: "", image: null }
+      ]
+    },
+    homepage: { whatWeDoSection: { sideImage: upload("image-side-1200x900-jpg", { alt: "Safer bathroom" }) } }
+  });
+  assert.equal(site.home.transformations.sliderBefore.alt, "");
+  assert.equal(site.home.transformations.sliderAfter.alt, "After installation");
+  assert.deepEqual(site.home.transformations.tiles.map((tile) => [tile.label, tile.image.alt]), [["", ""], ["Caption only", ""]]);
+  assert.match(site.home.transformations.tiles[0].image.src, /image-tile-800x1000-jpg/);
+  assert.equal(site.home.safer.image.alt, "Safer bathroom");
+  assert.deepEqual(resolvePublicSite(null).home.transformations, fallbackHome.transformations);
+  const transformationsModule = await import("../components/Transformations");
+  const Transformations = typeof transformationsModule.default === "function"
+    ? transformationsModule.default
+    : (transformationsModule.default as unknown as { default: typeof transformationsModule.default }).default;
+  const content = {
+    ...site.home.transformations,
+    sliderBefore: { ...site.home.transformations.sliderBefore, src: "/prerna/images/bath-1.jpg" },
+    sliderAfter: { ...site.home.transformations.sliderAfter, src: "/prerna/images/bath-1.jpg" },
+    tiles: site.home.transformations.tiles.map((tile) => ({ ...tile, image: { ...tile.image, src: "/prerna/images/bath-2.jpg" } }))
+  };
+  const markup = renderToStaticMarkup(React.createElement(Transformations, { content }));
+  assert.match(markup, /alt=""/);
+  assert.doesNotMatch(markup, /<figcaption[^>]*>\s*<\/figcaption>|undefined/);
+});
+
 test("contact details are validated and reach the legal pages", () => {
   const good = resolvePublicSite({ siteSettings: { supportEmail: "help@masoncompany.in", supportHours: "Every weekday, 9 am to 6 pm", phoneDisplay: "+91 98200 12345", phoneTel: "+919820012345" } }).settings.contact;
   assert.deepEqual(good, { supportEmail: "help@masoncompany.in", supportHours: "Every weekday, 9 am to 6 pm", phoneDisplay: "+91 98200 12345", phoneHref: "tel:+919820012345", whatsappUrl: fallbackSettings.contact.whatsappUrl });
