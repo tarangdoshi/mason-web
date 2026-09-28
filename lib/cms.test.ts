@@ -9,6 +9,7 @@ import { hotspotPosition, resolvePublicSite, type RawPayload } from "./cms/resol
 import { parsePackagePrice } from "./analytics";
 import { PRIVACY, TERMS } from "../components/legal-data";
 import HighlightedText from "../components/HighlightedText";
+import PhotoSlot from "../components/PhotoSlot";
 
 process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||= "testproject";
 Object.defineProperty(globalThis, "React", { value: React, configurable: true });
@@ -82,6 +83,75 @@ test("hero background: one master serves every screen; the mobile override is op
   assert.match(withOverride.mobile?.src ?? "", /heroport/);
   const none = resolvePublicSite(null).home.hero.background;
   assert.deepEqual(none, fallbackHome.hero.background);
+});
+
+test("Gallery resolves and renders every alt/caption combination without empty markup", async () => {
+  const site = resolvePublicSite({
+    gallery: {
+      sliderBefore: upload("image-before-1200x900-jpg", { alt: undefined }),
+      sliderAfter: upload("image-after-1200x900-jpg", { alt: "After installation" }),
+      tiles: [
+        { label: "Alt and caption", image: upload("image-tile1-800x1000-jpg", { alt: "Described tile" }) },
+        { image: upload("image-tile2-800x1000-jpg", { alt: undefined }) },
+        { image: upload("image-tile3-800x1000-jpg", { alt: "Alt only" }) },
+        { label: "Caption only", image: upload("image-tile4-800x1000-jpg", { alt: undefined }) },
+        { label: "", image: null }
+      ]
+    },
+    homepage: { whatWeDoSection: { sideImage: upload("image-side-1200x900-jpg", { alt: "Safer bathroom" }) } }
+  });
+  assert.equal(site.home.transformations.sliderBefore.alt, "");
+  assert.equal(site.home.transformations.sliderAfter.alt, "After installation");
+  assert.deepEqual(site.home.transformations.tiles.map((tile) => [tile.label, tile.image.alt]), [
+    ["Alt and caption", "Described tile"], ["", ""], ["", "Alt only"], ["Caption only", ""]
+  ]);
+  assert.match(site.home.transformations.tiles[1].image.src, /image-tile2-800x1000-jpg/);
+  assert.equal(site.home.safer.image.alt, "Safer bathroom");
+  assert.deepEqual(resolvePublicSite(null).home.transformations, fallbackHome.transformations);
+  const transformationsModule = await import("../components/Transformations");
+  const Transformations = typeof transformationsModule.default === "function"
+    ? transformationsModule.default
+    : (transformationsModule.default as unknown as { default: typeof transformationsModule.default }).default;
+  const content = {
+    ...site.home.transformations,
+    sliderBefore: { ...site.home.transformations.sliderBefore, src: "/prerna/images/bath-1.jpg" },
+    sliderAfter: { ...site.home.transformations.sliderAfter, src: "/prerna/images/bath-1.jpg" },
+    tiles: site.home.transformations.tiles.map((tile) => ({ ...tile, image: { ...tile.image, src: "/prerna/images/bath-2.jpg" } }))
+  };
+  const markup = renderToStaticMarkup(React.createElement(Transformations, { content }));
+  assert.match(markup, /alt=""/);
+  assert.match(markup, /alt="Described tile"/);
+  assert.match(markup, /alt="Alt only"/);
+  assert.match(markup, /<figcaption[^>]*>Alt and caption<\/figcaption>/);
+  assert.match(markup, /<figcaption[^>]*>Caption only<\/figcaption>/);
+  assert.equal((markup.match(/<figcaption/g) ?? []).length, 2);
+  assert.doesNotMatch(markup, /<figcaption[^>]*>\s*<\/figcaption>|undefined/);
+});
+
+test("founder portraits use supplied alt and render decorative uploads with alt=\"\"", () => {
+  const founders = resolvePublicSite({
+    aboutPage: {
+      team: {
+        founders: [
+          { name: "First Founder", bio: "Founder bio", photo: upload("image-first-800x1000-jpg", { alt: "First founder in the studio" }) },
+          { name: "Second Founder", bio: "Founder bio", photo: upload("image-second-800x1000-jpg", { alt: undefined }) }
+        ]
+      }
+    }
+  }).about.team.founders;
+  assert.deepEqual(founders.map((founder) => founder.photo?.alt), ["First founder in the studio", ""]);
+  for (const founder of founders) {
+    const markup = renderToStaticMarkup(React.createElement(PhotoSlot, {
+      src: "/prerna/images/bath-2.jpg",
+      alt: founder.photo?.alt ?? "",
+      label: `Portrait — ${founder.name}`,
+      className: "w-24 h-24"
+    }));
+    assert.match(markup, new RegExp(`alt="${founder.photo?.alt ?? ""}"`));
+    assert.doesNotMatch(markup, /alt="(?:First|Second) Founder"|undefined/);
+  }
+  const aboutPage = readFileSync(new URL("../app/(public)/about/page.tsx", import.meta.url), "utf8");
+  assert.match(aboutPage, /alt=\{f\.photo\?\.alt \?\? ""\}/, "the actual About page passes CMS alt to PhotoSlot");
 });
 
 test("contact details are validated and reach the legal pages", () => {

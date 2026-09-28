@@ -143,6 +143,16 @@ export function image(value: unknown, fallback: CmsImage): CmsImage {
   };
 }
 
+/** Gallery images may be decorative. An absent CMS alt never borrows a caption
+    or the bundled image's alt text when the editor has supplied an image. */
+function galleryImage(value: unknown, fallback: CmsImage): CmsImage {
+  const raw = asObj(value) as RawImage;
+  const resolved = image(value, fallback);
+  return raw?.resolvedSrc || raw?.fallbackSrc
+    ? { ...resolved, alt: optionalText(raw.alt) ?? "" }
+    : resolved;
+}
+
 /** The editor's focal point (Sanity hotspot, 0–1) as CSS object-position, so
     `object-cover` crops around it at every viewport. */
 export function hotspotPosition(hotspot: { x?: number; y?: number } | null | undefined): string | undefined {
@@ -408,16 +418,17 @@ export function resolveHome(payload: RawPayload, packages: PackagesContent): Hom
       eyebrow: text(transformations?.eyebrow, fb.transformations.eyebrow),
       heading: heading(transformations, fb.transformations.heading),
       subtitle: text(transformations?.subtitle, fb.transformations.subtitle),
-      sliderBefore: image(transformations?.sliderBefore, fb.transformations.sliderBefore),
-      sliderAfter: image(transformations?.sliderAfter, fb.transformations.sliderAfter),
+      sliderBefore: galleryImage(transformations?.sliderBefore, fb.transformations.sliderBefore),
+      sliderAfter: galleryImage(transformations?.sliderAfter, fb.transformations.sliderAfter),
       tiles: resolveItems(
         transformations?.tiles,
         (tile, index) => {
           if (tile?.hidden === true) return null;
           const label = optionalText(tile?.label);
           const fallbackTile = fb.transformations.tiles[index] ?? fb.transformations.tiles[0];
-          const tileImage = image(tile?.image, { ...fallbackTile.image, alt: label ?? fallbackTile.image.alt });
-          return label ? { image: tileImage, label } : null;
+          const rawImage = asObj(tile?.image) as RawImage;
+          if (!label && !rawImage?.resolvedSrc && !rawImage?.fallbackSrc) return null;
+          return { image: galleryImage(tile?.image, fallbackTile.image), label: label ?? "" };
         },
         fb.transformations.tiles
       )
@@ -601,7 +612,7 @@ export function resolveAbout(raw: Obj): AboutContent {
         const name = optionalText(founder?.name);
         const bio = optionalText(founder?.bio);
         if (!name || !bio) return null;
-        const photo = optionalImage(founder?.photo, name);
+        const photo = optionalImage(founder?.photo, "");
         return { name, role: text(founder?.role, ""), bio, credentials: textList(founder?.credentials, []), ...(photo ? { photo } : {}) };
       }, fb.team.founders)
     },

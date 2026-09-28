@@ -168,12 +168,12 @@ function Tile({
     >
       <Image
         src={img}
-        alt={alt || label}
+        alt={alt}
         fill
         sizes={sizes}
         className="object-cover transition-transform duration-700 group-hover:scale-105"
       />
-      <figcaption className="sr-only">{label}</figcaption>
+      {label ? <figcaption className="sr-only">{label}</figcaption> : null}
     </figure>
   );
 }
@@ -210,7 +210,7 @@ export default function Transformations({ content }: { content: HomeContent["tra
 
           {content.tiles.map((g, i) => (
             <Tile
-              key={`${g.label}-${i}`}
+              key={`${g.image.src}-${i}`}
               img={g.image.src}
               label={g.label}
               alt={g.image.alt}
