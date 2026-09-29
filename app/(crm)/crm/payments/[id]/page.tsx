@@ -5,8 +5,9 @@ import { ApiError, apiFetch } from "../../../../../lib/api";
 import { getCrmSessionToken, requireCrmUser } from "../../../../../lib/crm";
 import { issuanceNotice, PAYMENT_STATUS_PATH, readPaymentIssuance } from "../../../../../lib/payment-issuance";
 import { ledgerCauseLabel, paymentStateLabel, rupeeInputValue } from "../../../../../lib/payment-collections";
+import { exceptionReviewOf, MAX_RESOLUTION_NOTE, MIN_RESOLUTION_NOTE, REVIEW_DISCLAIMER } from "../../../../../lib/payment-exception-review";
 import CrmShell from "../../crm-shell";
-import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction, verifyLocationAction } from "../actions";
+import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction, reviewPaymentExceptionAction, verifyLocationAction } from "../actions";
 import PlacePicker from "../place-picker";
 import { rupees, type CommercialCase } from "../types";
 import styles from "../payments.module.css";
@@ -40,7 +41,8 @@ export default async function PaymentCasePage({ params, searchParams }: {
   const currentRevision = item.revisions.find((revision) => revision.id === item.order?.currentRevisionId);
   const active = item.order?.paymentRequests.find((request) => request.status === "ACTIVE" && request.url);
   const locationVerifiedGoa = item.verifiedLocationMarket === "GOA" && item.city === "Goa";
-  const canIssue = locationVerifiedGoa && !!currentRevision && !!item.balance && item.balance.outstandingPaise > 0 && !item.exceptionNote &&
+  const exception = exceptionReviewOf(item);
+  const canIssue = locationVerifiedGoa && !!currentRevision && !!item.balance && item.balance.outstandingPaise > 0 && exception.status !== "UNRESOLVED" &&
     !item.order?.paymentRequests.some((request) => ["ACTIVE", "PREPARING", "CANCEL_PENDING"].includes(request.status));
   const reversedIds = new Set(item.order?.payments.filter((payment) => payment.recordType === "REVERSAL").map((payment) => payment.reversesPaymentId) ?? []);
 
@@ -49,7 +51,7 @@ export default async function PaymentCasePage({ params, searchParams }: {
       <Link href="/crm/payments">← All commercial cases</Link>
       {feedback.error && <div className={styles.error} role="alert">{feedback.error}</div>}
       {feedback.message && <div className={styles.notice} role="status">{feedback.message}</div>}
-      {item.exceptionNote && <div className={styles.error} role="alert"><strong>Payment exception — stop sharing links.</strong> {item.exceptionNote}</div>}
+      {exception.status === "UNRESOLVED" && <div className={styles.error} role="alert"><strong>Payment exception — review required. Stop sharing links.</strong> {exception.unresolvedNote}</div>}
       <section className={styles.panel}>
         <h3>Verified customer and source</h3>
         <div className={styles.facts}>
@@ -112,6 +114,33 @@ export default async function PaymentCasePage({ params, searchParams }: {
         </div>}
         {currentRevision && <p>Revision {currentRevision.revisionNumber}: {currentRevision.packageName} · {currentRevision.bathroomsCount} bathroom(s), approved {new Date(currentRevision.approvedAt).toLocaleString("en-IN")}.</p>}
       </section>
+      {exception.status !== "NONE" && <section className={styles.panel}>
+        <h3>Payment exception review</h3>
+        {exception.status === "UNRESOLVED" ? <>
+          <p><strong>Review required.</strong> {exception.unresolvedNote}</p>
+          {item.balance && <p>Current position: approved {rupees(item.balance.approvedAmountPaise)} · collected {rupees(item.balance.collectedPaise)} · outstanding {rupees(item.balance.outstandingPaise)} · overcollected {rupees(item.balance.overcollectedPaise)}.</p>}
+          {user.role === "ADMIN" && exception.version ? <form action={reviewPaymentExceptionAction} className={styles.form}>
+            <input type="hidden" name="caseId" value={item.id} />
+            <input type="hidden" name="exceptionVersion" value={exception.version} />
+            <label>Resolution notes<textarea name="resolutionNote" required minLength={MIN_RESOLUTION_NOTE} maxLength={MAX_RESOLUTION_NOTE}
+              placeholder="What you checked (for example in Razorpay) and how it was resolved" /></label>
+            <p>{REVIEW_DISCLAIMER} Overcollection, a missing balance and every other issuance rule still apply after the review.</p>
+            <button type="submit">Mark reviewed / resolved</button>
+          </form> : <p>An ADMIN must review this exception before a new Payment Link can be issued.</p>}
+        </> : <p>All recorded payment exceptions on this case have been reviewed. Issuance still follows the financial position and the normal rules.</p>}
+        {exception.reviews.length > 0 && <div className={styles.tableWrap}>
+          <h4>Review history</h4>
+          <table>
+            <thead><tr><th>Reviewed</th><th>By</th><th>Resolution notes</th><th>Exception reviewed</th></tr></thead>
+            <tbody>{exception.reviews.map((review) => <tr key={review.id}>
+              <td>{new Date(review.createdAt).toLocaleString("en-IN")}</td>
+              <td>{review.reviewedByStaff?.fullName ?? "Admin"}</td>
+              <td>{review.resolutionNote}</td>
+              <td>{review.valid ? review.coveredNote || "(no new text)" : "Does not match the current exception record"}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
+      </section>}
       {user.role === "ADMIN" && <section className={styles.panel}>
         <h3>{currentRevision ? "Approve a revised scope" : "Approve inspected scope"}</h3>
         <p>A revision replaces the approved amount. Open links are hidden and must be cancelled or reconciled before a new one is issued.</p>
