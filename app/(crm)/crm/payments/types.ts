@@ -1,3 +1,5 @@
+import type { ExceptionReviewView } from "../../../../lib/payment-exception-review";
+
 export type PaymentRow = {
   id: string;
   amountPaise: number;
@@ -87,6 +89,8 @@ export type CommercialCase = {
   };
   // Audit history; stays visible after the overcollection is resolved. Absent from older API builds.
   overcollectionHistory?: OvercollectionEpisode[];
+  // Server-derived review state of the provider/operational exception note. Absent from older API builds.
+  exceptionReview?: ExceptionReviewView | null;
 };
 
 export function rupees(paise: number) {

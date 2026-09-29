@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { getCrmSessionToken, requireAdminCrmUser, requireCrmUser } from "../../../../lib/crm";
 import { issueIfEnabled, PAYMENT_STATUS_PATH } from "../../../../lib/payment-issuance";
+import { RESOLUTION_NOTE_MESSAGE, resolutionNoteFrom } from "../../../../lib/payment-exception-review";
 
 function field(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -173,6 +174,26 @@ export async function recordOfflineCollectionAction(formData: FormData) {
   redirect(detailUrl(caseId, undefined, pendingCancellationRequestIds.length
     ? "Collection recorded. A Payment Link still needs cancellation or reconciliation."
     : "Offline collection recorded."));
+}
+
+/** Records an ADMIN review of the exception state shown on the page; the API refuses it if that state changed. */
+export async function reviewPaymentExceptionAction(formData: FormData) {
+  await requireAdminCrmUser();
+  const authToken = await token();
+  const caseId = field(formData, "caseId");
+  try {
+    await apiFetch(`/api/v1/internal/commercial-cases/${caseId}/exception-reviews`, {
+      method: "POST", token: authToken,
+      body: { resolutionNote: resolutionNoteFrom(formData.get("resolutionNote")), exceptionVersion: field(formData, "exceptionVersion") }
+    });
+  } catch (error) {
+    if (error instanceof ApiError || (error instanceof Error && error.message === RESOLUTION_NOTE_MESSAGE)) {
+      redirect(detailUrl(caseId, errorMessage(error)));
+    }
+    throw error;
+  }
+  revalidatePath(detailUrl(caseId));
+  redirect(detailUrl(caseId, undefined, "Exception review recorded. Payments, collections and provider records are unchanged."));
 }
 
 export async function reverseOfflineCollectionAction(formData: FormData) {

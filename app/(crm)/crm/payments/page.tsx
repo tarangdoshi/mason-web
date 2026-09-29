@@ -3,6 +3,7 @@ import { ApiError, apiFetch } from "../../../../lib/api";
 import { getCrmSessionToken, requireCrmUser } from "../../../../lib/crm";
 import { issuanceNotice, PAYMENT_STATUS_PATH, readPaymentIssuance } from "../../../../lib/payment-issuance";
 import { paymentStateLabel } from "../../../../lib/payment-collections";
+import { exceptionListLabel, exceptionReviewOf } from "../../../../lib/payment-exception-review";
 import CrmShell from "../crm-shell";
 import { startCommercialCaseAction } from "./actions";
 import { rupees, type CommercialCase } from "./types";
@@ -51,7 +52,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams?: Pr
             <td><Link href={`/crm/payments/${item.id}`}>{item.customerName}</Link></td>
             <td>{item.origin === "ZOHO_LEAD" ? "Zoho" : "Mason"}</td>
             <td>{item.verifiedLocationMarket === "GOA" && item.city === "Goa" ? "Goa (verified)" : item.verifiedLocationMarket ? `${item.verifiedLocationMarket} (verified)` : `${item.city ?? "Unknown"} · location unverified`}</td>
-            <td>{item.exceptionNote ? "Exception — admin review" : paymentStateLabel(item.balance?.paymentState)}</td>
+            <td>{exceptionListLabel(exceptionReviewOf(item).status) ?? paymentStateLabel(item.balance?.paymentState)}</td>
             <td>{item.balance ? <>{rupees(item.balance.outstandingPaise)}{item.balance.overcollectedPaise > 0 && <> · overcollected {rupees(item.balance.overcollectedPaise)}</>}</> : "—"}</td>
             <td>{new Date(item.updatedAt).toLocaleDateString("en-IN")}</td>
           </tr>)}</tbody>
