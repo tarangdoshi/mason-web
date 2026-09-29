@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card, Form, Input, Select, Space, Tag, Typography } from "antd";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { StaffUser } from "../../../lib/crm";
 import type { LeadDetailResponse, StaffListResponse } from "./types";
@@ -180,6 +181,10 @@ export default function LeadDetailView({
           </div>
         </div>
       </Card>
+
+      <Link href={`/crm/payments?leadRecordId=${encodeURIComponent(lead.id)}`}>
+        <Button>Open commercial payment case</Button>
+      </Link>
 
       <div className={styles.detailGrid}>
         <Space direction="vertical" size={20} style={{ width: "100%" }}>
