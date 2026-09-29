@@ -104,14 +104,19 @@ export async function createPaymentLinkAction(formData: FormData) {
   const authToken = await token();
   const caseId = field(formData, "caseId");
   try {
+    // An ADMIN may enter a partial amount; without one the API requests the full outstanding balance.
+    // The API validates the amount (0 < amount <= outstanding) and who may choose it.
+    const body = field(formData, "amountRupees") ? { amountPaise: amountPaise(formData) } : undefined;
     // The API's issuance switch is authoritative; the CRM also refuses to send the request while it is off.
     const outcome = await issueIfEnabled(() => apiFetch(PAYMENT_STATUS_PATH, { token: authToken }),
-      () => apiFetch(`/api/v1/internal/commercial-cases/${caseId}/payment-links`, { method: "POST", token: authToken }));
+      () => apiFetch(`/api/v1/internal/commercial-cases/${caseId}/payment-links`, { method: "POST", token: authToken, body }));
     if (!outcome.issued) redirect(detailUrl(caseId, outcome.message));
     revalidatePath(detailUrl(caseId));
-    redirect(detailUrl(caseId, undefined, "Payment Link created. Review its amount before sharing."));
+    redirect(detailUrl(caseId, undefined, "Payment Link created. It is a request for payment, not money received; review the amount before sharing."));
   } catch (error) {
-    if (error instanceof ApiError) redirect(detailUrl(caseId, errorMessage(error)));
+    if (error instanceof ApiError || (error instanceof Error && error.message === "Enter a valid positive amount.")) {
+      redirect(detailUrl(caseId, errorMessage(error)));
+    }
     throw error;
   }
 }

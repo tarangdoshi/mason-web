@@ -65,10 +65,13 @@ export type CommercialCase = {
     paymentRequests: PaymentRequestRow[];
     payments: PaymentRow[];
   };
+  // Server-derived. outstanding is never negative; overcollection is reported separately.
   balance: null | {
     approvedAmountPaise: number;
     collectedPaise: number;
     balancePaise: number;
+    outstandingPaise: number;
+    overcollectedPaise: number;
     paymentState: string;
   };
 };
