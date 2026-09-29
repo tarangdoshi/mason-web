@@ -13,6 +13,17 @@ export type PaymentRow = {
   reversesPaymentId: string | null;
 };
 
+export type LedgerCause = { kind: "PAYMENT"; paymentId: string } | { kind: "REVISION"; revisionNumber: number };
+
+/** One period in which collections exceeded the approved amount, replayed by the API from the append-only ledger. */
+export type OvercollectionEpisode = {
+  startedAt: string;
+  startedBy: LedgerCause;
+  peakOvercollectedPaise: number;
+  endedAt: string | null;
+  endedBy: LedgerCause | null;
+};
+
 export type PaymentRequestRow = {
   id: string;
   amountPaise: number;
@@ -65,12 +76,17 @@ export type CommercialCase = {
     paymentRequests: PaymentRequestRow[];
     payments: PaymentRow[];
   };
+  // Server-derived. outstanding is never negative; overcollection is reported separately.
   balance: null | {
     approvedAmountPaise: number;
     collectedPaise: number;
     balancePaise: number;
+    outstandingPaise: number;
+    overcollectedPaise: number;
     paymentState: string;
   };
+  // Audit history; stays visible after the overcollection is resolved. Absent from older API builds.
+  overcollectionHistory?: OvercollectionEpisode[];
 };
 
 export function rupees(paise: number) {

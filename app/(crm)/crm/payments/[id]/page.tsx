@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ApiError, apiFetch } from "../../../../../lib/api";
 import { getCrmSessionToken, requireCrmUser } from "../../../../../lib/crm";
 import { issuanceNotice, PAYMENT_STATUS_PATH, readPaymentIssuance } from "../../../../../lib/payment-issuance";
+import { ledgerCauseLabel, paymentStateLabel, rupeeInputValue } from "../../../../../lib/payment-collections";
 import CrmShell from "../../crm-shell";
 import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction, verifyLocationAction } from "../actions";
 import PlacePicker from "../place-picker";
@@ -39,7 +40,7 @@ export default async function PaymentCasePage({ params, searchParams }: {
   const currentRevision = item.revisions.find((revision) => revision.id === item.order?.currentRevisionId);
   const active = item.order?.paymentRequests.find((request) => request.status === "ACTIVE" && request.url);
   const locationVerifiedGoa = item.verifiedLocationMarket === "GOA" && item.city === "Goa";
-  const canIssue = locationVerifiedGoa && !!currentRevision && !!item.balance && item.balance.balancePaise > 0 && !item.exceptionNote &&
+  const canIssue = locationVerifiedGoa && !!currentRevision && !!item.balance && item.balance.outstandingPaise > 0 && !item.exceptionNote &&
     !item.order?.paymentRequests.some((request) => ["ACTIVE", "PREPARING", "CANCEL_PENDING"].includes(request.status));
   const reversedIds = new Set(item.order?.payments.filter((payment) => payment.recordType === "REVERSAL").map((payment) => payment.reversesPaymentId) ?? []);
 
@@ -86,9 +87,29 @@ export default async function PaymentCasePage({ params, searchParams }: {
         {item.balance ? <div className={styles.metrics}>
           <div><span>Approved</span><strong>{rupees(item.balance.approvedAmountPaise)}</strong></div>
           <div><span>Collected</span><strong>{rupees(item.balance.collectedPaise)}</strong></div>
-          <div><span>Balance</span><strong>{rupees(item.balance.balancePaise)}</strong></div>
-          <div><span>State</span><strong>{item.balance.paymentState.replaceAll("_", " ")}</strong></div>
+          <div><span>Outstanding</span><strong>{rupees(item.balance.outstandingPaise)}</strong></div>
+          {item.balance.overcollectedPaise > 0 && <div><span>Overcollected</span><strong>{rupees(item.balance.overcollectedPaise)}</strong></div>}
+          <div><span>State</span><strong>{paymentStateLabel(item.balance.paymentState)}</strong></div>
         </div> : <p>No amount has been approved. Public package prices and browser totals are not payment authority.</p>}
+        {item.balance && item.balance.overcollectedPaise > 0 && <div className={styles.error} role="alert">
+          <strong>Admin review required:</strong> genuine collections exceed the approved amount by {rupees(item.balance.overcollectedPaise)}. Nothing is refunded or reversed automatically; resolve it with the customer and correct the records.
+        </div>}
+        <p>Collections from any method, online or offline, count towards the same approved amount.</p>
+        {(item.overcollectionHistory?.length ?? 0) > 0 && <div className={styles.tableWrap}>
+          <h4>Overcollection history</h4>
+          <p>Derived from the payment ledger; kept after the overcollection is resolved.</p>
+          <table>
+            <thead><tr><th>From</th><th>Started by</th><th>Peak over approved</th><th>Resolved</th></tr></thead>
+            <tbody>{item.overcollectionHistory!.map((episode) => <tr key={episode.startedAt}>
+              <td>{new Date(episode.startedAt).toLocaleString("en-IN")}</td>
+              <td>{ledgerCauseLabel(episode.startedBy, item.order?.payments ?? [])}</td>
+              <td>{rupees(episode.peakOvercollectedPaise)}</td>
+              <td>{episode.endedAt && episode.endedBy
+                ? <>{new Date(episode.endedAt).toLocaleString("en-IN")} · {ledgerCauseLabel(episode.endedBy, item.order?.payments ?? [])}</>
+                : "Open — blocks new Payment Links"}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
         {currentRevision && <p>Revision {currentRevision.revisionNumber}: {currentRevision.packageName} · {currentRevision.bathroomsCount} bathroom(s), approved {new Date(currentRevision.approvedAt).toLocaleString("en-IN")}.</p>}
       </section>
       {user.role === "ADMIN" && <section className={styles.panel}>
@@ -108,11 +129,20 @@ export default async function PaymentCasePage({ params, searchParams }: {
       </section>}
       <section className={styles.panel}>
         <h3>Razorpay Payment Links</h3>
-        <p>Only a case with verified Goa location evidence and an approved outstanding balance can receive a new link. Share the link after checking the amount below.</p>
+        <p>Only a case with verified Goa location evidence and an outstanding balance can receive a new link, one live link at a time. Issuing a link is a request for payment, not a payment received. Share the link after checking the amount below.</p>
         {issuanceMessage && <div className={styles.notice} role="status">{issuanceMessage}{user.role === "ADMIN" && issuance.problems.length > 0 && <> Configuration: {issuance.problems.join(", ")}.</>}</div>}
-        {canIssue && (issuance.enabled
-          ? <form action={createPaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><button type="submit">Create link for {rupees(item.balance!.balancePaise)}</button></form>
-          : <button type="button" disabled aria-disabled="true">Create link for {rupees(item.balance!.balancePaise)} (issuance not enabled)</button>)}
+        {item.balance && item.balance.outstandingPaise <= 0 && <p>No balance is currently due, so no new Payment Link can be issued.</p>}
+        {canIssue && (!issuance.enabled
+          ? <button type="button" disabled aria-disabled="true">Create link for {rupees(item.balance!.outstandingPaise)} (issuance not enabled)</button>
+          : user.role === "ADMIN"
+            ? <form action={createPaymentLinkAction} className={styles.form}>
+              <input type="hidden" name="caseId" value={item.id} />
+              <label>Link amount (₹)<input name="amountRupees" type="number" min="0.01" step="0.01" max={rupeeInputValue(item.balance!.outstandingPaise)}
+                required defaultValue={rupeeInputValue(item.balance!.outstandingPaise)} /></label>
+              <p>Defaults to the full outstanding balance of {rupees(item.balance!.outstandingPaise)}. Enter a smaller amount only when the customer is deliberately paying in parts; the rest stays outstanding.</p>
+              <button type="submit">Create Payment Link</button>
+            </form>
+            : <form action={createPaymentLinkAction}><input type="hidden" name="caseId" value={item.id} /><button type="submit">Create link for the full outstanding {rupees(item.balance!.outstandingPaise)}</button></form>)}
         {active && <p className={styles.linkCallout}>Active link for {rupees(active.amountPaise)}: <a href={active.url!} target="_blank" rel="noopener noreferrer">Open Razorpay link</a></p>}
         {item.order?.paymentRequests.length ? <div className={styles.tableWrap}><table><thead><tr><th>Created</th><th>Amount</th><th>Status</th><th>Provider ID</th><th>Actions</th></tr></thead><tbody>
           {item.order.paymentRequests.map((request) => <tr key={request.id}>
