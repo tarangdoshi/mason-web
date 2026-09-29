@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ApiError, apiFetch } from "../../../../../lib/api";
 import { getCrmSessionToken, requireCrmUser } from "../../../../../lib/crm";
 import { issuanceNotice, PAYMENT_STATUS_PATH, readPaymentIssuance } from "../../../../../lib/payment-issuance";
-import { paymentStateLabel, rupeeInputValue } from "../../../../../lib/payment-collections";
+import { ledgerCauseLabel, paymentStateLabel, rupeeInputValue } from "../../../../../lib/payment-collections";
 import CrmShell from "../../crm-shell";
 import { approveRevisionAction, cancelPaymentLinkAction, createPaymentLinkAction, reconcilePaymentLinkAction, recordOfflineCollectionAction, reverseOfflineCollectionAction, verifyLocationAction } from "../actions";
 import PlacePicker from "../place-picker";
@@ -95,6 +95,21 @@ export default async function PaymentCasePage({ params, searchParams }: {
           <strong>Admin review required:</strong> genuine collections exceed the approved amount by {rupees(item.balance.overcollectedPaise)}. Nothing is refunded or reversed automatically; resolve it with the customer and correct the records.
         </div>}
         <p>Collections from any method, online or offline, count towards the same approved amount.</p>
+        {(item.overcollectionHistory?.length ?? 0) > 0 && <div className={styles.tableWrap}>
+          <h4>Overcollection history</h4>
+          <p>Derived from the payment ledger; kept after the overcollection is resolved.</p>
+          <table>
+            <thead><tr><th>From</th><th>Started by</th><th>Peak over approved</th><th>Resolved</th></tr></thead>
+            <tbody>{item.overcollectionHistory!.map((episode) => <tr key={episode.startedAt}>
+              <td>{new Date(episode.startedAt).toLocaleString("en-IN")}</td>
+              <td>{ledgerCauseLabel(episode.startedBy, item.order?.payments ?? [])}</td>
+              <td>{rupees(episode.peakOvercollectedPaise)}</td>
+              <td>{episode.endedAt && episode.endedBy
+                ? <>{new Date(episode.endedAt).toLocaleString("en-IN")} · {ledgerCauseLabel(episode.endedBy, item.order?.payments ?? [])}</>
+                : "Open — blocks new Payment Links"}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
         {currentRevision && <p>Revision {currentRevision.revisionNumber}: {currentRevision.packageName} · {currentRevision.bathroomsCount} bathroom(s), approved {new Date(currentRevision.approvedAt).toLocaleString("en-IN")}.</p>}
       </section>
       {user.role === "ADMIN" && <section className={styles.panel}>
