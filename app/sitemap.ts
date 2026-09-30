@@ -12,7 +12,6 @@ const ROUTES = [
   "/packages/standard",
   "/packages/advanced",
   "/evidence",
-  "/communications",
   "/privacy",
   "/terms"
 ];

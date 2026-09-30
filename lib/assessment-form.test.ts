@@ -31,3 +31,16 @@ test("simplified booking keeps the real lead metadata and neutral required topic
   assert.match(formSource, /location: resolvedLocationMeta/);
   assert.match(formSource, /locationText: locationText\.trim\(\)\.length >= 2 \? locationText : "Address not provided"/);
 });
+
+test("a successful submission clears every field, including the address field's own state", () => {
+  const success = formSource.slice(formSource.indexOf("if (result.ok) {"), formSource.indexOf("setSubmissionState(\"success\")"));
+  for (const reset of ["form.reset()", "setPhoneDigits(\"\")", "setEmail(\"\")", "setLocationMeta(null)", "setLocationFieldKey((key) => key + 1)"]) {
+    assert.ok(success.includes(reset), reset);
+  }
+  assert.match(formSource, /<LocationAutocompleteField key=\{locationFieldKey\}/);
+  // Only on success: a failed submission keeps every entered value for a retry.
+  const failure = formSource.slice(formSource.indexOf("gateRef.current.release();"));
+  assert.doesNotMatch(failure, /setLocationFieldKey|form\.reset\(\)/);
+  // Analytics are unchanged: generate_lead still comes only from the confirmed-lead path.
+  assert.ok(success.indexOf("leadCreated") < success.indexOf("setLocationFieldKey"));
+});
