@@ -79,13 +79,6 @@ export default function LoginScreen() {
               </div>
 
               <LoginForm />
-
-              <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                <Text strong>Demo accounts</Text>
-                <Text className={styles.mutedText}>admin@masoncompany.in / AegisAdmin123!</Text>
-                <Text className={styles.mutedText}>asha@masoncompany.in / AegisAgent123!</Text>
-                <Text className={styles.mutedText}>rohan@masoncompany.in / AegisAgent123!</Text>
-              </Space>
             </Space>
           </Card>
         </Col>

@@ -31,7 +31,7 @@ export default function LoginForm() {
               type="email"
               size="large"
               prefix={<MailOutlined />}
-              placeholder="admin@masoncompany.in"
+              placeholder="you@masoncompany.in"
               autoComplete="email"
               required
             />
