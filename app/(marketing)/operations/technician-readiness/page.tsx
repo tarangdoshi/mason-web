@@ -3,8 +3,14 @@ import {
   technicianReadinessLibrary,
   validateTechnicianReadinessProgram
 } from "../../../../content/operations/technician-readiness";
+import type { Metadata } from "next";
+import { requireCrmUser } from "../../../../lib/crm";
 
-export default function TechnicianReadinessPage() {
+// Internal field SOP and technician readiness for Mason staff: never public, never indexed.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
+export default async function TechnicianReadinessPage() {
+  await requireCrmUser();
   const { startupSop, program, samples } = technicianReadinessLibrary;
   const validation = validateTechnicianReadinessProgram();
 

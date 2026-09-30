@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { communicationsLibrary, validateCommunicationsLibrary } from "../../../content/communications";
+import type { Metadata } from "next";
+import { requireCrmUser } from "../../../lib/crm";
+
+// Internal communications pack for Mason staff: never public, never indexed.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 function joinVariables(variables: string[]): string {
   if (variables.length === 0) {
@@ -25,7 +30,8 @@ function renderList(title: string, lines?: string[]) {
   );
 }
 
-export default function CommunicationsPreviewPage() {
+export default async function CommunicationsPreviewPage() {
+  await requireCrmUser();
   const validation = validateCommunicationsLibrary();
   const transactionalTemplates = [
     ...communicationsLibrary.transactional.whatsapp,

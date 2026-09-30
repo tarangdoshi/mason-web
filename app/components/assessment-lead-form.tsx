@@ -36,6 +36,9 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
+  // The address field keeps its own text and Places state, which form.reset() cannot clear;
+  // a new key remounts it empty after a successful submission.
+  const [locationFieldKey, setLocationFieldKey] = useState(0);
 
   function clearFieldError(field: string) {
     setFieldErrors((current) => {
@@ -173,6 +176,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
       setPhoneDigits("");
       setEmail("");
       setLocationMeta(null);
+      setLocationFieldKey((key) => key + 1);
       trackAnalyticsEvent("assessment_lead_submit_success", {
         cta_location: "assessment-form",
         section: "free-assessment"
@@ -258,7 +262,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
             </span>
           ) : null}
         </label>
-        <LocationAutocompleteField disabled={isLocked} formSource="assessment_form" onMeta={handleLocationMeta} />
+        <LocationAutocompleteField key={locationFieldKey} disabled={isLocked} formSource="assessment_form" onMeta={handleLocationMeta} />
         <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
       </div>
 
