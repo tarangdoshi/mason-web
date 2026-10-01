@@ -27,7 +27,7 @@ export default async function Home() {
   const { home, packages, settings } = await getPublicSiteContent();
   return (
     <>
-      <Nav />
+      <Nav homeHero />
       <main>
         <Hero content={home.hero} />
         <Stats content={home.stats} />
