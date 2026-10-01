@@ -16,7 +16,7 @@ const links = [
   { label: "Contact", href: "/contact" },
 ];
 
-export default function Nav() {
+export default function Nav({ homeHero = false }: { homeHero?: boolean }) {
   const { contact } = useSiteSettings();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -100,7 +100,7 @@ export default function Nav() {
      would otherwise show dark text on the dark photo before the pale bar
      arrives. Only "/" has the hero; every other page keeps the dark type. Not
      while the menu is open: that panel is its own pale surface. */
-  const overHero = pathname === "/" && !scrolled && !menuOpen;
+  const overHero = homeHero && !scrolled && !menuOpen;
 
   return (
     /* Full-bleed bar sitting on the viewport edge — not an inset pill.
@@ -158,7 +158,7 @@ export default function Nav() {
 
           <div className="hidden items-center gap-8 lg:flex">
             {links.map((l) => {
-              const current = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+              const current = l.href === "/" ? homeHero : pathname.startsWith(l.href);
               return (
                 <Link
                   key={l.href}
@@ -265,7 +265,7 @@ export default function Nav() {
           <ul className="border-t border-line">
             {links.map((l, i) => {
               const current =
-                l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+                l.href === "/" ? homeHero : pathname.startsWith(l.href);
               return (
                 <li key={l.href} className="border-b border-line">
                   <Link
