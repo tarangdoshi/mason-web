@@ -7,6 +7,7 @@ interface Props {
   disabled?: boolean;
   className?: string;
   onMeta?: (meta: LocationMeta) => void;
+  onResolutionChange?: (pending: Promise<LocationMeta> | null) => void;
 }
 
 const LABEL = "block text-sm font-semibold text-cream";
@@ -22,11 +23,12 @@ const INPUT = `${FIELD} placeholder:text-sand-400 focus:outline-none border-sand
  * `useLocationAutocomplete`, styled to match this form's own Tailwind field
  * system instead of the assessment form's CSS module.
  */
-export default function LocationField({ disabled, className, onMeta }: Props) {
-  const { inputRef, value, geoState, hint, manualOnly, handleChange, useMyLocation } = useLocationAutocomplete({
+export default function LocationField({ disabled, className, onMeta, onResolutionChange }: Props) {
+  const { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDownCapture, useMyLocation } = useLocationAutocomplete({
     disabled,
     formSource: "contact_form",
-    onMeta
+    onMeta,
+    onResolutionChange
   });
 
   return (
@@ -47,6 +49,7 @@ export default function LocationField({ disabled, className, onMeta }: Props) {
         disabled={disabled}
         value={value}
         onChange={handleChange}
+        onKeyDownCapture={handleKeyDownCapture}
         className={INPUT}
       />
       <button

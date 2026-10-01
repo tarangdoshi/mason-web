@@ -9,6 +9,7 @@ interface Props {
   disabled?: boolean;
   formSource?: string;
   onMeta?: (meta: LocationMeta) => void;
+  onResolutionChange?: (pending: Promise<LocationMeta> | null) => void;
 }
 
 const buttonStyle: CSSProperties = {
@@ -35,11 +36,12 @@ const hintStyle: CSSProperties = {
   color: "var(--muted)"
 };
 
-export default function LocationAutocompleteField({ disabled, formSource = "assessment_form", onMeta }: Props) {
-  const { inputRef, value, geoState, hint, manualOnly, handleChange, useMyLocation } = useLocationAutocomplete({
+export default function LocationAutocompleteField({ disabled, formSource = "assessment_form", onMeta, onResolutionChange }: Props) {
+  const { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDownCapture, useMyLocation } = useLocationAutocomplete({
     disabled,
     formSource,
-    onMeta
+    onMeta,
+    onResolutionChange
   });
 
   return (
@@ -56,6 +58,7 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
         disabled={disabled}
         value={value}
         onChange={handleChange}
+        onKeyDownCapture={handleKeyDownCapture}
       />
       <button type="button" style={buttonStyle} onClick={useMyLocation} disabled={disabled || geoState === "locating"}>
         {geoState === "locating" ? "Locating…" : "📍 Use my location"}

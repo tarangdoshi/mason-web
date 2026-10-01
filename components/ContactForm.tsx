@@ -83,6 +83,8 @@ export default function ContactForm() {
   // below so a stale server message doesn't linger once the field is edited.
   const [serverFieldErrors, setServerFieldErrors] = useState<Errors>({});
   const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
+  const locationMetaRef = useRef<LocationMeta | null>(null);
+  const pendingLocationRef = useRef<Promise<LocationMeta> | null>(null);
   // Bumped on "Send another enquiry" to remount LocationField, clearing its
   // internal address text/hint — that state lives inside the field, not here.
   const [formGeneration, setFormGeneration] = useState(0);
@@ -122,6 +124,7 @@ export default function ContactForm() {
   };
 
   function handleLocationMeta(meta: LocationMeta) {
+    locationMetaRef.current = meta;
     setLocationMeta(meta);
     setAnalyticsMarket(meta.serviceability.locationMarket);
   }
@@ -157,9 +160,15 @@ export default function ContactForm() {
     // The location field manages its own typed text internally (see
     // LocationField/useLocationAutocomplete); read the current value straight
     // off the form the same way the assessment form does.
+    const pending = pendingLocationRef.current;
+    const pendingMeta = pending ? await pending.catch(() => null) : null;
     const formData = new FormData(form);
-    const locationText = String(formData.get("locationText") || "");
-    const resolvedLocationMeta = locationMeta ?? manualLocationMeta(locationText);
+    const enteredLocationText = String(formData.get("locationText") || "");
+    const resolvedLocationMeta =
+      (pendingLocationRef.current === pending ? pendingMeta : null) ??
+      locationMetaRef.current ?? locationMeta ?? manualLocationMeta(enteredLocationText);
+    const locationText = resolvedLocationMeta.source === "google_places" && resolvedLocationMeta.formattedAddress
+      ? resolvedLocationMeta.formattedAddress : enteredLocationText;
 
     if (resolvedLocationMeta.source === "manual") {
       trackAnalyticsEvent("location_picker_fallback", {
@@ -330,6 +339,7 @@ export default function ContactForm() {
             key={formGeneration}
             disabled={busy || done}
             onMeta={handleLocationMeta}
+            onResolutionChange={(pending) => { pendingLocationRef.current = pending; }}
             className="sm:col-span-2"
           />
         </div>
@@ -385,6 +395,8 @@ export default function ContactForm() {
                 setDone(false); gate.current = createSubmissionGate(); setError(null);
                 setServerFieldErrors({});
                 setLocationMeta(null);
+                locationMetaRef.current = null;
+                pendingLocationRef.current = null;
                 setFormGeneration((g) => g + 1);
               }}
               className={ctaClass({ variant: "outline" })}

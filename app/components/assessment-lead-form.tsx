@@ -36,6 +36,8 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [locationMeta, setLocationMeta] = useState<LocationMeta | null>(null);
+  const locationMetaRef = useRef<LocationMeta | null>(null);
+  const pendingLocationRef = useRef<Promise<LocationMeta> | null>(null);
   // The address field keeps its own text and Places state, which form.reset() cannot clear;
   // a new key remounts it empty after a successful submission.
   const [locationFieldKey, setLocationFieldKey] = useState(0);
@@ -65,6 +67,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
   }
 
   function handleLocationMeta(meta: LocationMeta) {
+    locationMetaRef.current = meta;
     setLocationMeta(meta);
     setAnalyticsMarket(meta.serviceability.locationMarket);
   }
@@ -101,9 +104,15 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
     submitAttemptRef.current.submitEvent(trackSubmitAttempt);
 
     const form = event.currentTarget;
+    const pending = pendingLocationRef.current;
+    const pendingMeta = pending ? await pending.catch(() => null) : null;
     const formData = new FormData(form);
-    const locationText = String(formData.get("locationText") || "");
-    const resolvedLocationMeta = locationMeta ?? manualLocationMeta(locationText);
+    const enteredLocationText = String(formData.get("locationText") || "");
+    const resolvedLocationMeta =
+      (pendingLocationRef.current === pending ? pendingMeta : null) ??
+      locationMetaRef.current ?? locationMeta ?? manualLocationMeta(enteredLocationText);
+    const locationText = resolvedLocationMeta.source === "google_places" && resolvedLocationMeta.formattedAddress
+      ? resolvedLocationMeta.formattedAddress : enteredLocationText;
 
     // These checks mirror the API contract for fast feedback; the API
     // re-validates every submission and remains the authority.
@@ -176,6 +185,8 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
       setPhoneDigits("");
       setEmail("");
       setLocationMeta(null);
+      locationMetaRef.current = null;
+      pendingLocationRef.current = null;
       setLocationFieldKey((key) => key + 1);
       trackAnalyticsEvent("assessment_lead_submit_success", {
         cta_location: "assessment-form",
@@ -262,7 +273,8 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
             </span>
           ) : null}
         </label>
-        <LocationAutocompleteField key={locationFieldKey} disabled={isLocked} formSource="assessment_form" onMeta={handleLocationMeta} />
+        <LocationAutocompleteField key={locationFieldKey} disabled={isLocked} formSource="assessment_form"
+          onMeta={handleLocationMeta} onResolutionChange={(pending) => { pendingLocationRef.current = pending; }} />
         <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
       </div>
 
