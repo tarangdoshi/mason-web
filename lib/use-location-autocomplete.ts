@@ -76,8 +76,11 @@ export function useLocationAutocomplete({
     onResolutionChangeRef.current = onResolutionChange;
   }, [onMeta, onResolutionChange]);
 
-  function handleKeyDownCapture(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter" && !manualOnly && hasVisiblePlacesSuggestions()) {
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    // Google's input listener receives Enter before React's bubbling handler;
+    // prevent only the form's native submit while its suggestion list is open.
+    if (event.key === "Enter" && !manualOnly && event.currentTarget === document.activeElement &&
+      hasVisiblePlacesSuggestions()) {
       event.preventDefault();
     }
   }
@@ -134,7 +137,8 @@ export function useLocationAutocomplete({
           listener = autocomplete.addListener("place_changed", async () => {
             const place = autocomplete.getPlace();
             const version = ++resolutionVersionRef.current;
-            const pending = resolveSelectedGooglePlace(place).catch(() => manualLocationMeta(valueRef.current));
+            const pending = resolveSelectedGooglePlace(place)
+              .catch(() => manualLocationMeta(inputRef.current?.value || valueRef.current));
             onResolutionChangeRef.current?.(pending);
             const resolved = await pending;
             if (cancelled || version !== resolutionVersionRef.current) return;
@@ -145,13 +149,17 @@ export function useLocationAutocomplete({
             const formatted = resolved.formattedAddress || inputRef.current?.value || "";
             setValue(formatted);
             lastEnrichedRef.current = formatted;
-            setHint("Address selected. You can continue with the form.");
+            setHint(resolved.source === "manual"
+              ? "You can enter your address manually and continue."
+              : "Address selected. You can continue with the form.");
             onMetaRef.current?.(resolved);
             onResolutionChangeRef.current?.(null);
-            trackAnalyticsEvent("location_picker_success", {
-              market: resolved.serviceability.locationMarket,
-              form_source: formSource
-            });
+            if (resolved.source !== "manual") {
+              trackAnalyticsEvent("location_picker_success", {
+                market: resolved.serviceability.locationMarket,
+                form_source: formSource
+              });
+            }
           });
         } catch {
           fallback();
@@ -214,5 +222,5 @@ export function useLocationAutocomplete({
     }
   }
 
-  return { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDownCapture, useMyLocation };
+  return { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDown, useMyLocation };
 }

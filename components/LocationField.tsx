@@ -24,7 +24,7 @@ const INPUT = `${FIELD} placeholder:text-sand-400 focus:outline-none border-sand
  * system instead of the assessment form's CSS module.
  */
 export default function LocationField({ disabled, className, onMeta, onResolutionChange }: Props) {
-  const { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDownCapture, useMyLocation } = useLocationAutocomplete({
+  const { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDown, useMyLocation } = useLocationAutocomplete({
     disabled,
     formSource: "contact_form",
     onMeta,
@@ -49,7 +49,7 @@ export default function LocationField({ disabled, className, onMeta, onResolutio
         disabled={disabled}
         value={value}
         onChange={handleChange}
-        onKeyDownCapture={handleKeyDownCapture}
+        onKeyDown={handleKeyDown}
         className={INPUT}
       />
       <button

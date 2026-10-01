@@ -114,15 +114,36 @@ function hasClassifyingComponents(components: GoogleAddressComponent[]) {
     components.some((item) => item.types?.includes("administrative_area_level_1"));
 }
 
+const GOOGLE_GEOCODE_CALLBACK_TIMEOUT_MS = 3000;
+
 async function geocodeRequest(request: Record<string, unknown>): Promise<GooglePlaceLike | null> {
   const google = await loadGooglePlaces();
   if (!google?.maps?.Geocoder) return null;
 
-  return new Promise((resolve) => {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode(request, (results: GooglePlaceLike[] | null, status: string) => {
-      resolve(status === "OK" && results?.[0] ? results[0] : null);
-    });
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timeout = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error("Google geocoding callback timed out."));
+    }, GOOGLE_GEOCODE_CALLBACK_TIMEOUT_MS);
+    const finish = (result: GooglePlaceLike | null) => {
+      if (settled) return; // A late Google callback must never change a submitted address.
+      settled = true;
+      window.clearTimeout(timeout);
+      resolve(result);
+    };
+    try {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode(request, (results: GooglePlaceLike[] | null, status: string) => {
+        finish(status === "OK" && results?.[0] ? results[0] : null);
+      });
+    } catch (error) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      reject(error);
+    }
   });
 }
 

@@ -37,7 +37,7 @@ const hintStyle: CSSProperties = {
 };
 
 export default function LocationAutocompleteField({ disabled, formSource = "assessment_form", onMeta, onResolutionChange }: Props) {
-  const { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDownCapture, useMyLocation } = useLocationAutocomplete({
+  const { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDown, useMyLocation } = useLocationAutocomplete({
     disabled,
     formSource,
     onMeta,
@@ -58,7 +58,7 @@ export default function LocationAutocompleteField({ disabled, formSource = "asse
         disabled={disabled}
         value={value}
         onChange={handleChange}
-        onKeyDownCapture={handleKeyDownCapture}
+        onKeyDown={handleKeyDown}
       />
       <button type="button" style={buttonStyle} onClick={useMyLocation} disabled={disabled || geoState === "locating"}>
         {geoState === "locating" ? "Locating…" : "📍 Use my location"}
