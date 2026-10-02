@@ -19,6 +19,17 @@ interface UseLocationAutocompleteArgs {
   disabled?: boolean;
   formSource?: string;
   onMeta?: (meta: LocationMeta) => void;
+  onResolutionChange?: (pending: Promise<LocationMeta> | null) => void;
+}
+
+/** Google's visible suggestion list consumes Enter; it must not submit the form. */
+export function hasVisiblePlacesSuggestions(): boolean {
+  if (typeof document === "undefined") return false;
+  return Array.from(document.querySelectorAll<HTMLElement>(".pac-container")).some((container) => {
+    const style = window.getComputedStyle(container);
+    return style.display !== "none" && style.visibility !== "hidden" &&
+      container.getAttribute("aria-hidden") !== "true" && Boolean(container.querySelector(".pac-item"));
+  });
 }
 
 // The Google Places dropdown is appended to <body>; ensure it floats above the form.
@@ -43,11 +54,14 @@ function ensurePacStyle() {
 export function useLocationAutocomplete({
   disabled,
   formSource = "assessment_form",
-  onMeta
+  onMeta,
+  onResolutionChange
 }: UseLocationAutocompleteArgs) {
   const inputRef = useRef<HTMLInputElement>(null);
   const lastEnrichedRef = useRef<string>("");
   const onMetaRef = useRef(onMeta);
+  const onResolutionChangeRef = useRef(onResolutionChange);
+  const resolutionVersionRef = useRef(0);
   const [value, setValue] = useState("");
   const [geoState, setGeoState] = useState<GeoState>("idle");
   const [hint, setHint] = useState<string | null>(null);
@@ -59,7 +73,17 @@ export function useLocationAutocomplete({
 
   useEffect(() => {
     onMetaRef.current = onMeta;
-  }, [onMeta]);
+    onResolutionChangeRef.current = onResolutionChange;
+  }, [onMeta, onResolutionChange]);
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    // Google's input listener receives Enter before React's bubbling handler;
+    // prevent only the form's native submit while its suggestion list is open.
+    if (event.key === "Enter" && !manualOnly && event.currentTarget === document.activeElement &&
+      hasVisiblePlacesSuggestions()) {
+      event.preventDefault();
+    }
+  }
 
   function emitManual(text: string) {
     onMetaRef.current?.(manualLocationMeta(text));
@@ -77,6 +101,8 @@ export function useLocationAutocomplete({
     let observer: MutationObserver | undefined;
     const fallback = () => {
       if (cancelled) return;
+      resolutionVersionRef.current += 1;
+      onResolutionChangeRef.current?.(null);
       lastEnrichedRef.current = "";
       onMetaRef.current?.(manualLocationMeta(valueRef.current));
       setHint("You can enter your address manually and continue.");
@@ -110,20 +136,30 @@ export function useLocationAutocomplete({
           });
           listener = autocomplete.addListener("place_changed", async () => {
             const place = autocomplete.getPlace();
-            const resolved = await resolveSelectedGooglePlace(place);
-            if (cancelled || window.__aegisGooglePlacesFailed__) {
+            const version = ++resolutionVersionRef.current;
+            const pending = resolveSelectedGooglePlace(place)
+              .catch(() => manualLocationMeta(inputRef.current?.value || valueRef.current));
+            onResolutionChangeRef.current?.(pending);
+            const resolved = await pending;
+            if (cancelled || version !== resolutionVersionRef.current) return;
+            if (window.__aegisGooglePlacesFailed__) {
               fallback();
               return;
             }
             const formatted = resolved.formattedAddress || inputRef.current?.value || "";
             setValue(formatted);
             lastEnrichedRef.current = formatted;
-            setHint("Address selected. You can continue with the form.");
+            setHint(resolved.source === "manual"
+              ? "You can enter your address manually and continue."
+              : "Address selected. You can continue with the form.");
             onMetaRef.current?.(resolved);
-            trackAnalyticsEvent("location_picker_success", {
-              market: resolved.serviceability.locationMarket,
-              form_source: formSource
-            });
+            onResolutionChangeRef.current?.(null);
+            if (resolved.source !== "manual") {
+              trackAnalyticsEvent("location_picker_success", {
+                market: resolved.serviceability.locationMarket,
+                form_source: formSource
+              });
+            }
           });
         } catch {
           fallback();
@@ -148,6 +184,8 @@ export function useLocationAutocomplete({
     const next = event.target.value;
     setValue(next);
     if (isSelectedLocationStale(lastEnrichedRef.current, next) || !lastEnrichedRef.current) {
+      resolutionVersionRef.current += 1;
+      onResolutionChangeRef.current?.(null);
       lastEnrichedRef.current = "";
       setHint(null);
       emitManual(next);
@@ -184,5 +222,5 @@ export function useLocationAutocomplete({
     }
   }
 
-  return { inputRef, value, geoState, hint, manualOnly, handleChange, useMyLocation };
+  return { inputRef, value, geoState, hint, manualOnly, handleChange, handleKeyDown, useMyLocation };
 }
