@@ -14,7 +14,10 @@ async function withAssessmentDom(run: (context: {
   autocomplete: () => { listener: () => void } | undefined;
   resolveGeocode: (result: unknown) => void;
   failGeocode: () => void;
-}) => Promise<void>) {
+}) => Promise<void>, response: () => Response = () => new Response(
+  JSON.stringify({ data: { id: "zoho-test", locationMarket: "GOA" } }),
+  { status: 201, headers: { "Content-Type": "application/json" } }
+)) {
   const dom = new JSDOM('<div id="root"></div>', { url: "https://www.masoncompany.in/" });
   const names = ["window", "self", "document", "navigator", "HTMLElement", "HTMLInputElement", "Element", "FormData", "Event", "MouseEvent", "MutationObserver", "React", "IS_REACT_ACT_ENVIRONMENT"];
   const originals = new Map(names.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
@@ -31,8 +34,7 @@ async function withAssessmentDom(run: (context: {
   const posts: Array<Record<string, unknown>> = [];
   globalThis.fetch = (async (_url: string, init: RequestInit) => {
     posts.push(JSON.parse(String(init.body)));
-    return new Response(JSON.stringify({ data: { id: "zoho-test", locationMarket: "GOA" } }),
-      { status: 201, headers: { "Content-Type": "application/json" } });
+    return response();
   }) as typeof fetch;
 
   let autocompleteInstance: { listener: () => void } | undefined;
@@ -91,6 +93,39 @@ async function withAssessmentDom(run: (context: {
     else process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = previousKey;
   }
 }
+
+test("Goa installation wording appears only after a successful assessment and the form resets", async () => {
+  await withAssessmentDom(async ({ window, form, posts }) => {
+    assert.doesNotMatch(form.textContent ?? "", /Mason is currently available in Goa|Mason currently provides installations in Goa/);
+    assert.equal(form.querySelector('[role="status"]'), null);
+
+    await React.act(async () => form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true })));
+    assert.equal(posts.length, 1);
+    const status = form.querySelector('[role="status"]');
+    assert.ok(status);
+    assert.match(status.textContent ?? "", /We’ve received your bathroom safety assessment request/);
+    assert.match(status.textContent ?? "", /Our team will get in touch with you shortly/);
+    assert.match(status.textContent ?? "", /Mason currently provides installations in Goa/);
+    assert.match(status.textContent ?? "", /If you’re outside Goa, we’ll still keep your request with us as we expand to more locations/);
+    for (const name of ["customerName", "phone", "email", "locationText"]) {
+      assert.equal((form.elements.namedItem(name) as HTMLInputElement).value, "", `${name} resets after success`);
+    }
+  });
+});
+
+test("failed assessment keeps entered values and never shows the geography acknowledgement", async () => {
+  await withAssessmentDom(async ({ window, form, posts }) => {
+    await React.act(async () => form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true })));
+    assert.equal(posts.length, 1);
+    assert.equal(form.querySelector('[role="status"]'), null);
+    assert.doesNotMatch(form.textContent ?? "", /Mason currently provides installations in Goa|If you’re outside Goa/);
+    assert.equal((form.elements.namedItem("customerName") as HTMLInputElement).value, "Asha Nair");
+    assert.equal((form.elements.namedItem("locationText") as HTMLInputElement).value, "Miramar");
+    assert.match(form.querySelector('[role="alert"]')?.textContent ?? "", /Unable to submit your request/);
+  }, () => new Response(JSON.stringify({ error: "Unable to submit your request." }), {
+    status: 502, headers: { "Content-Type": "application/json" }
+  }));
+});
 
 test("Enter reaches Google's input listener before form submit is prevented", async () => {
   await withAssessmentDom(async ({ document, window, form, input, posts, autocomplete, resolveGeocode }) => {

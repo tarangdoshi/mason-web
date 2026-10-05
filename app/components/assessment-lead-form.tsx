@@ -12,7 +12,7 @@ import styles from "./guidance-form.module.css";
 import LocationAutocompleteField from "./location-autocomplete-field";
 import PhoneField from "./phone-field";
 import { manualLocationMeta, type LocationMeta } from "../../lib/location";
-import { ASSESSMENT_AVAILABILITY_COPY, type LocationMarket } from "../../lib/serviceability";
+import type { LocationMarket } from "../../lib/serviceability";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 
@@ -275,7 +275,6 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
         </label>
         <LocationAutocompleteField key={locationFieldKey} disabled={isLocked} formSource="assessment_form"
           onMeta={handleLocationMeta} onResolutionChange={(pending) => { pendingLocationRef.current = pending; }} />
-        <p className={`${styles.fullWidth} ${styles.availabilityInfo}`}>{ASSESSMENT_AVAILABILITY_COPY}</p>
       </div>
 
       <div className={styles.actions}>
@@ -287,7 +286,9 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
 
       {submissionState === "success" ? (
         <p className={styles.successMessage} role="status">
-          Visit request received. Mason will contact you shortly.
+          Thank you. We’ve received your bathroom safety assessment request.
+          <br /><br />
+          Our team will get in touch with you shortly. Mason currently provides installations in Goa. If you’re outside Goa, we’ll still keep your request with us as we expand to more locations.
         </p>
       ) : null}
       {submissionState === "error" && errorMessage ? (

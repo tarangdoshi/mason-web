@@ -18,7 +18,7 @@ test("public booking form matches the approved Prerna field set and copy", () =>
   assert.doesNotMatch(formSource, /Book Free Safety Assessment/);
   assert.match(formSource, /<LeadPrivacyNotice/);
   // The button says "Confirm", but the success copy still only acknowledges a request.
-  assert.match(formSource, /Visit request received/);
+  assert.match(formSource, /We’ve received your bathroom safety assessment request/);
   assert.doesNotMatch(formSource, /Assessment received/);
 });
 
@@ -43,4 +43,5 @@ test("a successful submission clears every field, including the address field's 
   assert.doesNotMatch(failure, /setLocationFieldKey|form\.reset\(\)/);
   // Analytics are unchanged: generate_lead still comes only from the confirmed-lead path.
   assert.ok(success.indexOf("leadCreated") < success.indexOf("setLocationFieldKey"));
+  assert.doesNotMatch(failure, /leadCreated/);
 });

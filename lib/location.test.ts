@@ -37,10 +37,10 @@ test("editing a selected address clears stale verified location metadata", () =>
   assert.equal(replacement.serviceability.locationMarket, "UNKNOWN");
 });
 
-test("assessment form renders the Goa-only public launch copy", () => {
+test("assessment form no longer renders the pre-submission Goa availability copy", () => {
   assert.equal(ASSESSMENT_AVAILABILITY_COPY, "Mason is currently available in Goa.");
   const formSource = readFileSync(resolve(process.cwd(), "app/components/assessment-lead-form.tsx"), "utf8");
-  assert.match(formSource, /ASSESSMENT_AVAILABILITY_COPY/);
+  assert.doesNotMatch(formSource, /ASSESSMENT_AVAILABILITY_COPY|availabilityInfo/);
 });
 
 test("location analytics events are part of the typed allowlist", () => {
