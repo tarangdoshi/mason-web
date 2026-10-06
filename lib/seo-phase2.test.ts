@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import robots, { AI_TRAINING_CRAWLERS } from "../app/robots";
 import sitemap from "../app/sitemap";
 import { fallbackHome, fallbackPackages } from "./cms/fallback";
+import { homepageContent } from "../content/homepage.content";
 import { assessmentDoc } from "../content/knowledge/assessment";
 import { guideDoc, guideSources } from "../content/knowledge/guide";
 import { evidenceClaims, evidenceMetrics, evidenceSources, regionalEvidenceNotes } from "../content/evidence/evidence.content";
@@ -32,13 +33,13 @@ test("robots: documented AI-training crawlers are opted out; search and answer c
   const groups = productionRobots();
   assert.equal(groups.length, 2);
   const training = groups.find((group) => group.userAgent !== "*")!;
-  assert.deepEqual(training.userAgent, ["GPTBot", "ClaudeBot", "Applebot-Extended", "meta-externalagent", "CCBot"]);
+  assert.deepEqual(training.userAgent, ["GPTBot", "ClaudeBot", "Applebot-Extended", "CCBot"]);
   assert.deepEqual(AI_TRAINING_CRAWLERS, training.userAgent);
   assert.equal(training.disallow, "/");
   assert.equal(training.allow, undefined);
   // Discovery/citation crawlers must never be listed (they fall under the "*" allow group).
   for (const searchBot of ["Googlebot", "Bingbot", "OAI-SearchBot", "ChatGPT-User", "Claude-SearchBot", "Claude-User", "PerplexityBot",
-    "Applebot", "meta-webindexer", "Google-Extended", "*"]) {
+    "Applebot", "meta-webindexer", "meta-externalagent", "Google-Extended", "*"]) {
     assert.ok(!AI_TRAINING_CRAWLERS.includes(searchBot), searchBot);
   }
   const wildcard = groups.find((group) => group.userAgent === "*")!;
@@ -74,7 +75,8 @@ test("new pages: canonical, title, description, one H1, server-rendered content 
 test("assessment page: Mason facts only, CMS values interpolated, no hardcoded prices", () => {
   const plan = (code: string) => fallbackPackages.plans.find((item) => item.code === code)!;
   const doc = assessmentDoc({ standardPrice: plan("package-standard").price, advancedPrice: plan("package-advanced").price,
-    componentCount: fallbackPackages.components.length, processSteps: fallbackHome.process.steps });
+    componentCount: fallbackPackages.components.length, processSteps: fallbackHome.process.steps, components: fallbackPackages.components,
+    doctors: [{ quote: "Doctor quote", name: "Dr. Example", meta: "Specialty" }], testimonials: [{ quote: "Family quote", name: "A Family" }] });
   const text = JSON.stringify(doc);
   assert.match(text, /Observe first\. Recommend second\. Sell last\./);
   assert.match(text, /₹29,999/);
@@ -86,7 +88,20 @@ test("assessment page: Mason facts only, CMS values interpolated, no hardcoded p
   for (const file of ["content/knowledge/assessment.ts", "content/knowledge/guide.ts"]) {
     assert.doesNotMatch(read(file), /₹\s?\d/, `${file}: prices must come from Sanity`);
   }
-  for (const href of ["/why", "/packages", "/evidence", "/guides/bathroom-safety-for-elderly-parents"]) assert.ok(text.includes(`](${href})`), href);
+  for (const href of ["/why", "/packages", "/packages/standard", "/packages/advanced", "/evidence", "/guides/bathroom-safety-for-elderly-parents"]) {
+    assert.ok(text.includes(`](${href})`), href);
+  }
+  // Conversion: the booking action sits under the intro as well as at the end.
+  assert.equal(doc.topCta, true);
+  assert.equal(doc.cta.label, "Book Free Inspection");
+  // Founder-verified doctor input and family testimonials come from Sanity and render as plain quotes.
+  const ids = doc.sections.map((section) => section.id);
+  for (const id of ["why-individual-assessment", "what-we-install", "doctor-input", "families"]) assert.ok(ids.includes(id), id);
+  assert.match(text, /Placement is informed by doctor input/);
+  for (const component of fallbackPackages.components) assert.ok(text.includes(component.title), component.title);
+  // Without CMS voices the sections are omitted rather than left empty.
+  const bare = assessmentDoc({ standardPrice: "x", advancedPrice: "y", componentCount: 1, processSteps: [] });
+  assert.ok(!bare.sections.some((section) => ["doctor-input", "families", "what-we-install"].includes(section.id)));
 });
 
 test("structured data: Service (free, Goa) and Article (Mason as author/publisher) with no invented credentials", () => {
@@ -107,6 +122,11 @@ test("guide: every cited source is a primary or peer-reviewed reference that the
   const text = JSON.stringify(guideDoc);
   assert.doesNotMatch(text, /Most falls happen in the bathroom|1 in 4|lakh/i);
   assert.match(text, /no single right height/);
+  const headings = guideDoc.sections.map((section) => section.heading).join(" | ");
+  for (const phrase of [/bathroom safety/i, /elderly parents/i, /Grab bars/, /Anti-slip/, /safe bathing/, /toilet support/, /fall prevention/, /Goa/, /modifications/]) {
+    assert.match(headings, phrase);
+  }
+  for (const href of ["/bathroom-safety-assessment", "/packages/standard", "/packages/advanced", "/why", "/evidence"]) assert.ok(text.includes(`](${href})`), href);
 });
 
 test("evidence registry: corrected citations and figures, no Mason-modelled numbers", () => {
@@ -135,13 +155,32 @@ test("code-owned public copy carries no unsupported absolute claims", () => {
     /usually at the wrong height/]) {
     assert.doesNotMatch(why, claim, String(claim));
   }
+  // Founder-verified differentiation is kept: doctor-informed placement and the hardware wording.
+  assert.match(why, /Placement informed by doctor input and how your parent actually moves/);
+  assert.match(why, /Load-rated,\s+PVD-coated hardware/);
+  assert.match(why, /hardware selected for safety-critical use/);
   assert.match(why, /href="\/bathroom-safety-assessment"/);
   assert.match(why, /href="\/evidence"/);
   assert.doesNotMatch(read("app/(marketing)/packages/[slug]/page.tsx"), /doctor validation/);
 });
 
+test("homepage fallback copy matches the corrected Sanity text (no unsupported claims to fall back to)", () => {
+  const all = JSON.stringify([fallbackHome.hero, fallbackHome.stats, homepageContent.hero, homepageContent.evidenceSection]);
+  for (const stale of [/Most falls happen in the bathroom/, /make sure yours don't/, /1 in 4/, /10 lakh/, /"25%"/, /"81%"/, /CDC/]) assert.doesNotMatch(all, stale, String(stale));
+  assert.equal(fallbackHome.hero.heading.text, "Many bathroom falls are preventable. We help prevent yours.");
+  assert.deepEqual(fallbackHome.stats.cards.map((card) => card.value), ["12%", "97%", "66%", "38%"]);
+  assert.deepEqual([fallbackHome.stats.costPrefix, fallbackHome.stats.costFigure], ["Recovery can take", "months"]);
+  const registry = new Set(evidenceSources.map((source) => source.id));
+  for (const card of homepageContent.evidenceSection.cards) assert.ok(registry.has(card.sourceId), card.sourceId);
+});
+
 test("internal links: footer and package pages reach the new pages and the evidence", () => {
   const footer = read("components/Footer.tsx");
   for (const href of ["/bathroom-safety-assessment", "/guides/bathroom-safety-for-elderly-parents", "/evidence"]) assert.ok(footer.includes(`href: "${href}"`), href);
-  assert.match(read("app/(marketing)/packages/[slug]/page.tsx"), /href="\/bathroom-safety-assessment"/);
+  const packagePage = read("app/(marketing)/packages/[slug]/page.tsx");
+  for (const href of ["/bathroom-safety-assessment", "/guides/bathroom-safety-for-elderly-parents", "/evidence"]) assert.ok(packagePage.includes(`href="${href}"`), href);
+  const compare = read("app/(marketing)/compare-packages/compare-packages-view.tsx");
+  for (const href of ["/bathroom-safety-assessment", "/guides/bathroom-safety-for-elderly-parents", "/evidence"]) assert.ok(compare.includes(`href="${href}"`), href);
+  assert.match(read("components/Stats.tsx"), /href="\/evidence"/);
+  assert.match(read("components/Process.tsx"), /href="\/bathroom-safety-assessment"/);
 });

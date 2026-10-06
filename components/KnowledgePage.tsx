@@ -11,7 +11,8 @@ import Cta from "./Cta";
 export type KnowledgeBlock =
   | { p: string } // paragraph; inline [label](/href) links
   | { list: string[] } // bullets
-  | { steps: { title: string; text: string }[] }; // an ordered process
+  | { steps: { title: string; text: string }[] } // an ordered process
+  | { quotes: { quote: string; name: string; meta?: string }[] }; // first-party voices from Sanity (no review markup)
 
 export type KnowledgeSection = { id: string; heading: string; blocks: KnowledgeBlock[] };
 
@@ -28,6 +29,8 @@ export type KnowledgeDoc = {
   sections: KnowledgeSection[];
   sources?: KnowledgeSource[];
   cta: { heading: string; text: string; label: string; secondary?: { label: string; href: string } };
+  /** Repeat the booking action under the intro, for pages whose job is the booking. */
+  topCta?: boolean;
 };
 
 function withLinks(text: string): ReactNode[] {
@@ -63,6 +66,21 @@ function Block({ block }: { block: KnowledgeBlock }) {
       </ul>
     );
   }
+  if ("quotes" in block) {
+    return (
+      <div className="grid gap-4">
+        {block.quotes.map((item) => (
+          <figure key={item.name} className="rounded-2xl border border-line bg-surface px-6 py-5">
+            <blockquote className="text-base leading-relaxed text-cream">&ldquo;{item.quote}&rdquo;</blockquote>
+            <figcaption className="mt-3 text-sm text-cream-faint">
+              <span className="font-semibold text-cream-dim">{item.name}</span>
+              {item.meta ? <span>, {item.meta}</span> : null}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    );
+  }
   return (
     <ol className="space-y-5">
       {block.steps.map((step, i) => (
@@ -95,6 +113,12 @@ export default function KnowledgePage({ doc, jsonLd }: { doc: KnowledgeDoc; json
             <h1 className="h-display text-4xl text-cream sm:text-5xl">{doc.title}</h1>
             {doc.updated ? <p className="mt-5 font-mono-label text-sm text-cream-faint">Last updated {doc.updated}</p> : null}
             <p className="mt-8 text-base leading-relaxed text-cream-dim sm:text-lg">{withLinks(doc.intro)}</p>
+            {doc.topCta ? (
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+                <Cta href="#book">{doc.cta.label}</Cta>
+                <a href="#how-it-works" className="text-sm font-semibold text-accent underline underline-offset-4">See how it works</a>
+              </div>
+            ) : null}
           </header>
 
           <section aria-labelledby="in-short" className="mx-auto max-w-3xl px-6 pb-10 lg:px-10">

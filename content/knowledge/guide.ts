@@ -27,12 +27,12 @@ export const guideDoc: KnowledgeDoc = {
     { term: "The risk", detail: "About 1 in 8 Indians aged 60 and over reported a fall in the previous two years (LASI Wave 1), and across Indian studies most older adults who fell were injured." },
     { term: "The bathroom", detail: "In a study of 198 older adults' bathrooms in Ahmedabad, 97% had no grab bars and 92% had a slippery floor; every bathroom had at least seven hazards." },
     { term: "What helps", detail: "In randomised trials, mostly outside India, home fall-hazard programmes reduced falls by about a quarter - more for people at higher risk." },
-    { term: "Where to start", detail: "Watch one ordinary visit to the bathroom, using the five moments below. Get an assessment after a fall, a hospital stay, or a new difficulty with walking or daily tasks." }
+    { term: "Where to start", detail: "Watch one ordinary visit to the bathroom using the five moments below, then make the simple fixes. Get a professional assessment after a fall, a hospital stay, or a new difficulty with walking or daily tasks - in Goa, Mason does this for free." }
   ],
   sections: [
     {
       id: "why-the-bathroom",
-      heading: "Why the bathroom deserves attention",
+      heading: "Why bathroom safety matters for elderly parents",
       blocks: [
         { p: "Falls are common among older Indians: in the national Longitudinal Ageing Study in India (LASI, 2017-18), 12.4% of adults aged 60 and over reported a fall in the previous two years, and 5.6% a fall-related injury. A review of Indian studies found that most older adults who fell were injured (a pooled 65.6%, with wide variation between studies)." },
         { p: "Indian bathrooms concentrate several hazards in one small, often wet room. When researchers in Ahmedabad inspected 198 bathrooms used by adults aged 60+, 97% had no grab bars, 91.9% had a slippery floor and 94.4% had inadequate lighting - and every one had at least seven hazards. That is one city, but the pattern will be familiar to many families." },
@@ -41,7 +41,7 @@ export const guideDoc: KnowledgeDoc = {
     },
     {
       id: "five-moments",
-      heading: "Watch one visit: the five moments",
+      heading: "Watch one bathroom visit: the five risky moments",
       blocks: [
         { p: "Mason's method is to observe before recommending anything. You can do a simple version yourself: watch (or ask about) one ordinary trip to the bathroom and notice what happens at each of these moments." },
         { list: [
@@ -56,7 +56,7 @@ export const guideDoc: KnowledgeDoc = {
     },
     {
       id: "ten-minute-check",
-      heading: "A ten-minute check you can do this week",
+      heading: "A ten-minute bathroom safety checklist for this week",
       blocks: [
         { list: [
           "Grip: wet the floor where your parent stands to bathe and where they step out. How slippery is it?",
@@ -72,16 +72,33 @@ export const guideDoc: KnowledgeDoc = {
       ]
     },
     {
+      id: "modifications",
+      heading: "Bathroom modifications for elderly parents: what helps",
+      blocks: [
+        { p: "Most senior bathroom safety changes need no renovation. Matched to what you saw in the five moments, these are the ones that make the biggest everyday difference:" },
+        { list: [
+          "Grab bars at the points where your parent stands, turns, sits and steps - fixed into a wall that can hold them.",
+          "Anti-slip treatment on the existing floor, plus anti-slip mats in the shower and where feet leave it.",
+          "A stable shower stool, so bathing does not mean balancing on one leg on wet tile.",
+          "Toilet support: a raised toilet seat and a support bar within reach for sitting and standing.",
+          "Motion-triggered night lighting on the way to the bathroom and inside it.",
+          "Edge and corner guards, better drainage so water does not linger, and a lock that family can open from outside in an emergency.",
+          "Bathroom slippers that grip on a wet floor."
+        ] },
+        { p: "The order and placement matter as much as the items. That is what an assessment is for: deciding which changes your parent actually needs, and where." }
+      ]
+    },
+    {
       id: "grab-bars",
-      heading: "Grab bars: placement depends on the person and the wall",
+      heading: "Grab bars for elderly parents: placement depends on the person and the wall",
       blocks: [
         { p: "Grab bars help most where your parent stands, turns, sits and steps over something. But there is no single right height for every home: published heights come from accessibility rules written for public buildings, while at home the right position depends on your parent's height, reach and the way they move." },
-        { p: "The wall matters as much as the bar. A bar is only as strong as what it is fixed into, and the wall behind tile is not always solid. In Mason's practice, placement is checked during the assessment and finalised by a technician on site before anything is fixed." }
+        { p: "The wall matters as much as the bar. A bar is only as strong as what it is fixed into, and the wall behind tile is not always solid. In Mason's practice, placement is informed by doctor input and by watching how your parent actually moves, and is finalised by a technician on site before anything is fixed. Mason uses support hardware selected for safety-critical use - a grab bar has to take a person's full weight, which towel rails and suction-cup handles are not built for." }
       ]
     },
     {
       id: "wet-floors-and-bathing",
-      heading: "Wet floors, bathing and the toilet",
+      heading: "Anti-slip floors, safe bathing and toilet support",
       blocks: [
         { p: "In the Ahmedabad study, 92% of bathrooms had a slippery floor. Practical responses include an anti-slip treatment on the existing floor, mats where feet are wet (in the shower and where your parent steps out), better drainage so water does not linger, and bathroom slippers that grip." },
         { p: "Bathing seated on a stable shower stool removes the need to balance on one leg on wet tile. For the toilet, a raised seat and a support bar within reach can make sitting and standing easier. If getting up has become hard, it is also worth mentioning to your parent's doctor or a physiotherapist." }
@@ -89,7 +106,7 @@ export const guideDoc: KnowledgeDoc = {
     },
     {
       id: "when-to-get-help",
-      heading: "When to get a professional assessment",
+      heading: "Bathroom fall prevention: when to get a professional assessment",
       blocks: [
         { p: "The Cochrane review found home-hazard programmes worked best for people at higher risk of falling - for example, someone who has fallen in the past year, has recently been in hospital, or needs help with daily activities. Those are good moments to have the bathroom assessed rather than waiting." },
         { p: "Some causes of falls are medical: changes in balance, eyesight, blood pressure or medicines. A home assessment does not replace a conversation with your parent's doctor." }
@@ -97,9 +114,10 @@ export const guideDoc: KnowledgeDoc = {
     },
     {
       id: "mason-in-goa",
-      heading: "How Mason helps in Goa",
+      heading: "Bathroom safety for ageing parents in Goa: how Mason helps",
       blocks: [
-        { p: "Mason Company offers a free [bathroom safety assessment in Goa](/bathroom-safety-assessment): we observe the five moments in your parent's bathroom, explain what we see, and recommend what would help. If you go ahead, Mason-trained technicians install a complete kit - grab support, anti-slip treatment and mats, a shower stool, a raised toilet seat and more - with no renovation. [See the packages](/packages)." }
+        { p: "If your family is in Goa, you do not have to work out every change yourself. Mason Company offers a free [bathroom safety assessment in Goa](/bathroom-safety-assessment): we observe the five moments in your parent's bathroom, explain what we see, and recommend what would help. If you go ahead, Mason-trained technicians install a complete kit - grab support, anti-slip treatment and mats, a shower stool, a raised toilet seat and more - with no renovation." },
+        { p: "Compare the [Standard bathroom safety package](/packages/standard) with the [Advanced package, which adds a 2-Year Safety AMC](/packages/advanced), or read [why Mason plans support around how your parent moves](/why)." }
       ]
     }
   ],

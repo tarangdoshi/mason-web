@@ -243,7 +243,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <li>Pay online or on installation</li>
           </ul>
           <p className={styles.muted}>
-            See <Link href="/bathroom-safety-assessment">how the free assessment works</Link> and{" "}
+            See <Link href="/bathroom-safety-assessment">how the free bathroom inspection works</Link>,{" "}
+            <Link href="/guides/bathroom-safety-for-elderly-parents">what to check in an elderly parent&apos;s bathroom</Link> and{" "}
             <Link href="/evidence">the evidence behind the risks</Link>.
           </p>
         </section>

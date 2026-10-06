@@ -53,11 +53,11 @@ const partials = [
   },
   {
     label: "One grab bar",
-    copy: "Covers a single spot. Without an assessment, the height is guesswork and no one checks whether the wall behind the tile can hold it. Four of the five moments stay untouched.",
+    copy: "Covers a single spot. Without an assessment the height is guesswork, no one checks whether the wall behind the tile can hold it, and whether the bar is made to take a person's weight is hard to tell from a listing. Four of the five moments stay untouched.",
   },
   {
     label: "A handyman",
-    copy: "Fits what you point at - with no read on how your parent actually moves, no plan for the rest of the bathroom, and no one accountable when it works loose.",
+    copy: "Fits what you point at - with no read on how your parent actually moves, no plan for the rest of the bathroom, no hardware selected for safety-critical use, and no one accountable when it works loose.",
   },
 ];
 
@@ -256,7 +256,7 @@ export default function WhyContent() {
               The Mason system covers every moment, not just the easy one.
             </h3>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/85">
-              Every moment assessed. Placement shaped by doctor input. Load-rated,
+              Every moment assessed. Placement informed by doctor input and how your parent actually moves. Load-rated,
               PVD-coated hardware. Installed and owned end to end by one
               accountable team - and finished so the bathroom still feels like
               home, not a hospital.

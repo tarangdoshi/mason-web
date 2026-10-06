@@ -30,7 +30,7 @@ export const homepageContent: HomepageContent = {
   },
   hero: {
     eyebrow: "Bathroom Safety for Ageing Parents",
-    heading: "Most falls happen in the bathroom. We make sure yours don't.",
+    heading: "Many bathroom falls are preventable. We help prevent yours.",
     subcopy: "You can't always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety.",
     primaryCta: "Book Free Inspection",
     secondaryCta: "See Transformations",
@@ -59,10 +59,10 @@ export const homepageContent: HomepageContent = {
       title: "Why families act early",
       otpBadge: "Full refund any time before installation.",
       doctorQuote: "A serious bathroom fall can affect treatment, recovery, mobility, caregiving, and weeks of family coordination.",
-      doctorByline: "Estimated family impact range: ₹3L-₹10L",
+      doctorByline: "Recovery after a serious fall can take months.",
       stats: [
-        { value: "25%", label: "60+ injury and/or fall" },
-        { value: "81%", label: "Bathroom injuries caused by falls" },
+        { value: "12%", label: "60+ reported a fall in two years (LASI)" },
+        { value: "97%", label: "Older adults' bathrooms with no grab bars (Ahmedabad study)" },
         { value: "26-38%", label: "Fall-rate reduction from home hazard changes" }
       ]
     }
@@ -219,23 +219,23 @@ export const homepageContent: HomepageContent = {
     cards: [
       {
         id: "ev-card-serious-injury",
-        kicker: "Reported injury and/or fall",
-        value: "25%",
-        label: "Among Indians aged 60+, 1 in 4 reported an injury and/or fall in the previous two years.",
+        kicker: "Reported a fall",
+        value: "12%",
+        label: "Among Indians aged 60+, about 1 in 8 reported a fall in just the previous two years.",
         context: "Fall risk is already present in many ageing households.",
-        sourceLabel: "LASI India Executive Summary",
-        sourceId: "lasi-exec-2019",
+        sourceLabel: "LASI Wave 1 (Scientific Reports, 2023)",
+        sourceId: "lasi-fall-outcomes-2023",
         ctaLabel: "View Evidence",
         ctaHref: "/evidence"
       },
       {
         id: "ev-card-independence-loss",
-        kicker: "Bathroom injuries from falls",
-        value: "81%",
-        label: "Falls are the dominant risk around wet zones, toilets, and transfers.",
+        kicker: "Bathrooms with no grab bars",
+        value: "97%",
+        label: "In a study of 198 older adults' bathrooms in Ahmedabad, 97% had no grab bars - and every one had at least seven hazards.",
         context: "The bathroom concentrates several high-risk movements in one room.",
-        sourceLabel: "CDC Bathroom Injuries Report",
-        sourceId: "cdc-bathroom-injuries",
+        sourceLabel: "Ahmedabad bathroom-hazard study (2015)",
+        sourceId: "bathroom-hazards-ahmedabad-2015",
         ctaLabel: "View Evidence",
         ctaHref: "/evidence"
       },
@@ -246,7 +246,7 @@ export const homepageContent: HomepageContent = {
         label: "A review of older adults in India put the pooled injury rate at 65.6% among those who fell.",
         context: "A fall often carries an injury burden beyond the immediate incident.",
         sourceLabel: "India falls-injury systematic review",
-        sourceId: "india-falls-injury-review",
+        sourceId: "india-fall-consequences-meta-2023",
         ctaLabel: "View Evidence",
         ctaHref: "/evidence"
       },

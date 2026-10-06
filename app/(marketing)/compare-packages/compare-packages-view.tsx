@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { HomepageContent } from "../../../content/types";
 import PackageCheckoutLink from "../../components/package-checkout-link";
 import CmsImage from "../../components/cms-image";
@@ -224,6 +225,11 @@ export default function ComparePackagesView({
             <p className={styles.cardEyebrow}>Best first step</p>
             <h2>Book a free inspection before choosing a package.</h2>
             <p>If you are confident about the package, the package cards above still take you to checkout.</p>
+            <p>
+              See <Link href="/bathroom-safety-assessment">what the free bathroom inspection covers</Link>, read our{" "}
+              <Link href="/guides/bathroom-safety-for-elderly-parents">bathroom safety guide for elderly parents</Link>, or{" "}
+              <Link href="/evidence">the evidence on falls in India</Link>.
+            </p>
           </div>
           <div className={styles.ctaActions}>
             <a

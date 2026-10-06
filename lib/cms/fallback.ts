@@ -37,7 +37,7 @@ export const fallbackSettings: SiteSettingsContent = {
 
 export const fallbackHome: HomeContent = {
   hero: {
-    heading: { text: "Most falls happen in the bathroom. We make sure yours don't.", highlights: ["falls"] },
+    heading: { text: "Many bathroom falls are preventable. We help prevent yours.", highlights: ["falls"] },
     subcopy: "You can't always be there - safety can be. Premium, doctor-informed, expertly-installed bathroom safety.",
     primaryCta: "Book Free Inspection",
     secondaryCta: "See Transformations",
@@ -49,16 +49,16 @@ export const fallbackHome: HomeContent = {
   stats: {
     eyebrow: "The risk is real",
     heading: { text: "The response should be thoughtful.", highlights: ["thoughtful"] },
-    costLabel: "The cost of doing nothing",
-    costPrefix: "Up to",
-    costFigure: "₹10 lakh",
+    costLabel: "The cost of a serious fall",
+    costPrefix: "Recovery can take",
+    costFigure: "months",
     cards: [
-      { value: "25%", label: "Reported injury and/or fall", copy: "Among Indians aged 60+, 1 in 4 reported an injury and/or fall in the previous two years." },
-      { value: "81%", label: "Bathroom injuries from falls", copy: "Falls are the dominant risk around wet zones, toilets, and transfers." },
+      { value: "12%", label: "Reported a fall", copy: "Among Indians aged 60+, about 1 in 8 reported a fall in just the previous two years." },
+      { value: "97%", label: "Bathrooms with no grab bars", copy: "In a study of 198 older adults' bathrooms in Ahmedabad, 97% had no grab bars - and every one had at least seven hazards." },
       { value: "66%", label: "Falls that led to injury", copy: "A review of older adults in India put the pooled injury rate at 65.6% among those who fell." },
       { prefix: "Up to", value: "38%", label: "Fewer falls after home changes", copy: "Home hazard interventions cut fall rates by 26–38%, with the largest effect for higher-risk adults." }
     ],
-    sourcesNote: "Sources: LASI India, CDC bathroom-injury report, India falls-injury systematic review, Cochrane home-hazard reduction review."
+    sourcesNote: "Sources: LASI Wave 1 (Scientific Reports, 2023), Ahmedabad bathroom-hazard study (2015), India falls-injury meta-analysis (Geriatrics, 2023), Cochrane home-hazard review (2023)."
   },
   safer: {
     heading: { text: "Make your bathroom safer\nwhile it still feels like home", highlights: ["safer", "home"] },

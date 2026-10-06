@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Reveal from "./Reveal";
 import { serverEditProps } from "@/lib/cms/edit-server";
 import { DOCS } from "@/lib/cms/edit";
@@ -88,7 +89,10 @@ export default async function Stats({ content }: { content: HomeContent["stats"]
         </div>
 
         <p className="reveal mt-6 text-xs text-cream-faint">
-          {content.sourcesNote}
+          {content.sourcesNote}{" "}
+          <Link href="/evidence" className="font-semibold text-accent underline underline-offset-2">
+            See the evidence behind these numbers
+          </Link>
         </p>
       </Reveal>
     </section>
