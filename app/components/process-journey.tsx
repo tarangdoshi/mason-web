@@ -23,7 +23,7 @@ export default function ProcessJourney({ steps, fallbackImages, disclosure }: Pr
 
   return (
     <>
-      <ol className="processTimeline" aria-label="Aegis process timeline">
+      <ol className="processTimeline" aria-label="Mason process timeline">
         {steps.map((step, index) => (
           <li key={step.id} className="processTimelineItem">
             <article className="processTimelineCard">

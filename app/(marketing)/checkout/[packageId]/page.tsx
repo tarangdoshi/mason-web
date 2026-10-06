@@ -23,11 +23,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!entry) {
     return {
-      title: "Checkout | Mason Company"
+      title: "Checkout | Mason Company",
+      robots: { index: false, follow: true }
     };
   }
 
   return {
+    robots: { index: false, follow: true },
     title: `${entry.plan.name} Package Request | Mason Company`,
     description: `Request the ${entry.plan.name} package if you already know it fits, or start with a free Mason inspection.`
   };

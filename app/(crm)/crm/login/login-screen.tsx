@@ -25,8 +25,8 @@ const metrics = [
   },
   {
     icon: <EnvironmentOutlined />,
-    title: "Mumbai and Goa",
-    body: "Built for the launch footprint with a regional operational view instead of a generic admin."
+    title: "Goa",
+    body: "Built for the Goa launch with a regional operational view instead of a generic admin."
   }
 ];
 
@@ -46,7 +46,7 @@ export default function LoginScreen() {
                 <Title className={styles.heroHeadline}>Mason Company Control Panel</Title>
                 <Paragraph className={styles.heroDescription}>
                   Run regional operations, manage launch content, and keep every customer conversation moving from one
-                  premium workspace designed for the Mumbai and Goa rollout.
+                  premium workspace designed for the Goa rollout.
                 </Paragraph>
               </div>
 

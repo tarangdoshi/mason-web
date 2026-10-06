@@ -283,7 +283,16 @@ async function writeBackup(snapshot: Snapshot, backupDir: string, projectId: str
   return file;
 }
 
+/**
+ * Retired: this completed pre-launch migration carries superseded facts (₹30,000 / ₹37,000, a 1-Year
+ * Safety Check-Up, Bengaluru testimonials). Applying it again would put them back on the live site, so
+ * writes are refused; Sanity Studio is the source of truth. The dry-run plan still works for audit.
+ */
+export const PRERNA_MIGRATION_RETIRED_MESSAGE =
+  "Retired: migrate-prerna-content would restore superseded package facts. Edit content in Sanity Studio instead.";
+
 export async function runMigration(argv = process.argv.slice(2)): Promise<void> {
+  if (argv.includes("--apply")) throw new Error(PRERNA_MIGRATION_RETIRED_MESSAGE);
   const { apply, backupDir, scope } = parseMigrationArgs(argv);
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
   const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";

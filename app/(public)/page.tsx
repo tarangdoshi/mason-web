@@ -14,6 +14,7 @@ import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
 import { getPublicSiteContent } from "@/lib/cms/load";
 import { cmsMetadata } from "@/lib/cms/seo";
+import { jsonLdScript, organizationJsonLd } from "@/lib/seo/structured-data";
 
 /* Content comes from Sanity. Published changes appear within a minute
    (regenerated in the background); draft previews render on every request. */
@@ -27,6 +28,7 @@ export default async function Home() {
   const { home, packages, settings } = await getPublicSiteContent();
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd(settings.contact)) }} />
       <Nav homeHero />
       <main>
         <Hero content={home.hero} />

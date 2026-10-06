@@ -10,6 +10,7 @@ export const revalidate = 60;
 
 export function generateMetadata(): Promise<Metadata> {
   return cmsMetadata("privacy", {
+    alternates: { canonical: "https://www.masoncompany.in/privacy" },
     title: "Privacy Policy - Mason Company",
     description:
       "How Mason Company collects, uses, and protects the personal information you share when you contact us or book a bathroom safety visit.",

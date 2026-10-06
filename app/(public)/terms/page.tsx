@@ -10,6 +10,7 @@ export const revalidate = 60;
 
 export function generateMetadata(): Promise<Metadata> {
   return cmsMetadata("terms", {
+    alternates: { canonical: "https://www.masoncompany.in/terms" },
     title: "Terms & Conditions - Mason Company",
     description:
       "The terms that govern Mason Company's bathroom safety visits, assessments, and installation services.",
