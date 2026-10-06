@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import EvidenceEstimator from "../../components/evidence-estimator";
 import SourceTable from "../../components/source-table";
 import { complianceLibrary } from "../../../content/communications/compliance";
 import {
   costRangeMetrics,
-  estimatorAssumptions,
   evidenceClaims,
   evidenceMetrics,
   evidenceSources,
@@ -66,11 +64,42 @@ export default function EvidencePage() {
           {evidenceMetrics
             .filter((metric) =>
               [
-                "india-older-adults-fall-or-injury-2y",
-                "india-pooled-injury-after-fall-prevalence",
-                "india-lifetime-spend-proxy-after-fall-10y"
+                "india-older-adults-fall-2y",
+                "india-older-adults-fall-injury-2y",
+                "india-pooled-injury-after-fall-prevalence"
               ].includes(metric.id)
             )
+            .map((metric) => {
+              const source = getEvidenceSourceById(metric.sourceId);
+              return (
+                <article key={metric.id} className="evidenceMetricCard">
+                  <p className="evidenceMetricValue">{formatMetricValue(metric.value, metric.unit)}</p>
+                  <h3>{metric.label}</h3>
+                  <p className="evidenceMetricMeta">
+                    {metric.population} • {metric.region} • {metric.year}
+                  </p>
+                  {source ? (
+                    <a href={source.url} target="_blank" rel="noreferrer" className="evidenceMetricSource">
+                      Source: {source.publisher}
+                    </a>
+                  ) : null}
+                </article>
+              );
+            })}
+        </div>
+      </section>
+
+      <section className="sectionBlock">
+        <div className="sectionHeader">
+          <h2>What older adults&rsquo; bathrooms in India look like</h2>
+          <p>
+            A study of 198 bathrooms used by adults aged 60+ in Ahmedabad found most had several hazards at once. Every
+            bathroom had at least seven.
+          </p>
+        </div>
+        <div className="evidenceMetricGrid">
+          {evidenceMetrics
+            .filter((metric) => ["bathrooms-without-grab-bars", "bathrooms-with-slippery-floor", "bathrooms-with-poor-lighting"].includes(metric.id))
             .map((metric) => {
               const source = getEvidenceSourceById(metric.sourceId);
               return (
@@ -138,8 +167,7 @@ export default function EvidencePage() {
             </p>
           ) : null}
           <p>
-            Lifetime spend proxy: <strong>{formatMetricValue(297470, "INR")}</strong> (annual private inpatient OOPE ₹29,747 ×
-            10-year conservative horizon).
+            These are average annual out-of-pocket amounts reported in the cited LASI analysis, not the cost of any single fall.
           </p>
         </div>
       </section>
@@ -197,10 +225,23 @@ export default function EvidencePage() {
 
       <section className="sectionBlock sectionMuted">
         <div className="sectionHeader">
-          <h2>Estimator</h2>
-          <p>A transparent household-level model to translate risk context into annual cost exposure ranges.</p>
+          <h2>What this means for your parent&rsquo;s bathroom</h2>
+          <p>
+            Population figures show the size of the risk; they cannot tell you what is risky in one particular home. That
+            is what an assessment is for.
+          </p>
         </div>
-        <EvidenceEstimator assumptions={estimatorAssumptions} inpatientRange={inpatientRange} />
+        <ul className="evidenceNextSteps">
+          <li>
+            <Link href="/bathroom-safety-assessment">How a Mason bathroom safety assessment works in Goa</Link>
+          </li>
+          <li>
+            <Link href="/guides/bathroom-safety-for-elderly-parents">What to check in an elderly parent&rsquo;s bathroom</Link>
+          </li>
+          <li>
+            <Link href="/packages">Standard and Advanced packages</Link>
+          </li>
+        </ul>
         <p className="evidenceDisclaimer">{complianceLibrary.medicalDisclaimer}</p>
       </section>
 

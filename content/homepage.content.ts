@@ -258,7 +258,7 @@ export const homepageContent: HomepageContent = {
         label: "Home hazard interventions cut fall rates by 26–38%, with the largest effect for higher-risk adults.",
         context: "Targeted changes at home can make a measurable difference.",
         sourceLabel: "Cochrane home hazard review",
-        sourceId: "cochrane-home-hazards-2021",
+        sourceId: "cochrane-home-hazards-2023",
         ctaLabel: "View Evidence",
         ctaHref: "/evidence"
       }

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -28,19 +29,19 @@ const chain = [
   {
     n: "03",
     name: "Sitting & standing",
-    risk: "Lowering onto and rising off the toilet is the hardest transfer of the day: knees and hips at their most vulnerable, almost always unwitnessed.",
+    risk: "Lowering onto and rising off the toilet is one of the hardest transfers of the day - knees and hips do the most work, and usually no one else is in the room.",
     img: "/prerna/v2-images/toilet-after.png",
   },
   {
     n: "04",
     name: "Showering",
-    risk: "Standing on wet tile, reaching, eyes shut against the soap, balancing on one leg to wash the other. The single highest-risk moment in the house.",
+    risk: "Standing on wet tile, reaching, eyes shut against the soap, balancing on one leg to wash the other. One of the riskiest moments in the home.",
     img: "/prerna/images/shower-2.jpg",
   },
   {
     n: "05",
     name: "The walk back",
-    risk: "Half-asleep, in the dark, at 3am. A little disorientation and a floor that's still wet is all a fall ever needs.",
+    risk: "Half-asleep, in the dark, at 3am. A little disorientation and a floor that's still wet is often all it takes.",
     img: "/prerna/images/bath-6.jpg",
   },
 ];
@@ -48,15 +49,15 @@ const chain = [
 const partials = [
   {
     label: "Wait and see",
-    copy: "The cheapest plan - until the ambulance. A serious fall averages ₹3–10 lakh and weeks of family coordination, all paid after it's already too late.",
+    copy: "The cheapest plan - until a fall happens. Then come treatment, recovery and weeks of family coordination, all after the fact.",
   },
   {
     label: "One grab bar",
-    copy: "Covers a single spot, usually at the wrong height, often drilled into hollow tile that won't take the load. Four of the five moments stay untouched.",
+    copy: "Covers a single spot. Without an assessment, the height is guesswork and no one checks whether the wall behind the tile can hold it. Four of the five moments stay untouched.",
   },
   {
     label: "A handyman",
-    copy: "Fits what you point at - with no read on how your parent actually moves, no medical logic, no load rating, and no one accountable when it works loose.",
+    copy: "Fits what you point at - with no read on how your parent actually moves, no plan for the rest of the bathroom, and no one accountable when it works loose.",
   },
 ];
 
@@ -157,7 +158,12 @@ export default function WhyContent() {
           <p className="mt-6 text-base leading-relaxed text-cream-dim">
             This is the same trip your parent makes several times a day. Here is
             where each one turns dangerous - and why a single fix can&rsquo;t
-            hold it together.
+            hold it together. (For what the research does and doesn&rsquo;t show,
+            see{" "}
+            <Link href="/evidence" className="underline underline-offset-4">
+              the evidence
+            </Link>
+            .)
           </p>
         </div>
 
@@ -255,9 +261,14 @@ export default function WhyContent() {
               accountable team - and finished so the bathroom still feels like
               home, not a hospital.
             </p>
-            <Cta href="/#book" variant="light" className="mt-8">
-              Book Free Inspection
-            </Cta>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <Cta href="/#book" variant="light">
+                Book Free Inspection
+              </Cta>
+              <Link href="/bathroom-safety-assessment" className="text-sm font-semibold text-white underline underline-offset-4">
+                How the assessment works
+              </Link>
+            </div>
           </div>
         </Reveal>
       </section>
@@ -275,7 +286,7 @@ export default function WhyContent() {
               Book Free Inspection
             </Cta>
             <Cta
-              href="/#packages"
+              href="/packages"
               variant="outline"
               className="w-full justify-center sm:w-auto"
             >

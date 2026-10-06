@@ -18,12 +18,18 @@ import { SERVICE_NAMES } from "@/lib/analytics";
 /* Content comes from Sanity; published changes appear within a minute. */
 export const revalidate = 60;
 
-export function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
+  // Prices and kit size come from Sanity, the single source of package facts.
+  const { packages } = await getPublicSiteContent();
+  const price = (code: string) => packages.plans.find((plan) => plan.code === code)?.price;
+  const standard = price("package-standard");
+  const advanced = price("package-advanced");
   return cmsMetadata("packages", {
     alternates: {canonical: "https://www.masoncompany.in/packages"},
-    title: "Packages - Mason Company",
-    description:
-      "Book a free bathroom inspection, or choose Standard or Advanced. Both include the same 13 component categories, fitted by trained Mason experts.",
+    title: "Bathroom Safety Packages in Goa: Standard & Advanced | Mason Company",
+    description: standard && advanced
+      ? `Standard (${standard}) and Advanced (${advanced}, with a 2-Year Safety AMC) bathroom safety packages for ageing parents in Goa. Both install the same ${packages.components.length}-component kit. Start with a free inspection.`
+      : "Standard and Advanced bathroom safety packages for ageing parents in Goa. Both install the same complete kit. Start with a free inspection.",
   });
 }
 

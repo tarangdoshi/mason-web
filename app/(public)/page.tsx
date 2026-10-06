@@ -21,7 +21,12 @@ import { jsonLdScript, organizationJsonLd } from "@/lib/seo/structured-data";
 export const revalidate = 60;
 
 export function generateMetadata(): Promise<Metadata> {
-  return cmsMetadata("home", { alternates: { canonical: "https://www.masoncompany.in/" } });
+  return cmsMetadata("home", {
+    alternates: { canonical: "https://www.masoncompany.in/" },
+    title: "Bathroom Safety for Ageing Parents in Goa | Mason Company",
+    description:
+      "Mason Company makes bathrooms safer for ageing parents in Goa: a free inspection first, then grab support, anti-slip treatment, shower seating and more, installed by trained Mason technicians."
+  });
 }
 
 export default async function Home() {

@@ -23,6 +23,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: "Explore",
     links: [
       { label: "Transformations", href: "/#transformations" },
+      { label: "Bathroom Safety Assessment", href: "/bathroom-safety-assessment" },
       { label: "Packages", href: "/packages" },
       { label: "What We Install", href: "/packages#kit" },
       { label: "Our Process", href: "/#process" },
@@ -36,6 +37,8 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Doctor Recommendations", href: "/#doctors" },
       { label: "Customer Testimonials", href: "/#testimonials" },
       { label: "FAQs", href: "/#faq" },
+      { label: "Bathroom Safety Guide", href: "/guides/bathroom-safety-for-elderly-parents" },
+      { label: "Evidence & Sources", href: "/evidence" },
     ],
   },
   {

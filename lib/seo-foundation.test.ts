@@ -28,13 +28,13 @@ const read = (file: string) => readFileSync(resolve(process.cwd(), file), "utf8"
 
 // ---------- crawl surface ----------
 
-test("robots: everything public is crawlable by every search and answer crawler; internal areas are not", () => {
+test("robots: everything public is crawlable by search and answer crawlers; internal areas are not", () => {
   const previous = process.env.VERCEL_ENV;
   process.env.VERCEL_ENV = "production";
   try {
     const result = robots();
     const rules = Array.isArray(result.rules) ? result.rules : [result.rules];
-    assert.equal(rules.length, 1, "one wildcard group: no crawler-specific blocks (OAI-SearchBot, PerplexityBot, Claude-SearchBot, Googlebot…)");
+    // The only other group is the AI-training opt-out (lib/seo-phase2.test.ts); search crawlers use "*".
     assert.equal(rules[0].userAgent, "*");
     assert.equal(rules[0].allow, "/");
     for (const path of ["/admin", "/api", "/crm", "/content-preview", "/communications", "/operations"]) {
@@ -123,7 +123,7 @@ test("package facts agree across the CMS fallback and the legacy content used by
 function publicSources(): string[] {
   const roots = ["app/(public)", "app/(marketing)/packages", "app/(marketing)/compare-packages", "app/(marketing)/evidence",
     "app/(marketing)/checkout", "app/components", "components", "content/homepage.content.ts", "content/compare-packages.content.ts",
-    "content/evidence", "content/package-catalog.ts", "lib/cms/fallback.ts", "lib/seo"];
+    "content/evidence", "content/knowledge", "content/package-catalog.ts", "lib/cms/fallback.ts", "lib/seo"];
   const files: string[] = [];
   const walk = (path: string) => {
     const full = resolve(process.cwd(), path);

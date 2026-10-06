@@ -16,7 +16,7 @@ export const revalidate = 60;
 export function generateMetadata(): Promise<Metadata> {
   return cmsMetadata("contact", {
     alternates: {canonical: "https://www.masoncompany.in/contact"},
-    title: "Contact - Mason Company",
+    title: "Contact Mason Company | Book a Free Bathroom Inspection in Goa",
     description:
       "Talk to Mason Company about making a bathroom safer for ageing parents. Call, WhatsApp, or send an enquiry - we reply within 24 hours.",
   });

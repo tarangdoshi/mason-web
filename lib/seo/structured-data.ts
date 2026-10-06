@@ -44,3 +44,63 @@ export function organizationJsonLd(contact: ContactSettings) {
 export function jsonLdScript(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
+
+const GOA = { "@type": "State", name: "Goa", containedInPlace: { "@type": "Country", name: "India" } };
+
+function breadcrumb(path: string, name: string) {
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name, item: `${SITE_URL}${path}` }
+    ]
+  };
+}
+
+/** The free inspection: a Service from the home page's Organization, offered in Goa at no charge. */
+export function assessmentJsonLd(description: string) {
+  const url = `${SITE_URL}/bathroom-safety-assessment`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Service",
+        "@id": `${url}#service`,
+        name: "Bathroom safety assessment",
+        serviceType: "Home bathroom safety assessment for ageing adults",
+        provider: { "@id": ORGANIZATION_ID },
+        areaServed: GOA,
+        description,
+        url,
+        offers: { "@type": "Offer", price: 0, priceCurrency: "INR", description: "Free bathroom inspection" }
+      },
+      breadcrumb("/bathroom-safety-assessment", "Bathroom safety assessment")
+    ]
+  };
+}
+
+/** The guide: an Article authored and published by Mason Company (no individual author is claimed). */
+export function guideJsonLd(input: { path: string; headline: string; description: string; published: string; citations: string[] }) {
+  const url = `${SITE_URL}${input.path}`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "@id": `${url}#article`,
+        headline: input.headline,
+        description: input.description,
+        url,
+        mainEntityOfPage: url,
+        inLanguage: "en-IN",
+        datePublished: input.published,
+        dateModified: input.published,
+        author: { "@id": ORGANIZATION_ID },
+        publisher: { "@id": ORGANIZATION_ID },
+        about: { "@type": "Thing", name: "Bathroom safety for older adults" },
+        citation: input.citations
+      },
+      breadcrumb(input.path, "Bathroom safety for elderly parents")
+    ]
+  };
+}
