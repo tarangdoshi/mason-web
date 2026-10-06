@@ -6,6 +6,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   markViewedOnce,
+  pageCategory,
   parsePackagePrice,
   resetAnalyticsViewState,
   setAnalyticsMarket,
@@ -498,8 +499,11 @@ test("contact details never reach analytics parameters", () => {
     assert.equal(lead.utm_campaign, undefined);
     assert.equal(lead.utm_medium, "cpc");
     for (const key of Object.keys(lead)) {
-      assert.ok(["page", "form_name", "utm_medium"].includes(key), `unexpected key ${key}`);
+      // entry_page / page_category are page context (path and grouping), never contact details.
+      assert.ok(["page", "form_name", "utm_medium", "entry_page", "page_category"].includes(key), `unexpected key ${key}`);
     }
+    assert.equal(lead.entry_page, "/");
+    assert.equal(lead.page_category, "home");
   });
 });
 
@@ -609,4 +613,53 @@ test("Meta receives Lead for a created lead and only the spreadsheet's custom ev
     assert.deepEqual(lead?.[3], { eventID: "L1" });
     assert.equal((lead?.[2] as Record<string, unknown>).package_name, "Standard");
   });
+});
+
+// ------------------------------------------- organic landing page -> lead attribution
+
+test("funnel events carry entry_page and page_category so leads trace back to their landing page", () => {
+  withBrowser("https://www.masoncompany.in/solutions/grab-bars?utm_source=google&name=drop-me", GA, (browser, gtagCalls) => {
+    trackPageView(1000);
+    setUrl(browser, "https://www.masoncompany.in/bathroom-safety-assessment");
+    trackPageView(2000);
+    trackAnalyticsEvent("form_start", { form_name: "assessment" });
+    trackAnalyticsEvent("form_submit", { form_name: "assessment" });
+    trackAnalyticsEvent("generate_lead", { form_name: "assessment", lead_id: "L1" });
+    trackAnalyticsEvent("phone_click", { cta_location: "contact-link", section: "contact" });
+
+    const views = events(gtagCalls, "page_view");
+    assert.deepEqual(views.map((view) => [view.page_category, view.entry_page]), [["solution", "/solutions/grab-bars"], ["assessment", "/solutions/grab-bars"]]);
+    for (const name of ["form_start", "form_submit", "generate_lead"]) {
+      const [event] = events(gtagCalls, name);
+      assert.equal(event.entry_page, "/solutions/grab-bars", name);
+      assert.equal(event.page_category, "assessment", name);
+      assert.ok(!JSON.stringify(event).includes("drop-me"), `${name}: query values never reach analytics`);
+    }
+    // Existing semantics are untouched: one attempt, one success.
+    assert.equal(events(gtagCalls, "form_submit").length, 1);
+    assert.equal(events(gtagCalls, "generate_lead").length, 1);
+    // Non-funnel events keep their own parameter set.
+    assert.equal(events(gtagCalls, "phone_click")[0].entry_page, undefined);
+  });
+});
+
+test("entry_page never stores a path that looks like a contact detail", () => {
+  withBrowser("https://www.masoncompany.in/person@example.com", GA, (_browser, gtagCalls) => {
+    trackPageView(1000);
+    assert.equal(events(gtagCalls, "page_view")[0].entry_page, "/");
+  });
+  withBrowser("https://www.masoncompany.in/9876543210", GA, (_browser, gtagCalls) => {
+    trackPageView(1000);
+    assert.equal(events(gtagCalls, "page_view")[0].entry_page, "/");
+  });
+});
+
+test("page_category groups every public page", () => {
+  const cases: [string, string][] = [
+    ["/", "home"], ["/bathroom-safety-assessment", "assessment"], ["/solutions/toilet-safety", "solution"],
+    ["/guides/bathroom-safety-for-elderly-parents", "guide"], ["/evidence", "evidence"], ["/packages", "packages"],
+    ["/packages/advanced", "packages"], ["/compare-packages", "packages"], ["/checkout/package-standard", "checkout"],
+    ["/why", "why"], ["/about", "about"], ["/contact/", "contact"], ["/terms", "other"]
+  ];
+  for (const [path, category] of cases) assert.equal(pageCategory(path), category, path);
 });
