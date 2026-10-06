@@ -4,7 +4,18 @@ import React from "react";
 
 const { JSDOM } = require("jsdom");
 
-test("checkout DB success shows the review screen without a Zoho lead conversion", async () => {
+type CheckoutHarness = {
+  dom: { window: Window & typeof globalThis & Record<string, unknown> };
+  render: () => Promise<void>;
+  act: (callback: () => unknown) => Promise<void>;
+  button: (label: string) => HTMLButtonElement;
+  setInput: (selector: string, value: string) => void;
+  googleEvents: (name: string) => unknown[][];
+  metaCalls: unknown[][];
+  checkoutPosts: () => number;
+};
+
+async function withCheckout(run: (harness: CheckoutHarness) => Promise<void>) {
   const dom = new JSDOM('<div id="root"></div>', { url: "https://www.masoncompany.in/checkout/package-standard" });
   const names = ["window", "document", "navigator", "HTMLElement", "HTMLAnchorElement", "Element", "FormData", "Event", "MouseEvent", "IntersectionObserver", "React", "IS_REACT_ACT_ENVIRONMENT"];
   const originals = new Map(names.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
@@ -64,35 +75,10 @@ test("checkout DB success shows the review screen without a Zoho lead conversion
   try {
     const entry = getPackageCatalogEntry("package-standard");
     assert.ok(entry);
-    await act(async () => root.render(React.createElement(CheckoutExperience, {
+    const render = () => act(async () => root.render(React.createElement(CheckoutExperience, {
       entry, includedFeatures: [], excludedFeatures: [], addOnFeatures: []
     })));
-    await act(async () => button("Enter area manually").click());
-    await act(async () => setInput('input[placeholder="For example: Panaji, Goa"]', "Panaji, Goa"));
-    await act(async () => button("Check serviceability").click());
-    assert.match(dom.window.document.body.textContent || "", /Service available/);
-
-    // Native validation blocks the empty form's submit event, but the click is
-    // still a genuine attempt and must not post or produce a lead conversion.
-    await act(async () => button("Review booking details").click());
-    assert.equal(googleEvents("form_submit").length, 1);
-    assert.equal(checkoutPosts, 0);
-
-    await act(async () => setInput('input[name="name"]', "Asha Nair"));
-    await act(async () => setInput('input[name="phone"]', "9876543210"));
-    await act(async () => setInput('input[name="date"]', "2026-10-01"));
-    await act(async () => setInput('input[name="addressLine1"]', "Building A"));
-    assert.equal((dom.window.document.querySelector("form") as HTMLFormElement).checkValidity(), true);
-    await act(async () => button("Review booking details").click());
-
-    assert.equal(checkoutPosts, 1);
-    assert.equal(googleEvents("form_submit").length, 2, "the valid retry adds one attempt");
-    assert.equal(googleEvents("checkout_lead_submit_success").length, 1);
-    assert.equal(googleEvents("generate_lead").length, 0);
-    assert.equal(googleEvents("conversion").length, 0);
-    assert.equal(metaCalls.filter((call) => call[1] === "Lead").length, 0);
-    assert.match(dom.window.document.body.textContent || "", /Booking request received/);
-    assert.match(dom.window.document.body.textContent || "", /Your Standard booking request has been sent to Mason Company/);
+    await run({ dom, render, act, button, setInput, googleEvents, metaCalls, checkoutPosts: () => checkoutPosts });
   } finally {
     await act(async () => root.unmount());
     dom.window.close();
@@ -107,5 +93,54 @@ test("checkout DB success shows the review screen without a Zoho lead conversion
       if (previousEnv[key] === undefined) delete process.env[key];
       else process.env[key] = previousEnv[key];
     }
+  }
+}
+
+test("checkout DB success shows the review screen without a Zoho lead conversion", async () => {
+  await withCheckout(async ({ dom, render, act, button, setInput, googleEvents, metaCalls, checkoutPosts }) => {
+      await render();
+      await act(async () => button("Enter area manually").click());
+      await act(async () => setInput('input[placeholder="For example: Panaji, Goa"]', "Panaji, Goa"));
+      await act(async () => button("Check serviceability").click());
+      assert.match(dom.window.document.body.textContent || "", /Service available/);
+
+      // Native validation blocks the empty form's submit event, but the click is
+      // still a genuine attempt and must not post or produce a lead conversion.
+      await act(async () => button("Review booking details").click());
+      assert.equal(googleEvents("form_submit").length, 1);
+      assert.equal(checkoutPosts(), 0);
+
+      await act(async () => setInput('input[name="name"]', "Asha Nair"));
+      await act(async () => setInput('input[name="phone"]', "9876543210"));
+      await act(async () => setInput('input[name="date"]', "2026-10-01"));
+      await act(async () => setInput('input[name="addressLine1"]', "Building A"));
+      assert.equal((dom.window.document.querySelector("form") as HTMLFormElement).checkValidity(), true);
+      await act(async () => button("Review booking details").click());
+
+      assert.equal(checkoutPosts(), 1);
+      assert.equal(googleEvents("form_submit").length, 2, "the valid retry adds one attempt");
+      assert.equal(googleEvents("checkout_lead_submit_success").length, 1);
+      assert.equal(googleEvents("generate_lead").length, 0);
+      assert.equal(googleEvents("conversion").length, 0);
+      assert.equal(metaCalls.filter((call) => call[1] === "Lead").length, 0);
+      assert.match(dom.window.document.body.textContent || "", /Booking request received/);
+      assert.match(dom.window.document.body.textContent || "", /Your Standard booking request has been sent to Mason Company/);
+  });
+});
+
+test("checkout is Goa only: a Mumbai or Bengaluru area is not offered a booking", async () => {
+  for (const area of ["Andheri West, Mumbai", "Thane West", "Navi Mumbai", "Indiranagar, Bengaluru"]) {
+    await withCheckout(async ({ dom, render, act, button, setInput, checkoutPosts }) => {
+      await render();
+      await act(async () => button("Enter area manually").click());
+      await act(async () => setInput('input[placeholder="For example: Panaji, Goa"]', area));
+      await act(async () => button("Check serviceability").click());
+      const text = dom.window.document.body.textContent || "";
+      assert.match(text, /Service currently not available in your area/, area);
+      assert.doesNotMatch(text, /Service available in/, area);
+      assert.doesNotMatch(text, /Mumbai Metro/, area);
+      assert.equal(dom.window.document.querySelector('input[name="name"]'), null, `${area}: booking details stay locked`);
+      assert.equal(checkoutPosts(), 0, `${area}: no booking request is sent`);
+    });
   }
 });
