@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import Cta from "./Cta";
 import HighlightedText from "./HighlightedText";
+import { withResponsiveSrc } from "@/lib/optimized-image";
 import type { HomeContent } from "@/lib/cms/model";
 
 /* The full-bleed backdrop: a real Mason install. One master image (from
@@ -27,8 +28,8 @@ function heroLines(text: string) {
 
 export default function Hero({ content }: { content: HomeContent["hero"] }) {
   const edit = useEditProps({ ...DOCS.homepage, path: "hero" });
-  const desktopBg = content.background.desktop;
-  const mobileBg = content.background.mobile ?? desktopBg;
+  const desktopBg = withResponsiveSrc(content.background.desktop);
+  const mobileBg = withResponsiveSrc(content.background.mobile ?? content.background.desktop);
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -95,7 +96,11 @@ export default function Hero({ content }: { content: HomeContent["hero"] }) {
             {/* Below lg the two sentences flow as one run so text-balance can
                 even out the centred lines. The deliberate two-line split
                 returns at lg, where it's left-aligned. */}
-            <h1 className="hero-rise text-balance font-display text-[9vw] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl sm:leading-[1.02] lg:text-6xl">
+            {/* No hero-rise on the headline: it is the page's Largest Contentful
+                Paint, and hiding it until hydration + the stagger delay held LCP
+                back by seconds on mobile. It paints with the HTML; the subcopy
+                and CTAs still rise in beneath it. */}
+            <h1 className="text-balance font-display text-[9vw] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl sm:leading-[1.02] lg:text-6xl">
               <HighlightedText
                 value={{ ...content.heading, text: heroLines(content.heading.text) }}
                 accentClassName="accent-word on-dark"
