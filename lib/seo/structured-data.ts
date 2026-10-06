@@ -26,6 +26,15 @@ export function organizationJsonLd(contact: ContactSettings) {
         email: contact.supportEmail,
         telephone,
         areaServed: { "@type": "State", name: "Goa", containedInPlace: { "@type": "Country", name: "India" } },
+        slogan: "Observe first. Recommend second. Sell last.",
+        knowsAbout: [
+          "Bathroom safety for older adults",
+          "Bathroom safety assessment",
+          "Grab bar placement and installation",
+          "Anti-slip bathroom floors",
+          "Safer bathing for older adults",
+          "Toilet safety and sit-to-stand support"
+        ],
         contactPoint: [{ "@type": "ContactPoint", contactType: "customer support", telephone, email: contact.supportEmail }]
       },
       {
@@ -47,12 +56,40 @@ export function jsonLdScript(data: unknown): string {
 
 const GOA = { "@type": "State", name: "Goa", containedInPlace: { "@type": "Country", name: "India" } };
 
-function breadcrumb(path: string, name: string) {
+type Crumb = { path: string; name: string };
+
+function breadcrumb(path: string, name: string, parent?: Crumb) {
+  const trail = [{ path: "", name: "Home" }, ...(parent ? [parent] : []), { path, name }];
   return {
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name, item: `${SITE_URL}${path}` }
+    itemListElement: trail.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: crumb.path ? `${SITE_URL}${crumb.path}` : SITE_URL
+    }))
+  };
+}
+
+/** A bathroom safety solution Mason installs in Goa (grab bars, anti-slip, bathing, toilet support): a
+    Service from the Organization, reached through the assessment. No prices (solutions are sold as packages). */
+export function solutionJsonLd(input: { path: string; name: string; serviceType: string; description: string }) {
+  const url = `${SITE_URL}${input.path}`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Service",
+        "@id": `${url}#service`,
+        name: input.name,
+        serviceType: input.serviceType,
+        provider: { "@id": ORGANIZATION_ID },
+        areaServed: GOA,
+        audience: { "@type": "PeopleAudience", audienceType: "Older adults and families of ageing parents" },
+        description: input.description,
+        url
+      },
+      breadcrumb(input.path, input.name, { path: "/bathroom-safety-assessment", name: "Bathroom safety assessment" })
     ]
   };
 }

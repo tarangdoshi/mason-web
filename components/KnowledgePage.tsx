@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import Nav from "./Nav";
 import Footer from "./Footer";
 import Cta from "./Cta";
+import AnalyticsViewTracker from "@/app/components/analytics-view-tracker";
 
 /* Long-form, server-rendered pages that explain one thing well (the assessment service, the guide).
    Same reading measure and typography as the legal pages, so every fact is plain HTML text with real
@@ -12,7 +14,9 @@ export type KnowledgeBlock =
   | { p: string } // paragraph; inline [label](/href) links
   | { list: string[] } // bullets
   | { steps: { title: string; text: string }[] } // an ordered process
-  | { quotes: { quote: string; name: string; meta?: string }[] }; // first-party voices from Sanity (no review markup)
+  | { quotes: { quote: string; name: string; meta?: string }[] } // first-party voices from Sanity (no review markup)
+  | { figures: { src: string; alt: string; caption: string }[] } // genuine Mason photos (Sanity), lazy-loaded
+  | { faq: { q: string; a: string }[] }; // visible questions and answers (no FAQPage markup: deprecated in Search)
 
 export type KnowledgeSection = { id: string; heading: string; blocks: KnowledgeBlock[] };
 
@@ -20,6 +24,8 @@ export type KnowledgeSource = { label: string; href: string; note?: string };
 
 export type KnowledgeDoc = {
   breadcrumb: string;
+  /** Optional middle crumb, e.g. the assessment page above a solution page. */
+  parent?: { label: string; href: string };
   eyebrow: string;
   title: string;
   intro: string;
@@ -31,6 +37,8 @@ export type KnowledgeDoc = {
   cta: { heading: string; text: string; label: string; secondary?: { label: string; href: string } };
   /** Repeat the booking action under the intro, for pages whose job is the booking. */
   topCta?: boolean;
+  /** The text link beside that top button; it must point at a section on the same page. */
+  topLink?: { label: string; href: string };
 };
 
 function withLinks(text: string): ReactNode[] {
@@ -66,6 +74,32 @@ function Block({ block }: { block: KnowledgeBlock }) {
       </ul>
     );
   }
+  if ("faq" in block) {
+    return (
+      <div className="divide-y divide-line rounded-2xl border border-line">
+        {block.faq.map((item) => (
+          <div key={item.q} className="px-6 py-5">
+            <h3 className="font-display text-lg font-semibold text-cream">{item.q}</h3>
+            <p className="mt-2 text-base leading-relaxed text-cream-dim">{withLinks(item.a)}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if ("figures" in block) {
+    return (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {block.figures.map((figure) => (
+          <figure key={figure.src} className="overflow-hidden rounded-2xl border border-line bg-surface">
+            <div className="relative aspect-[4/5]">
+              <Image src={figure.src} alt={figure.alt} fill sizes="(min-width: 640px) 15rem, 45vw" className="object-cover" />
+            </div>
+            <figcaption className="px-3 py-2 text-sm leading-snug text-cream-dim">{figure.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    );
+  }
   if ("quotes" in block) {
     return (
       <div className="grid gap-4">
@@ -96,7 +130,9 @@ function Block({ block }: { block: KnowledgeBlock }) {
   );
 }
 
-export default function KnowledgePage({ doc, jsonLd }: { doc: KnowledgeDoc; jsonLd: string }) {
+/** `viewService` fires the existing view_service funnel event (once per page view) when the
+    "In short" panel is on screen - for pages that are about the service itself. */
+export default function KnowledgePage({ doc, jsonLd, viewService }: { doc: KnowledgeDoc; jsonLd: string; viewService?: string }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
@@ -107,6 +143,12 @@ export default function KnowledgePage({ doc, jsonLd }: { doc: KnowledgeDoc; json
             <nav aria-label="Breadcrumb" className="mb-6 text-sm text-cream-faint">
               <Link href="/" className="hover:text-accent">Home</Link>
               <span aria-hidden="true"> › </span>
+              {doc.parent ? (
+                <>
+                  <Link href={doc.parent.href} className="hover:text-accent">{doc.parent.label}</Link>
+                  <span aria-hidden="true"> › </span>
+                </>
+              ) : null}
               <span aria-current="page">{doc.breadcrumb}</span>
             </nav>
             <p className="eyebrow mb-5">{doc.eyebrow}</p>
@@ -116,13 +158,16 @@ export default function KnowledgePage({ doc, jsonLd }: { doc: KnowledgeDoc; json
             {doc.topCta ? (
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
                 <Cta href="#book">{doc.cta.label}</Cta>
-                <a href="#how-it-works" className="text-sm font-semibold text-accent underline underline-offset-4">See how it works</a>
+                <a href={doc.topLink?.href ?? "#how-it-works"} className="text-sm font-semibold text-accent underline underline-offset-4">
+                  {doc.topLink?.label ?? "See how it works"}
+                </a>
               </div>
             ) : null}
           </header>
 
           <section aria-labelledby="in-short" className="mx-auto max-w-3xl px-6 pb-10 lg:px-10">
             <div className="rounded-2xl border border-line bg-surface px-6 py-6">
+              {viewService ? <AnalyticsViewTracker event="view_service" serviceName={viewService} /> : null}
               <h2 id="in-short" className="eyebrow mb-4">In short</h2>
               <dl className="grid gap-4">
                 {doc.summary.map((item) => (

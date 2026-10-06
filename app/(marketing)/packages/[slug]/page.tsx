@@ -247,6 +247,12 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <Link href="/guides/bathroom-safety-for-elderly-parents">what to check in an elderly parent&apos;s bathroom</Link> and{" "}
             <Link href="/evidence">the evidence behind the risks</Link>.
           </p>
+          <p className={styles.muted}>
+            How each part helps: <Link href="/solutions/grab-bars">grab bars</Link>,{" "}
+            <Link href="/solutions/anti-slip-bathroom">anti-slip floors</Link>,{" "}
+            <Link href="/solutions/safer-bathing">safer bathing</Link> and{" "}
+            <Link href="/solutions/toilet-safety">toilet safety</Link>.
+          </p>
         </section>
 
         <section className={styles.section}>

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SOLUTIONS, solutionPath } from "@/content/knowledge/solutions";
 
 const SITE_URL = "https://www.masoncompany.in";
 
@@ -14,6 +15,7 @@ const ROUTES = [
   "/evidence",
   "/bathroom-safety-assessment",
   "/guides/bathroom-safety-for-elderly-parents",
+  ...SOLUTIONS.map((solution) => solutionPath(solution.slug)),
   "/privacy",
   "/terms"
 ];
