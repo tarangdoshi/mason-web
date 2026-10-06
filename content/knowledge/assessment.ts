@@ -1,4 +1,5 @@
 import type { KnowledgeDoc, KnowledgeSection } from "@/components/KnowledgePage";
+import { SOLUTIONS, solutionPath } from "./solutions";
 
 /*
  * /bathroom-safety-assessment — Mason's service page for the free bathroom safety inspection in Goa.
@@ -81,6 +82,14 @@ export function assessmentDoc(facts: AssessmentFacts): KnowledgeDoc {
         }
       : null,
     {
+      id: "solutions",
+      heading: "Bathroom safety solutions, explained",
+      blocks: [
+        { p: "What we recommend depends on what we observe. These pages explain each kind of support in more detail:" },
+        { list: SOLUTIONS.map((item) => `[${item.anchor}](${solutionPath(item.slug)}) - ${item.summary}.`) }
+      ]
+    },
+    {
       id: "how-it-works",
       heading: "How the assessment works",
       blocks: [{ steps: facts.processSteps.map((step) => ({ title: step.title, text: step.description })) }]
@@ -108,6 +117,21 @@ export function assessmentDoc(facts: AssessmentFacts): KnowledgeDoc {
         }
       : null,
     {
+      id: "faq",
+      heading: "Questions families ask",
+      blocks: [{
+        faq: [
+          { q: "What happens during a bathroom safety inspection?", a: "We go through the five moments of a bathroom visit with your parent - stepping in, turning around, sitting and standing, showering and the walk back - and look at the room itself: floor grip, water, walls, edges, lighting and the lock. Then we explain what we see and recommend what would help. Depending on location and logistics, the inspection is in person or by video." },
+          { q: "Do I need to know which products my parent needs?", a: "No. Working that out is the point of the inspection. Tell us what worries you, and we recommend what would help." },
+          { q: "Does Mason serve all of Goa?", a: "Mason installs in Goa. Share your address when you request the inspection and our team confirms the visit with you. If you are outside Goa, we still keep your request as we expand to more locations." },
+          { q: "How do you decide where grab bars should go?", a: "Around your parent and the room: their height and reach, their stronger side, how they sit, stand and bathe, the layout, and what the wall can hold. Placement is informed by doctor input and confirmed by a Mason technician on site. [More on grab bar placement](/solutions/grab-bars)." },
+          { q: "What happens after the inspection?", a: `We recommend the Standard package (${facts.standardPrice}) or Advanced (${facts.advancedPrice}, with a 2-Year Safety AMC). You decide. Our team confirms the package and payment details with you, and there is a full refund any time before installation.` },
+          { q: "Will Mason recommend something that is not part of a Mason package?", a: "Mason recommends and installs its own solutions. If we see something outside Mason's kit that would help - for example a handheld shower or replacing an Indian-style toilet - we note it so you can arrange it with your own plumber or contractor. We do not present it as Mason work." },
+          { q: "Is the inspection really free?", a: "Yes. There is no charge for the inspection, and nothing to buy unless you decide to go ahead." }
+        ]
+      }]
+    },
+    {
       id: "what-it-is-not",
       heading: "What the assessment is not",
       blocks: [
@@ -131,10 +155,10 @@ export function assessmentDoc(facts: AssessmentFacts): KnowledgeDoc {
       "Mason Company inspects the bathroom your parent actually uses, watches how they move in it, and recommends the changes that would make it safer - grab bars where they are needed, anti-slip floors, safer bathing and toilet support. The inspection is free, and you decide what happens next.",
     topCta: true,
     summary: [
-      { term: "What it is", detail: "A free, in-home bathroom safety inspection for ageing parents by Mason Company, a bathroom safety company serving families in Goa, India." },
+      { term: "What it is", detail: "A free bathroom safety inspection for ageing parents by Mason Company, a bathroom safety company serving families in Goa, India. Depending on location and logistics, it is done in person or by video." },
       { term: "What we look at", detail: "The five moments of every bathroom visit - stepping in, turning around, sitting and standing, showering, and the walk back - and the room itself: floor grip, water, walls, edges, lighting and the lock." },
       { term: "What you get", detail: `A clear explanation of the risks and a recommendation: the Standard package (${facts.standardPrice}) or Advanced (${facts.advancedPrice}, with a 2-Year Safety AMC). You decide, and there is a full refund any time before installation.` },
-      { term: "Where", detail: "Homes across Goa. If you are outside Goa, we still keep your request as we expand to more locations." }
+      { term: "Where", detail: "Homes in Goa. If you are outside Goa, we still keep your request as we expand to more locations." }
     ],
     sections: sections.filter((section): section is KnowledgeSection => section !== null),
     cta: {

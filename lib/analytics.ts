@@ -196,6 +196,39 @@ export const SERVICE_NAMES = {
 } as const;
 
 const analyticsCityStorageKey = "mason-analytics-city";
+const analyticsEntryPageStorageKey = "mason-analytics-entry-page";
+
+/* Organic -> lead attribution. Funnel events carry two page-level parameters so a
+   lead can be traced to the page that started the visit:
+   - entry_page: the first page path seen in this tab's session (sessionStorage; paths only);
+   - page_category: a coarse grouping of the current path.
+   Both describe pages, never people, and pass the same path sanitising. */
+export function pageCategory(pathname: string): string {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  if (path === "/") return "home";
+  if (path === "/bathroom-safety-assessment") return "assessment";
+  if (path.startsWith("/solutions/")) return "solution";
+  if (path.startsWith("/guides/")) return "guide";
+  if (path === "/evidence") return "evidence";
+  if (path === "/packages" || path.startsWith("/packages/") || path === "/compare-packages") return "packages";
+  if (path.startsWith("/checkout")) return "checkout";
+  if (path === "/why") return "why";
+  if (path === "/about") return "about";
+  if (path === "/contact") return "contact";
+  return "other";
+}
+
+function getEntryPage(currentPage: string) {
+  try {
+    const stored = window.sessionStorage.getItem(analyticsEntryPageStorageKey);
+    if (stored) return stored;
+    window.sessionStorage.setItem(analyticsEntryPageStorageKey, currentPage);
+  } catch {
+    // Storage can be unavailable (private mode); the current page is still a valid entry.
+  }
+  return currentPage;
+}
+
 const MAX_TEXT_LENGTH = 120;
 
 export function getAnalyticsMeasurementId() {
@@ -385,6 +418,12 @@ function buildSafePayload(eventName: AnalyticsEventName, payload: AnalyticsPaylo
 
   if (!safePayload.page) {
     safePayload.page = getCurrentAnalyticsPage();
+  }
+
+  if (cityEvents.has(eventName)) {
+    const page = String(safePayload.page);
+    safePayload.page_category = pageCategory(page);
+    safePayload.entry_page = getEntryPage(page);
   }
 
   if (cityEvents.has(eventName) && !safePayload.city) {

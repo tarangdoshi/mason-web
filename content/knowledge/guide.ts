@@ -77,10 +77,10 @@ export const guideDoc: KnowledgeDoc = {
       blocks: [
         { p: "Most senior bathroom safety changes need no renovation. Matched to what you saw in the five moments, these are the ones that make the biggest everyday difference:" },
         { list: [
-          "Grab bars at the points where your parent stands, turns, sits and steps - fixed into a wall that can hold them.",
-          "Anti-slip treatment on the existing floor, plus anti-slip mats in the shower and where feet leave it.",
-          "A stable shower stool, so bathing does not mean balancing on one leg on wet tile.",
-          "Toilet support: a raised toilet seat and a support bar within reach for sitting and standing.",
+          "[Grab bars](/solutions/grab-bars) at the points where your parent stands, turns, sits and steps - fixed into a wall that can hold them.",
+          "[Anti-slip treatment](/solutions/anti-slip-bathroom) on the existing floor, plus anti-slip mats in the shower and where feet leave it.",
+          "A stable [shower stool for seated bathing](/solutions/safer-bathing), so bathing does not mean balancing on one leg on wet tile.",
+          "[Toilet support](/solutions/toilet-safety): a raised toilet seat and a support bar within reach for sitting and standing.",
           "Motion-triggered night lighting on the way to the bathroom and inside it.",
           "Edge and corner guards, better drainage so water does not linger, and a lock that family can open from outside in an emergency.",
           "Bathroom slippers that grip on a wet floor."
@@ -93,7 +93,7 @@ export const guideDoc: KnowledgeDoc = {
       heading: "Grab bars for elderly parents: placement depends on the person and the wall",
       blocks: [
         { p: "Grab bars help most where your parent stands, turns, sits and steps over something. But there is no single right height for every home: published heights come from accessibility rules written for public buildings, while at home the right position depends on your parent's height, reach and the way they move." },
-        { p: "The wall matters as much as the bar. A bar is only as strong as what it is fixed into, and the wall behind tile is not always solid. In Mason's practice, placement is informed by doctor input and by watching how your parent actually moves, and is finalised by a technician on site before anything is fixed. Mason uses support hardware selected for safety-critical use - a grab bar has to take a person's full weight, which towel rails and suction-cup handles are not built for." }
+        { p: "The wall matters as much as the bar. A bar is only as strong as what it is fixed into, and the wall behind tile is not always solid. In Mason's practice, placement is informed by doctor input and by watching how your parent actually moves, and is finalised by a technician on site before anything is fixed. Mason uses support hardware selected for safety-critical use - a grab bar has to take a person's full weight, which towel rails and suction-cup handles are not built for. [More on grab bar types and placement](/solutions/grab-bars)." }
       ]
     },
     {
@@ -101,7 +101,8 @@ export const guideDoc: KnowledgeDoc = {
       heading: "Anti-slip floors, safe bathing and toilet support",
       blocks: [
         { p: "In the Ahmedabad study, 92% of bathrooms had a slippery floor. Practical responses include an anti-slip treatment on the existing floor, mats where feet are wet (in the shower and where your parent steps out), better drainage so water does not linger, and bathroom slippers that grip." },
-        { p: "Bathing seated on a stable shower stool removes the need to balance on one leg on wet tile. For the toilet, a raised seat and a support bar within reach can make sitting and standing easier. If getting up has become hard, it is also worth mentioning to your parent's doctor or a physiotherapist." }
+        { p: "Bathing seated on a stable shower stool removes the need to balance on one leg on wet tile. For the toilet, a raised seat and a support bar within reach can make sitting and standing easier. If getting up has become hard, it is also worth mentioning to your parent's doctor or a physiotherapist." },
+        { p: "In more detail: [anti-slip bathroom floors](/solutions/anti-slip-bathroom), [safer bathing and seated showering](/solutions/safer-bathing) and [toilet safety](/solutions/toilet-safety)." }
       ]
     },
     {

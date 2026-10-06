@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import KnowledgePage from "@/components/KnowledgePage";
+import { pageOpenGraph } from "@/lib/seo/open-graph";
 import { GUIDE_PUBLISHED, guideDoc, guideSources } from "@/content/knowledge/guide";
 import { guideJsonLd, jsonLdScript } from "@/lib/seo/structured-data";
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   alternates: { canonical: PATH },
   title: "Bathroom Safety for Elderly Parents in India: What to Check | Mason Company",
   description: DESCRIPTION,
-  openGraph: { type: "article", title: "Bathroom safety for elderly parents in India", description: DESCRIPTION, url: PATH }
+  openGraph: pageOpenGraph({ type: "article", title: "Bathroom safety for elderly parents in India", description: DESCRIPTION, url: PATH })
 };
 
 export default function BathroomSafetyGuidePage() {

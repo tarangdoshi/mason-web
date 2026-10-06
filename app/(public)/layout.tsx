@@ -33,11 +33,13 @@ const geist = Geist({
   display: "swap",
 });
 
-/* Mono — small labels, eyebrow text, numerals. */
+/* Mono — small labels, eyebrow text, numerals. Never in the first screen, so
+   it is not preloaded: the hero's display/serif fonts get the early bandwidth. */
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

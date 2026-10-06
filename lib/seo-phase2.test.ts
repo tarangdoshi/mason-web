@@ -54,7 +54,7 @@ test("sitemap includes the two new pages exactly once", () => {
   for (const page of ["/bathroom-safety-assessment", "/guides/bathroom-safety-for-elderly-parents"]) {
     assert.equal(paths.filter((path) => path === page).length, 1, page);
   }
-  assert.equal(paths.length, 13);
+  assert.equal(paths.length, 17); // 13 after phase 2, plus the four phase-3 solution pages
 });
 
 test("new pages: canonical, title, description, one H1, server-rendered content and structured data", () => {

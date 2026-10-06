@@ -30,6 +30,15 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     ],
   },
   {
+    title: "Solutions",
+    links: [
+      { label: "Grab Bars", href: "/solutions/grab-bars" },
+      { label: "Anti-Slip Floors", href: "/solutions/anti-slip-bathroom" },
+      { label: "Safer Bathing", href: "/solutions/safer-bathing" },
+      { label: "Toilet Safety", href: "/solutions/toilet-safety" },
+    ],
+  },
+  {
     title: "Company",
     links: [
       { label: "Why Mason Company", href: "/#why-mason" },
@@ -115,7 +124,7 @@ export default function Footer() {
             "Doctor Recommendations" and other longer labels each
             broke onto a second line, so the rows lost the even 12px rhythm
             that makes a list scannable and turned into ragged blocks. */}
-        <div className="ft-reveal grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="ft-reveal grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
           <div className="sm:col-span-2 lg:col-span-1">
             <Link
               href="/"

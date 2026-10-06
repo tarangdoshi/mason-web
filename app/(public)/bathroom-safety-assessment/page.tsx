@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import KnowledgePage from "@/components/KnowledgePage";
+import { SERVICE_NAMES } from "@/lib/analytics";
 import { getPublicSiteContent } from "@/lib/cms/load";
 import { assessmentDoc } from "@/content/knowledge/assessment";
 import { assessmentJsonLd, jsonLdScript } from "@/lib/seo/structured-data";
+import { pageOpenGraph } from "@/lib/seo/open-graph";
 
 /* Mason's service page for the free bathroom safety inspection in Goa. Prices, kit components, process
    steps, doctor quotes and testimonials come from Sanity, so published changes appear within a minute. */
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/bathroom-safety-assessment" },
   title: "Bathroom Safety Assessment in Goa | Free Inspection | Mason Company",
   description: DESCRIPTION,
-  openGraph: { title: "Bathroom safety assessment in Goa | Mason Company", description: DESCRIPTION, url: "/bathroom-safety-assessment" }
+  openGraph: pageOpenGraph({ title: "Bathroom safety assessment in Goa | Mason Company", description: DESCRIPTION, url: "/bathroom-safety-assessment" })
 };
 
 export default async function BathroomSafetyAssessmentPage() {
@@ -35,5 +37,7 @@ export default async function BathroomSafetyAssessmentPage() {
       meta: [item.relation, item.city].filter(Boolean).join(", ") || undefined
     }))
   });
-  return <KnowledgePage doc={doc} jsonLd={jsonLdScript(assessmentJsonLd(DESCRIPTION))} />;
+  return (
+    <KnowledgePage doc={doc} jsonLd={jsonLdScript(assessmentJsonLd(DESCRIPTION))} viewService={SERVICE_NAMES.safetyAssessment} />
+  );
 }
