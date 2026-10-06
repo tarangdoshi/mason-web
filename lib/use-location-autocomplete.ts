@@ -32,6 +32,43 @@ export function hasVisiblePlacesSuggestions(): boolean {
   });
 }
 
+/**
+ * Calls `start` once, when the address field is first needed: it comes into view (the booking
+ * dialog opens, or an inline form scrolls near) or the visitor focuses, taps or types in it.
+ * Until then the Google Maps JavaScript (~300 KB) is not downloaded, so pages that merely mount a
+ * hidden booking form stay light. Starts immediately when Places is already on the page or the
+ * browser has no IntersectionObserver (the previous behaviour). Returns a cleanup function.
+ */
+export function whenPlacesNeeded(input: HTMLElement, start: () => void): () => void {
+  const triggers = ["focus", "pointerdown", "touchstart", "keydown"] as const;
+  let started = false;
+  let observer: IntersectionObserver | undefined;
+  function stop() {
+    observer?.disconnect();
+    for (const type of triggers) input.removeEventListener(type, trigger);
+  }
+  function trigger() {
+    if (started) return;
+    started = true;
+    stop();
+    start();
+  }
+  if (window.google?.maps?.places || typeof IntersectionObserver === "undefined") {
+    trigger();
+    return stop;
+  }
+  for (const type of triggers) input.addEventListener(type, trigger, { passive: true });
+  try {
+    observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) trigger();
+    }, { rootMargin: "200px 0px" });
+    observer.observe(input);
+  } catch {
+    trigger();
+  }
+  return stop;
+}
+
 // The Google Places dropdown is appended to <body>; ensure it floats above the form.
 function ensurePacStyle() {
   if (typeof document === "undefined" || document.getElementById("aegis-pac-style")) {
@@ -112,7 +149,9 @@ export function useLocationAutocomplete({
     window.addEventListener("mason:places-unavailable", fallback);
     ensurePacStyle();
 
-    loadGooglePlaces()
+    // Typing before Places arrives is safe: handleChange records the manual address on every
+    // keystroke, so the form can submit either way, and Autocomplete attaches to the same input.
+    const attach = () => loadGooglePlaces()
       .then((google) => {
         if (cancelled || !inputRef.current) {
           return;
@@ -166,9 +205,13 @@ export function useLocationAutocomplete({
         }
       })
       .catch(fallback);
+    let stopWaiting = () => {};
+    if (inputRef.current) stopWaiting = whenPlacesNeeded(inputRef.current, attach);
+    else attach();
 
     return () => {
       cancelled = true;
+      stopWaiting();
       observer?.disconnect();
       window.removeEventListener("mason:places-unavailable", fallback);
       try {
