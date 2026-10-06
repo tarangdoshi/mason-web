@@ -36,7 +36,8 @@ test("robots disallows internal areas in Production and keeps public pages crawl
   const previous = process.env.VERCEL_ENV;
   process.env.VERCEL_ENV = "production";
   try {
-    const rules = robots().rules as { allow: string; disallow: string[] };
+    const all = robots().rules;
+    const rules = (Array.isArray(all) ? all : [all]).find((group) => group.userAgent === "*") as { allow: string; disallow: string[] };
     assert.equal(rules.allow, "/");
     for (const path of ["/admin", "/api", "/crm", "/content-preview", "/communications", "/operations"]) assert.ok(rules.disallow.includes(path), path);
     assert.ok(!rules.disallow.some((path) => "/evidence".startsWith(path) || "/packages".startsWith(path)));

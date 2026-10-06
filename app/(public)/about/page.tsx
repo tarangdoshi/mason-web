@@ -16,7 +16,7 @@ export const revalidate = 60;
 export function generateMetadata(): Promise<Metadata> {
   return cmsMetadata("about", {
     alternates: {canonical: "https://www.masoncompany.in/about"},
-    title: "About Us - Mason Company",
+    title: "About Mason Company | Bathroom Safety for Ageing Parents in Goa",
     description:
       "Mason Company was started so families would not have to wait for a fall. Premium, doctor-informed bathroom safety upgrades for ageing parents in Indian homes.",
   });

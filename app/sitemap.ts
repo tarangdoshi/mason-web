@@ -12,6 +12,8 @@ const ROUTES = [
   "/packages/standard",
   "/packages/advanced",
   "/evidence",
+  "/bathroom-safety-assessment",
+  "/guides/bathroom-safety-for-elderly-parents",
   "/privacy",
   "/terms"
 ];

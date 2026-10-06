@@ -6,8 +6,8 @@ import { draftMode } from "next/headers";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/compare-packages" },
-  title: "Mason Company | Compare Retrofit Packages",
-  description: "Compare the Mason Company Standard and Advanced retrofit washroom packages with the same complete installation kit and a 2-Year Safety AMC with Advanced."
+  title: "Standard vs Advanced Bathroom Safety Packages | Mason Company",
+  description: "Compare Mason's Standard and Advanced bathroom safety packages side by side: the same complete installation kit, with a 2-Year Safety AMC included in Advanced."
 };
 
 type SearchParams = {

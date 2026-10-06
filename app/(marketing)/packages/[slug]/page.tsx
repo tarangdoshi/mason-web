@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     entry.plan.summary ||
     entry.plan.outcome ||
     `The Mason ${name} bathroom safety package — installed by a trained Mason team after a free inspection.`;
-  const title = `${name} Bathroom Safety Package | Mason Company`;
+  const title = `${name} Bathroom Safety Package in Goa | Mason Company`;
   const url = `${SITE_URL}/packages/${slug}`;
   const ogImage = absoluteImageUrl(entry.plan.visual?.src);
 
@@ -243,7 +243,9 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <li>Pay online or on installation</li>
           </ul>
           <p className={styles.muted}>
-            See <Link href="/evidence">doctor validation &amp; evidence</Link>.
+            See <Link href="/bathroom-safety-assessment">how the free bathroom inspection works</Link>,{" "}
+            <Link href="/guides/bathroom-safety-for-elderly-parents">what to check in an elderly parent&apos;s bathroom</Link> and{" "}
+            <Link href="/evidence">the evidence behind the risks</Link>.
           </p>
         </section>
 

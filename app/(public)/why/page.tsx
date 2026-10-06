@@ -9,7 +9,7 @@ export const revalidate = 60;
 export function generateMetadata(): Promise<Metadata> {
   return cmsMetadata("why", {
     alternates: {canonical: "https://www.masoncompany.in/why"},
-    title: "Why Mason - Safety isn't a product, it's a plan",
+    title: "Why Mason: Bathroom Safety Planned Around How Your Parent Moves",
     description:
       "Why families choose Mason: a complete, doctor-informed, expert-installed bathroom-safety solution - one accountable team, from assessment to handover.",
   });

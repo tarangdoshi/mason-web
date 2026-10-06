@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Cta from "./Cta";
 import { serverEditProps } from "@/lib/cms/edit-server";
 import { DOCS } from "@/lib/cms/edit";
@@ -54,8 +55,11 @@ export default async function Process({ content }: { content: HomeContent["proce
               puts "book now" between the promise of three clear steps and the
               steps themselves — asking for the decision before showing
               the thing that earns it. */}
-          <div className="mt-8 hidden lg:block">
+          <div className="mt-8 hidden flex-col items-start gap-4 lg:flex">
             <Cta href="#book">{content.ctaLabel}</Cta>
+            <Link href="/bathroom-safety-assessment" className="text-sm font-semibold text-accent underline underline-offset-4">
+              How the free bathroom inspection works
+            </Link>
           </div>
         </div>
 
@@ -87,10 +91,13 @@ export default async function Process({ content }: { content: HomeContent["proce
             order: the CTA belongs inside the left column on desktop, and a
             single element cannot be both a child of that column and a sibling
             of the staircase. */}
-        <div className="lg:hidden">
+        <div className="flex flex-col items-start gap-4 lg:hidden">
           <Cta href="#book" className="w-full justify-center sm:w-auto">
             {content.ctaLabel}
           </Cta>
+          <Link href="/bathroom-safety-assessment" className="text-sm font-semibold text-accent underline underline-offset-4">
+            How the free bathroom inspection works
+          </Link>
         </div>
       </div>
     </section>

@@ -46,7 +46,7 @@ test("both packages include one Raised Toilet Seat among 13 component categories
 });
 
 test("founder copy and testimonial names are exact in the fallback content", () => {
-  assert.equal(fallbackHome.hero.heading.text, "Most falls happen in the bathroom. We make sure yours don't.");
+  assert.equal(fallbackHome.hero.heading.text, "Many bathroom falls are preventable. We help prevent yours.");
   assert.equal(fallbackHome.faq.items.find((item) => item.question === "Do you renovate the entire bathroom?")?.answer,
     "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation.");
   assert.deepEqual(fallbackHome.testimonials.items.map((item) => item.name), ["Maria Pereira", "Rohan Naik", "Neha Shah", "Karl Fernandes"]);

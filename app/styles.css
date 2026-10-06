@@ -4837,6 +4837,18 @@ button:focus-visible,
   text-decoration: underline;
 }
 
+.evidenceNextSteps {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.25rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.evidenceNextSteps a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .evidenceDisclaimer {
   margin: 0.72rem 0 0;
   color: #6b7280;
