@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import EvidenceEstimator from "../../components/evidence-estimator";
 import SourceTable from "../../components/source-table";
@@ -11,6 +12,12 @@ import {
   regionalEvidenceNotes
 } from "../../../content/evidence/evidence.content";
 import { getEvidenceMetricById, getEvidenceSourceById, validateEvidenceMappings } from "../../../content/evidence/evidence.logic";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/evidence" },
+  title: "Falls, Injury Risk and Treatment-Cost Evidence for Families | Mason Company",
+  description: "India-first evidence on falls and injuries among older adults, with links to the published sources."
+};
 
 function formatMetricValue(value: number, unit: string) {
   if (unit === "INR") {
@@ -34,11 +41,11 @@ export default function EvidencePage() {
   return (
     <main className="page themeWarm evidencePage">
       <section className="sectionBlock evidenceHero">
-        <p className="eyebrow">Aegis Evidence Layer</p>
+        <p className="eyebrow">Mason Company evidence</p>
         <h1>Falls, injury risk, and treatment-cost evidence for families</h1>
         <p className="evidenceLead">
-          This page summarizes India-first evidence used in Aegis communication and package decision framing. All numeric claims are
-          source-linked and conservative.
+          This page summarizes India-first evidence on falls and injuries among older adults. Published figures link to
+          their sources; derived estimates show their calculation.
         </p>
         <div className="ctaRow">
           <Link href="/" className="commsBackLink">
@@ -167,7 +174,7 @@ export default function EvidencePage() {
 
       <section className="sectionBlock sectionOutline">
         <div className="sectionHeader">
-          <h2>Mumbai &amp; Goa context</h2>
+          <h2>Regional context</h2>
           <p>Regional notes with India/state fallback when city-series data is sparse.</p>
         </div>
         <div className="regionalEvidenceGrid">

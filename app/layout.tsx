@@ -19,6 +19,7 @@ const newsreaderBrand = Newsreader({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.masoncompany.in"),
   robots: process.env.VERCEL_ENV === "preview" ? {index:false,follow:false} : undefined,
   title: "Mason Company | Bathroom Safety Upgrades for Ageing Parents",
   description: "Mason Company delivers premium bathroom safety upgrades with a warm, practical approach for modern families in Goa.",
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const enableFigmaCapture = process.env.NODE_ENV !== "production";
 
   return (
-    <html lang="en">
+    <html lang="en-IN">
       <body className={`${manrope.variable} ${newsreaderDisplay.variable} ${newsreaderBrand.variable}`}>
         {enableFigmaCapture ? <Script src="https://mcp.figma.com/mcp/html-to-design/capture.js" strategy="afterInteractive" /> : null}
         {children}

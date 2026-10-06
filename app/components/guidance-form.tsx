@@ -123,7 +123,7 @@ export default function GuidanceForm() {
       <LeadPrivacyNotice className={styles.privacyNotice} />
 
       {submissionState === "success" ? (
-        <p className={styles.successMessage}>Your request is in. An Aegis specialist will follow up shortly.</p>
+        <p className={styles.successMessage}>Your request is in. A Mason specialist will follow up shortly.</p>
       ) : null}
       {submissionState === "error" && errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
     </form>

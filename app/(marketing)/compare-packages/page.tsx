@@ -5,6 +5,7 @@ import type { HomepageContent } from "../../../content/types";
 import { draftMode } from "next/headers";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/compare-packages" },
   title: "Mason Company | Compare Retrofit Packages",
   description: "Compare the Mason Company Standard and Advanced retrofit washroom packages with the same complete installation kit and a 2-Year Safety AMC with Advanced."
 };
