@@ -8,6 +8,7 @@ import type { PackageFeatureItem } from "../../../../content/types";
 import { trackAnalyticsEvent } from "../../../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../../../lib/lead-context";
 import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../../../lib/lead-funnel";
+import { detectServiceArea, SERVICE_UNAVAILABLE_MESSAGE, type ServiceArea } from "../../../../lib/checkout-service-area";
 import styles from "../checkout.module.css";
 
 type CheckoutExperienceProps = {
@@ -18,7 +19,6 @@ type CheckoutExperienceProps = {
 };
 
 type PaymentChoice = "online" | "installation";
-type ServiceArea = "Mumbai Metro" | "Goa";
 type LocationSource = "geolocation" | "manual";
 
 type LocationResolution =
@@ -61,27 +61,8 @@ type ReverseGeocodeResponse = {
   address?: Record<string, string | undefined>;
 };
 
-const SERVICE_UNAVAILABLE_MESSAGE = "Service currently not available in your area, we will be there soon.";
 const PAY_ON_INSTALLATION_SURCHARGE = 500;
 const slotOptions = ["9am - 12pm", "12pm - 3pm", "3pm - 6pm"];
-const mumbaiTokens = [
-  "mumbai",
-  "bombay",
-  "greater mumbai",
-  "mumbai suburban",
-  "navi mumbai",
-  "thane",
-  "mira bhayandar",
-  "mira-bhayandar",
-  "vasai",
-  "virar",
-  "vasai-virar",
-  "panvel",
-  "kalyan",
-  "dombivli",
-  "bhiwandi"
-];
-const goaTokens = ["goa", "north goa", "south goa", "panaji", "mapusa", "margao", "madgaon", "vasco", "porvorim"];
 function formatDate(rawDate: string) {
   if (!rawDate) {
     return "Select a preferred date";
@@ -120,17 +101,6 @@ function sanitizePhone(rawPhone: string) {
   return rawPhone.replace(/\D/g, "").slice(0, 10);
 }
 
-function detectServiceArea(rawText: string): ServiceArea | null {
-  const haystack = rawText.toLowerCase();
-  if (mumbaiTokens.some((token) => haystack.includes(token))) {
-    return "Mumbai Metro";
-  }
-  if (goaTokens.some((token) => haystack.includes(token))) {
-    return "Goa";
-  }
-  return null;
-}
-
 function describeServiceability(rawLabel: string, serviceArea: ServiceArea | null) {
   if (!serviceArea) {
     return {
@@ -147,8 +117,8 @@ function describeServiceability(rawLabel: string, serviceArea: ServiceArea | nul
   };
 }
 
-function cityFromServiceArea(serviceArea: ServiceArea): "Mumbai" | "Goa" {
-  return serviceArea === "Mumbai Metro" ? "Mumbai" : "Goa";
+function cityFromServiceArea(serviceArea: ServiceArea): "Goa" {
+  return serviceArea;
 }
 
 function getCurrentPosition() {

@@ -71,9 +71,12 @@ export function locationMarketLabel(market: LocationMarket): ServiceabilityMetad
   return "Unknown location";
 }
 
+/* Mason operates in Goa only. BANGALORE stays a distinct classification (for reporting and Zoho),
+   but a new Bangalore address is outside the service area like any other market. Mirrors
+   mason-api's legacyStatusFor, which is the authority: the API re-verifies every location. */
 function legacyStatusFor(market: LocationMarket): ServiceabilityStatus {
-  if (market === "GOA" || market === "BANGALORE") return "SERVICEABLE";
-  if (market === "OTHER") return "OUT_OF_AREA";
+  if (market === "GOA") return "SERVICEABLE";
+  if (market === "BANGALORE" || market === "OTHER") return "OUT_OF_AREA";
   return "UNKNOWN";
 }
 
