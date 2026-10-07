@@ -9,7 +9,7 @@
 export type LeadFieldErrors = Record<string, string[]>;
 
 export type LeadSubmissionResult =
-  | { ok: true; leadId: string | null; locationMarket: string | null }
+  | { ok: true; leadId: string | null; enquiryId: string | null; locationMarket: string | null }
   | { ok: false; kind: "validation"; message: string; fieldErrors: LeadFieldErrors }
   | { ok: false; kind: "server"; message: string }
   | { ok: false; kind: "network"; message: string };
@@ -25,7 +25,9 @@ type ApiErrorBody = {
 };
 
 type ApiSuccessBody = {
-  data?: { id?: string; locationMarket?: string };
+  // `id` is the CRM record; `enquiryId` is this one enquiry. See the Mason API's
+  // public lead endpoints — the two differ when a repeat enquiry reuses a Zoho Lead.
+  data?: { id?: string; enquiryId?: string; locationMarket?: string };
 };
 
 export async function submitGuidanceLead(
@@ -48,6 +50,7 @@ export async function submitGuidanceLead(
     return {
       ok: true,
       leadId: body?.data?.id ?? null,
+      enquiryId: body?.data?.enquiryId ?? null,
       locationMarket: body?.data?.locationMarket ?? null
     };
   }

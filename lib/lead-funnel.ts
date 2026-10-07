@@ -7,6 +7,7 @@ import { getLeadAttributionContext } from "./lead-context";
 export const FORM_NAMES = {
   safetyVisit: "Safety Visit Form",
   contact: "Contact Form",
+  guidance: "Guidance Form",
   checkout: "Checkout Booking Form"
 } as const;
 
@@ -19,9 +20,21 @@ type FunnelContext = {
 type LeadSuccess = FunnelContext & {
   /** Record id returned by the Mason API for the created lead. */
   leadId?: string | null;
+  /**
+   * The API's id for this one enquiry (`data.enquiryId`).
+   *
+   * Distinct from `leadId` on purpose. `leadId` is the CRM record, which a repeat
+   * customer shares across several enquiries, so counting it undercounts them. This is
+   * the enquiry. Optional, so a browser running against an API that predates the field
+   * still reports the lead rather than dropping the event.
+   */
+  enquiryId?: string | null;
   /** Location market returned by the API (GOA / BANGALORE / OTHER / UNKNOWN). */
   locationMarket?: string | null;
 };
+
+/** Why a submission the customer made did not become an enquiry. */
+export type LeadFailureCategory = "validation" | "server" | "network";
 
 /** True when a focus/change event came from a form field (not a button). */
 export function isFormFieldEvent(event: { target: EventTarget | null }) {
@@ -99,15 +112,37 @@ export function createLeadFunnelTracker(formName: FormName) {
       const attribution = getLeadAttributionContext();
       trackAnalyticsEvent("generate_lead", {
         form_name: formName,
+        enquiry_id: result.enquiryId || undefined,
         lead_id: result.leadId || undefined,
         package_name: packageParam(result.packageName),
         city: cityFromMarket(result.locationMarket),
         utm_source: attribution?.utmSource,
         utm_medium: attribution?.utmMedium,
         utm_campaign: attribution?.utmCampaign,
-        utm_content: attribution?.utmContent
+        // utm_term stays out of analytics on purpose — see lib/analytics.ts. It reaches
+        // Zoho's UTM_Term field in full, which is where the keyword can be read.
+        utm_content: attribution?.utmContent,
+        gclid: attribution?.gclid,
+        gbraid: attribution?.gbraid,
+        wbraid: attribution?.wbraid,
+        fbclid: attribution?.fbclid
       });
       return true;
+    },
+
+    /**
+     * Records a submission the customer made that the API refused or never received.
+     *
+     * Deliberately not latched: every refused attempt is reported, mirroring
+     * form_submit, so the submit-to-success gap is visible per attempt rather than
+     * per form. Only the category travels — never the server's message.
+     */
+    submitFailed(category: LeadFailureCategory, context: FunnelContext = {}) {
+      trackAnalyticsEvent("form_error", {
+        form_name: formName,
+        error_category: category,
+        package_name: packageParam(context.packageName)
+      });
     }
   };
 }

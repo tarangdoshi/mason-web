@@ -180,7 +180,12 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
 
     if (result.ok) {
       gateRef.current.complete();
-      funnelRef.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket, packageName });
+      funnelRef.current?.leadCreated({
+        leadId: result.leadId,
+        enquiryId: result.enquiryId,
+        locationMarket: result.locationMarket,
+        packageName
+      });
       form.reset();
       setPhoneDigits("");
       setEmail("");
@@ -203,6 +208,7 @@ export default function AssessmentLeadForm({ packageName }: { packageName?: stri
     // Failure: release the gate and keep every entered value so the customer
     // can correct one field and retry without re-typing the rest.
     gateRef.current.release();
+    funnelRef.current?.submitFailed(result.kind, { packageName });
     setSubmissionState("error");
 
     if (result.kind === "validation") {

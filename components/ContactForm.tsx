@@ -188,12 +188,13 @@ export default function ContactForm() {
     setBusy(false);
     if (result.ok) {
       gate.current.complete(); setDone(true);
-      funnel.current?.leadCreated({ leadId: result.leadId, locationMarket: result.locationMarket });
+      funnel.current?.leadCreated({ leadId: result.leadId, enquiryId: result.enquiryId, locationMarket: result.locationMarket });
       trackAnalyticsEvent("guidance_lead_submit_success", {cta_location:"contact-form", section:"contact"});
       return;
     }
 
     gate.current.release();
+    funnel.current?.submitFailed(result.kind);
 
     if (result.kind === "validation") {
       const feedback = resolveValidationFeedback(result, INLINE_ERROR_FIELD_ORDER);
