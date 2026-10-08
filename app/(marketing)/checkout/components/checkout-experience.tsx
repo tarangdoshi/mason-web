@@ -7,7 +7,7 @@ import CmsImage from "../../../components/cms-image";
 import type { PackageFeatureItem } from "../../../../content/types";
 import { trackAnalyticsEvent } from "../../../../lib/analytics";
 import { getLeadAttributionContext, getQuizContext } from "../../../../lib/lead-context";
-import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFunnelTracker } from "../../../../lib/lead-funnel";
+import { createLeadFunnelTracker, createSubmitAttemptTracker, FORM_NAMES, isFormFieldEvent, type LeadFailureCategory, type LeadFunnelTracker } from "../../../../lib/lead-funnel";
 import { detectServiceArea, SERVICE_UNAVAILABLE_MESSAGE, type ServiceArea } from "../../../../lib/checkout-service-area";
 import styles from "../checkout.module.css";
 
@@ -638,12 +638,24 @@ export default function CheckoutExperience({
 
                 if (!response.ok) {
                   const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-                  throw new Error(payload?.error || "We could not prepare your booking request.");
+                  throw Object.assign(
+                    new Error(payload?.error || "We could not prepare your booking request."),
+                    // 400 is the API rejecting the submitted values; anything else is ours.
+                    { leadFailure: response.status === 400 ? "validation" : "server" satisfies LeadFailureCategory }
+                  );
                 }
 
                 const payload = (await response.json()) as { data?: { id?: string } };
                 if (!checkoutLeadSuccessTrackedRef.current) {
                   checkoutLeadSuccessTrackedRef.current = true;
+                  // NOTE: deliberately no generate_lead here. docs/DECISIONS.md records
+                  // that package checkout is "strictly secondary" to the primary booking
+                  // conversion, and checkout-tracking.browser.test.ts asserts that no lead
+                  // conversion fires on this path. Reporting a successful checkout as
+                  // generate_lead would change what Mason counts as its conversion, which
+                  // is a founder decision and not an instrumentation fix. The consequence —
+                  // that generate_lead is not a complete lead count — belongs in the metric
+                  // dictionary, not in a silent change here.
                   trackAnalyticsEvent("checkout_lead_submit_success", {
                     package: entry.plan.id,
                     cta_location: "checkout-review",
@@ -652,6 +664,9 @@ export default function CheckoutExperience({
                 }
                 checkoutLeadIdRef.current = payload.data?.id || "captured";
               } catch (error) {
+                // A thrown fetch never reached the API; a thrown response carries its own category.
+                const category = (error as { leadFailure?: LeadFailureCategory }).leadFailure ?? "network";
+                funnelRef.current?.submitFailed(category, { packageName: entry.plan.name });
                 setFormError(error instanceof Error ? error.message : "We could not prepare your booking request.");
                 setIsSubmittingReview(false);
                 return;
