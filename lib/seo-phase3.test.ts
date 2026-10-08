@@ -169,6 +169,12 @@ test("every shared public page declares a card with og:url", () => {
     assert.match(read(file), /pageOpenGraph\(/, file);
   }
 
+  /* The layout's fallback card must not claim a URL: a fixed og:url there would make every page
+     without its own card (/why, /about, /contact, /privacy, /terms) resolve to the homepage. */
+  const fallback = pageOpenGraph({ title: "t", description: "d" }) as Record<string, unknown>;
+  assert.equal("url" in fallback, false);
+  assert.doesNotMatch(read("app/(public)/layout.tsx"), /pageOpenGraph\(\{[^}]*\burl:/);
+
   /* No page may hand Next a bare image string again: that is what dropped the size tags. */
   for (const file of ["app/(public)/layout.tsx", "app/(public)/page.tsx", "app/(public)/packages/page.tsx"]) {
     assert.doesNotMatch(read(file), /images:\s*\["/, file);

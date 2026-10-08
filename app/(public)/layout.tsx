@@ -47,9 +47,10 @@ const SITE_SHARE_TITLE = "Mason Company — Safer bathrooms for ageing parents";
 const SITE_SHARE_DESCRIPTION = "Doctor-informed bathroom safety upgrades. Mason is currently available in Goa.";
 
 /* The fallback share card, for any route that does not set its own. Pages that do set openGraph
-   replace this object wholesale, so each of them builds it from the same helper. */
+   replace this object wholesale, so each of them builds it from the same helper. No og:url here:
+   the layout cannot know the page's path, so shares of /why, /about etc. keep their own URL. */
 export const metadata: Metadata = {
-  openGraph: pageOpenGraph({ title: SITE_SHARE_TITLE, description: SITE_SHARE_DESCRIPTION, url: "/" }),
+  openGraph: pageOpenGraph({ title: SITE_SHARE_TITLE, description: SITE_SHARE_DESCRIPTION }),
   twitter: pageTwitter({ title: SITE_SHARE_TITLE, description: SITE_SHARE_DESCRIPTION }),
   metadataBase: new URL("https://www.masoncompany.in"),
   title: "Mason Company - Safer bathrooms for ageing parents",

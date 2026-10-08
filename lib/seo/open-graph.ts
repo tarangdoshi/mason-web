@@ -30,14 +30,17 @@ export const shareImage = {
   alt: SHARE_IMAGE_ALT
 } as const;
 
-export function pageOpenGraph(input: { title: string; description: string; url: string; type?: "website" | "article" }): Metadata["openGraph"] {
+/* `url` is the page's own address. Omit it only for the layout's fallback card: a layout cannot know
+   which page it is rendering, and a fixed og:url there would tell Facebook and WhatsApp that every
+   page without its own card is the homepage. Without og:url they use the URL that was shared. */
+export function pageOpenGraph(input: { title: string; description: string; url?: string; type?: "website" | "article" }): Metadata["openGraph"] {
   return {
     type: input.type ?? "website",
     siteName: "Mason Company",
     locale: "en_IN",
     title: input.title,
     description: input.description,
-    url: input.url,
+    ...(input.url ? { url: input.url } : {}),
     images: [shareImage]
   };
 }
