@@ -8,7 +8,7 @@ import { SOLUTIONS, SOLUTION_META, solutionDoc, solutionPath, type SolutionFacts
 import { assessmentDoc } from "../content/knowledge/assessment";
 import { guideDoc } from "../content/knowledge/guide";
 import { ORGANIZATION_ID, organizationJsonLd, solutionJsonLd } from "./seo/structured-data";
-import { pageOpenGraph, SHARE_IMAGE } from "./seo/open-graph";
+import { pageOpenGraph, pageTwitter, shareImage, SHARE_IMAGE, SHARE_IMAGE_HEIGHT, SHARE_IMAGE_TYPE, SHARE_IMAGE_WIDTH } from "./seo/open-graph";
 import { localSrcSet, withResponsiveSrc } from "./optimized-image";
 
 /*
@@ -113,10 +113,71 @@ test("solution route: static, canonical, indexable, share preview, view_service"
 
 test("share previews keep the image and site name on pages that set their own Open Graph", () => {
   const og = pageOpenGraph({ title: "t", description: "d", url: "/x" }) as Record<string, unknown>;
-  assert.deepEqual(og.images, [SHARE_IMAGE]);
+  assert.deepEqual(og.images, [shareImage]);
   assert.equal(og.siteName, "Mason Company");
   for (const file of ["app/(public)/bathroom-safety-assessment/page.tsx", "app/(public)/guides/bathroom-safety-for-elderly-parents/page.tsx"]) {
     assert.match(read(file), /openGraph: pageOpenGraph\(/, file);
+  }
+});
+
+/* The WhatsApp card. These pin the two properties WhatsApp is actually sensitive to - a declared
+   1.91:1 size and a small file - plus the og:url that was missing on home and packages. */
+test("share image: 1200x630, declared dimensions and type, and small enough for WhatsApp", () => {
+  assert.equal(SHARE_IMAGE_WIDTH, 1200);
+  assert.equal(SHARE_IMAGE_HEIGHT, 630);
+  assert.equal(SHARE_IMAGE_TYPE, "image/jpeg");
+  assert.deepEqual({ url: shareImage.url, width: shareImage.width, height: shareImage.height, type: shareImage.type },
+    { url: SHARE_IMAGE, width: 1200, height: 630, type: "image/jpeg" });
+  assert.ok(shareImage.alt.length > 0, "alt text");
+
+  const bytes = readFileSync(resolve(process.cwd(), `public${SHARE_IMAGE}`)).length;
+  assert.ok(bytes < 300_000, `share image is ${bytes} bytes; WhatsApp drops cards much over ~300KB`);
+
+  /* JPEG SOF marker carries the real pixel size, so the declared numbers cannot drift from the file. */
+  const file = readFileSync(resolve(process.cwd(), `public${SHARE_IMAGE}`));
+  let i = 2;
+  let dimensions: { width: number; height: number } | undefined;
+  while (i < file.length - 9) {
+    if (file[i] !== 0xff) { i += 1; continue; }
+    const marker = file[i + 1];
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+      dimensions = { height: file.readUInt16BE(i + 5), width: file.readUInt16BE(i + 7) };
+      break;
+    }
+    i += 2 + file.readUInt16BE(i + 2);
+  }
+  assert.deepEqual(dimensions, { width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT }, "file matches declared size");
+});
+
+test("every shared public page declares a card with og:url", () => {
+  const og = pageOpenGraph({ title: "t", description: "d", url: "/x" }) as Record<string, unknown>;
+  assert.equal(og.url, "/x");
+
+  const twitter = pageTwitter({ title: "t", description: "d" }) as Record<string, unknown>;
+  assert.equal(twitter.card, "summary_large_image");
+  assert.deepEqual(twitter.images, [shareImage]);
+
+  /* Home and packages used to fall through to the layout's generic card, which had no og:url. */
+  for (const file of [
+    "app/(public)/layout.tsx",
+    "app/(public)/page.tsx",
+    "app/(public)/packages/page.tsx",
+    "app/(public)/bathroom-safety-assessment/page.tsx",
+    "app/(public)/guides/bathroom-safety-for-elderly-parents/page.tsx",
+    "app/(public)/solutions/[slug]/page.tsx"
+  ]) {
+    assert.match(read(file), /pageOpenGraph\(/, file);
+  }
+
+  /* The layout's fallback card must not claim a URL: a fixed og:url there would make every page
+     without its own card (/why, /about, /contact, /privacy, /terms) resolve to the homepage. */
+  const fallback = pageOpenGraph({ title: "t", description: "d" }) as Record<string, unknown>;
+  assert.equal("url" in fallback, false);
+  assert.doesNotMatch(read("app/(public)/layout.tsx"), /pageOpenGraph\(\{[^}]*\burl:/);
+
+  /* No page may hand Next a bare image string again: that is what dropped the size tags. */
+  for (const file of ["app/(public)/layout.tsx", "app/(public)/page.tsx", "app/(public)/packages/page.tsx"]) {
+    assert.doesNotMatch(read(file), /images:\s*\["/, file);
   }
 });
 

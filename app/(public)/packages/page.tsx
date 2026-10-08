@@ -12,6 +12,7 @@ import { getPublicSiteContent } from "@/lib/cms/load";
 import { serverEditProps } from "@/lib/cms/edit-server";
 import { DOCS } from "@/lib/cms/edit";
 import { cmsMetadata } from "@/lib/cms/seo";
+import { pageOpenGraph, pageTwitter } from "@/lib/seo/open-graph";
 import AnalyticsViewTracker from "@/app/components/analytics-view-tracker";
 import { SERVICE_NAMES } from "@/lib/analytics";
 
@@ -24,12 +25,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const price = (code: string) => packages.plans.find((plan) => plan.code === code)?.price;
   const standard = price("package-standard");
   const advanced = price("package-advanced");
+  const title = "Bathroom Safety Packages in Goa: Standard & Advanced | Mason Company";
+  const shareTitle = "Bathroom safety packages in Goa | Mason Company";
+  const description = standard && advanced
+    ? `Standard (${standard}) and Advanced (${advanced}, with a 2-Year Safety AMC) bathroom safety packages for ageing parents in Goa. Both install the same ${packages.components.length}-component kit. Start with a free inspection.`
+    : "Standard and Advanced bathroom safety packages for ageing parents in Goa. Both install the same complete kit. Start with a free inspection.";
   return cmsMetadata("packages", {
     alternates: {canonical: "https://www.masoncompany.in/packages"},
-    title: "Bathroom Safety Packages in Goa: Standard & Advanced | Mason Company",
-    description: standard && advanced
-      ? `Standard (${standard}) and Advanced (${advanced}, with a 2-Year Safety AMC) bathroom safety packages for ageing parents in Goa. Both install the same ${packages.components.length}-component kit. Start with a free inspection.`
-      : "Standard and Advanced bathroom safety packages for ageing parents in Goa. Both install the same complete kit. Start with a free inspection.",
+    title,
+    description,
+    /* Set explicitly so the packages card carries og:url and names the packages, rather than
+       falling through to the layout's generic site card. Shorter than the search title, as on
+       the other public pages. */
+    openGraph: pageOpenGraph({ title: shareTitle, description, url: "/packages" }),
+    twitter: pageTwitter({ title: shareTitle, description })
   });
 }
 
