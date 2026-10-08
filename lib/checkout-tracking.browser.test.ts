@@ -15,7 +15,10 @@ type CheckoutHarness = {
   checkoutPosts: () => number;
 };
 
-async function withCheckout(run: (harness: CheckoutHarness) => Promise<void>) {
+/** How the checkout lead endpoint answers. Defaults to the created-lead response. */
+type CheckoutResponder = () => Promise<Response>;
+
+async function withCheckout(run: (harness: CheckoutHarness) => Promise<void>, respond?: CheckoutResponder) {
   const dom = new JSDOM('<div id="root"></div>', { url: "https://www.masoncompany.in/checkout/package-standard" });
   const names = ["window", "document", "navigator", "HTMLElement", "HTMLAnchorElement", "Element", "FormData", "Event", "MouseEvent", "IntersectionObserver", "React", "IS_REACT_ACT_ENVIRONMENT"];
   const originals = new Map(names.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
@@ -47,6 +50,7 @@ async function withCheckout(run: (harness: CheckoutHarness) => Promise<void>) {
   globalThis.fetch = (async (url: string) => {
     assert.equal(url, "/api/leads/checkout");
     checkoutPosts += 1;
+    if (respond) return respond();
     return new Response(JSON.stringify({ data: { id: "mason-db-uuid" } }), { status: 201, headers: { "Content-Type": "application/json" } });
   }) as typeof fetch;
 
@@ -143,4 +147,74 @@ test("checkout is Goa only: a Mumbai or Bengaluru area is not offered a booking"
       assert.equal(checkoutPosts(), 0, `${area}: no booking request is sent`);
     });
   }
+});
+
+/* ---------------------------------------------------------------------------
+   Refused checkout submissions.
+
+   A booking request that the API rejects used to leave no trace at all: the
+   customer saw an error, GA4 saw a form_submit and then silence, and that is
+   indistinguishable from someone who simply walked away. These pin the failure
+   signal, including that it never counts as a conversion. */
+
+async function fillValidCheckout({ render, act, button, setInput }: CheckoutHarness) {
+  await render();
+  await act(async () => button("Enter area manually").click());
+  await act(async () => setInput("input[placeholder=\"For example: Panaji, Goa\"]", "Panaji, Goa"));
+  await act(async () => button("Check serviceability").click());
+  await act(async () => setInput("input[name=\"name\"]", "Asha Nair"));
+  await act(async () => setInput("input[name=\"phone\"]", "9876543210"));
+  await act(async () => setInput("input[name=\"date\"]", "2026-10-01"));
+  await act(async () => setInput("input[name=\"addressLine1\"]", "Building A"));
+  await act(async () => button("Review booking details").click());
+}
+
+test("a refused checkout booking reports its failure category", async () => {
+  const cases = [
+    { status: 400, category: "validation" },
+    { status: 500, category: "server" }
+  ];
+  for (const { status, category } of cases) {
+    await withCheckout(
+      async (harness) => {
+        await fillValidCheckout(harness);
+
+        const [failure] = harness.googleEvents("form_error");
+        assert.ok(failure, `a ${status} reports form_error`);
+        assert.equal((failure[2] as Record<string, unknown>).error_category, category);
+        assert.equal((failure[2] as Record<string, unknown>).form_name, "Checkout Booking Form");
+        assert.equal(harness.googleEvents("checkout_lead_submit_success").length, 0, "a refusal is not a success");
+        // The customer still sees the API's own message — the failure signal is additive.
+        assert.match(harness.dom.window.document.body.textContent || "", /Refused\./);
+      },
+      async () => new Response(JSON.stringify({ error: "Refused." }), { status, headers: { "Content-Type": "application/json" } })
+    );
+  }
+});
+
+test("a checkout booking that never reached Mason is reported as a network failure", async () => {
+  await withCheckout(
+    async (harness) => {
+      await fillValidCheckout(harness);
+
+      const [failure] = harness.googleEvents("form_error");
+      assert.ok(failure, "a thrown request still reports form_error");
+      assert.equal((failure[2] as Record<string, unknown>).error_category, "network");
+    },
+    async () => { throw new TypeError("Failed to fetch"); }
+  );
+});
+
+test("a refused checkout booking is never an advertising conversion", async () => {
+  await withCheckout(
+    async (harness) => {
+      await fillValidCheckout(harness);
+
+      assert.equal(harness.googleEvents("form_error").length, 1);
+      assert.equal(harness.googleEvents("conversion").length, 0, "a failure must not report a Google Ads conversion");
+      assert.equal(harness.googleEvents("generate_lead").length, 0);
+      assert.equal(harness.metaCalls.filter((call) => call[1] === "Lead").length, 0, "a failure must not reach Meta");
+    },
+    async () => new Response(JSON.stringify({ error: "Refused." }), { status: 500, headers: { "Content-Type": "application/json" } })
+  );
 });
