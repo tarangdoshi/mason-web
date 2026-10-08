@@ -14,18 +14,29 @@ import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
 import { getPublicSiteContent } from "@/lib/cms/load";
 import { cmsMetadata } from "@/lib/cms/seo";
+import { pageOpenGraph, pageTwitter } from "@/lib/seo/open-graph";
 import { jsonLdScript, organizationJsonLd } from "@/lib/seo/structured-data";
 
 /* Content comes from Sanity. Published changes appear within a minute
    (regenerated in the background); draft previews render on every request. */
 export const revalidate = 60;
 
+/* The share card keeps the warmer tagline rather than reusing the search title, which is the
+   pattern the other public pages already follow. This is the copy the home card carries today;
+   only the image and og:url change. */
+const HOME_SHARE_TITLE = "Mason Company — Safer bathrooms for ageing parents";
+const HOME_SHARE_DESCRIPTION = "Doctor-informed bathroom safety upgrades. Mason is currently available in Goa.";
+
 export function generateMetadata(): Promise<Metadata> {
   return cmsMetadata("home", {
     alternates: { canonical: "https://www.masoncompany.in/" },
     title: "Bathroom Safety for Ageing Parents in Goa | Mason Company",
     description:
-      "Mason Company makes bathrooms safer for ageing parents in Goa: a free inspection first, then grab support, anti-slip treatment, shower seating and more, installed by trained Mason technicians."
+      "Mason Company makes bathrooms safer for ageing parents in Goa: a free inspection first, then grab support, anti-slip treatment, shower seating and more, installed by trained Mason technicians.",
+    /* Set explicitly so the home card carries og:url, which it did not when it fell through to
+       the layout's default card. */
+    openGraph: pageOpenGraph({ title: HOME_SHARE_TITLE, description: HOME_SHARE_DESCRIPTION, url: "/" }),
+    twitter: pageTwitter({ title: HOME_SHARE_TITLE, description: HOME_SHARE_DESCRIPTION })
   });
 }
 

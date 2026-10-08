@@ -10,6 +10,7 @@ import EditModeProvider from "@/components/EditModeProvider";
 import DraftModeBanner from "@/components/DraftModeBanner";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { getPublicSiteContent, isPreviewingDrafts } from "@/lib/cms/load";
+import { pageOpenGraph, pageTwitter } from "@/lib/seo/open-graph";
 
 /* Display — big impactful headlines. The dominant typeface. */
 const archivo = Archivo({
@@ -42,9 +43,14 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
+const SITE_SHARE_TITLE = "Mason Company — Safer bathrooms for ageing parents";
+const SITE_SHARE_DESCRIPTION = "Doctor-informed bathroom safety upgrades. Mason is currently available in Goa.";
+
+/* The fallback share card, for any route that does not set its own. Pages that do set openGraph
+   replace this object wholesale, so each of them builds it from the same helper. */
 export const metadata: Metadata = {
-  openGraph: {type:"website", siteName:"Mason Company", title:"Mason Company — Safer bathrooms for ageing parents", description:"Doctor-informed bathroom safety upgrades. Mason is currently available in Goa.", images:["/prerna/images/hero-install.jpg"]},
-  twitter: {card:"summary_large_image", images:["/prerna/images/hero-install.jpg"]},
+  openGraph: pageOpenGraph({ title: SITE_SHARE_TITLE, description: SITE_SHARE_DESCRIPTION, url: "/" }),
+  twitter: pageTwitter({ title: SITE_SHARE_TITLE, description: SITE_SHARE_DESCRIPTION }),
   metadataBase: new URL("https://www.masoncompany.in"),
   title: "Mason Company - Safer bathrooms for ageing parents",
   description:
