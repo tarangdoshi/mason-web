@@ -7,6 +7,17 @@ const sessionStorageKey = "mason-crm-session-id";
 type AttributionContext = {
   sessionId: string;
   pagePath: string;
+  /**
+   * The first page path of this browser session, kept for the life of the session.
+   *
+   * `pagePath` is deliberately the *latest* page, because it answers "where was this
+   * form submitted from". It is rewritten on every navigation, so on its own it cannot
+   * also answer "where did this visit begin" — and the campaign beside it is strictly
+   * first-touch, which made the stored record describe two different moments. This field
+   * is the first-touch half, resolved the same way the campaign is: written once and
+   * never overwritten.
+   */
+  landingPage?: string;
   referrer?: string;
   pageSection?: string;
   entryPoint?: string;
@@ -161,6 +172,8 @@ export function storeLeadCtaContext(context: Partial<AttributionContext>) {
   writeJsonToSessionStorage(ctaStorageKey, {
     sessionId: getLeadCaptureSessionId(),
     pagePath: window.location.pathname,
+    // First write wins, for the whole session — the landing page cannot change later.
+    landingPage: previous?.landingPage || window.location.pathname,
     referrer: document.referrer || undefined,
     pageSection: context.pageSection || previous?.pageSection,
     entryPoint: context.entryPoint || previous?.entryPoint,
@@ -181,6 +194,9 @@ export function getLeadAttributionContext(overrides: Partial<AttributionContext>
   return {
     sessionId: getLeadCaptureSessionId(),
     pagePath: overrides.pagePath || window.location.pathname,
+    // A form reached without any navigation has no stored context yet, and then the
+    // current page genuinely is the landing page.
+    landingPage: storedCtaContext?.landingPage || overrides.landingPage || window.location.pathname,
     referrer: document.referrer || storedCtaContext?.referrer || undefined,
     pageSection: overrides.pageSection || storedCtaContext?.pageSection,
     entryPoint: overrides.entryPoint || storedCtaContext?.entryPoint,

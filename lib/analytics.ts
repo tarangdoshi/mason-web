@@ -19,12 +19,26 @@ export type AnalyticsEventMap = {
   form_start: FormParams;
   form_submit: FormParams;
   generate_lead: FormParams & {
+    /** This one enquiry. Unique per successful submission, including a repeat customer's. */
+    enquiry_id?: string;
+    /** The CRM record the enquiry belongs to. Shared by a repeat customer's enquiries. */
     lead_id?: string;
     utm_source?: string;
     utm_medium?: string;
     utm_campaign?: string;
     utm_content?: string;
+    gclid?: string;
+    gbraid?: string;
+    wbraid?: string;
+    fbclid?: string;
   };
+  /**
+   * A submission the customer made that did not become an enquiry. Without it, a
+   * refused submission and an abandoned form are the same thing in GA4 — so an outage
+   * looks like a quiet day. The category is a fixed, low-cardinality label; no server
+   * message, status code or field value is ever attached.
+   */
+  form_error: FormParams & { error_category: "validation" | "server" | "network" };
   homepage_cta_click: {
     page?: string;
     cta_location: string;
@@ -123,6 +137,7 @@ const allowedEventNames = new Set<AnalyticsEventName>([
   "form_start",
   "form_submit",
   "generate_lead",
+  "form_error",
   "homepage_cta_click",
   "package_cta_click",
   "guidance_form_start",
@@ -150,10 +165,28 @@ const allowedTextKeys = [
   "service_name",
   "package_name",
   "form_name",
+  "error_category",
   "utm_source",
   "utm_medium",
   "utm_campaign",
-  "utm_content"
+  "utm_content",
+  // Click ids already travel to Google and Meta on page_location, where only their own
+  // attribution can read them. Carrying them as parameters too is what makes a click id
+  // joinable to an enquiry in a report, and costs no extra disclosure. Being opaque
+  // single tokens, they pass safeAnalyticsCampaignValue unchanged.
+  //
+  // utm_term is deliberately NOT here. It is the paid-search keyword, so it is normally
+  // several words, and safeAnalyticsCampaignValue admits no spaces — by design, because
+  // that is what stops a campaign parameter carrying a street address (see
+  // marketing-tracking.test.ts, "campaign URL and event values keep safe attribution but
+  // exclude contact details"). Admitting spaces to make utm_term useful would reopen
+  // that hole, so the keyword stays out of analytics. It is not lost: lead-context
+  // captures utm_term in full and the API maps it to Zoho's UTM_Term field, where the
+  // keyword can be read per lead.
+  "gclid",
+  "gbraid",
+  "wbraid",
+  "fbclid"
 ] as const;
 
 const allowedNumberKeys = ["package_price"] as const;
@@ -166,7 +199,8 @@ const cityEvents = new Set<AnalyticsEventName>([
   "select_package",
   "form_start",
   "form_submit",
-  "generate_lead"
+  "generate_lead",
+  "form_error"
 ]);
 
 /* Landing-page parameters kept on page_location, because GA4 and Google Ads
@@ -182,7 +216,10 @@ const campaignQueryParams = [
   "wbraid",
   "fbclid"
 ];
-const analyticsCampaignTextKeys = new Set(["utm_source", "utm_medium", "utm_campaign", "utm_content"]);
+const analyticsCampaignTextKeys = new Set([
+  "utm_source", "utm_medium", "utm_campaign", "utm_content",
+  "gclid", "gbraid", "wbraid", "fbclid"
+]);
 
 /* Meta receives only the events the tracking spreadsheet assigns to it; the
    successful lead is sent as Meta's standard Lead event. */
@@ -410,6 +447,12 @@ function buildSafePayload(eventName: AnalyticsEventName, payload: AnalyticsPaylo
   const leadId = sanitizeLeadId(payload.lead_id);
   if (leadId) {
     safePayload.lead_id = leadId;
+  }
+
+  // Same shape rule as lead_id: an opaque record id, not free text.
+  const enquiryId = sanitizeLeadId(payload.enquiry_id);
+  if (enquiryId) {
+    safePayload.enquiry_id = enquiryId;
   }
 
   if (typeof payload.page_location === "string" && payload.page_location) {
