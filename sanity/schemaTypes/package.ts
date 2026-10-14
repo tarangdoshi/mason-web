@@ -59,7 +59,7 @@ export const packageSchema = defineType({
     }),
     defineField({
       name: "includedFeatures",
-      title: "Shared 13-component kit (fixed)",
+      title: "Shared 14-component kit (fixed)",
       type: "array",
       group: "components",
       readOnly: true,

@@ -194,15 +194,19 @@ export default async function PackagesPage() {
                   key={item.id}
                   className="flex items-center gap-4 border-b border-dashed border-sand-200 py-3"
                 >
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:h-14 sm:w-14">
-                    <Image
-                      src={item.image.src}
-                      alt={item.image.alt}
-                      fill
-                      sizes="56px"
-                      className="object-cover"
-                    />
-                  </div>
+                  {item.image.src ? (
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:h-14 sm:w-14">
+                      <Image
+                        src={item.image.src}
+                        alt={item.image.alt}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div aria-hidden="true" className="h-12 w-12 shrink-0 rounded-lg bg-sand-200 sm:h-14 sm:w-14" />
+                  )}
 
                   <div className="min-w-0 flex-1">
                     <p className="font-mono-label text-[0.6rem] uppercase tracking-[0.18em] text-sand-400">

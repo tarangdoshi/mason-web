@@ -445,22 +445,23 @@ export const homepageContent: HomepageContent = {
     items: []
   },
   packagesSection: {
-    title: "The same complete kit. You choose the cover.",
+    title: "14 Components. One Comprehensive Bathroom Safety Solution.",
     subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes annual safety visits for 2 years after installation.",
     features: [
       { id: "vertical-grab-bars", label: "Vertical grab bars", description: "Support placed at key standing and movement points.", quantity: 3 },
-      { id: "angled-grab-bar", label: "L / angled grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
-      { id: "folding-bar", label: "Flip-up / folding support bar", description: "Foldable support where access and clearance matter.", quantity: 1 },
-      { id: "anti-slip-coating", label: "Anti-slip surface treatment", description: "Treatment for improved traction on existing surfaces.", quantity: 1 },
+      { id: "angled-grab-bar", label: "L-shaped Shower grab bar", description: "Angled support for reaching and turning.", quantity: 1 },
+      { id: "folding-bar", label: "Flip-up Toilet support bar", description: "Foldable support where access and clearance matter.", quantity: 1 },
+      { id: "anti-slip-coating", label: "Nanotechnology anti-slip surface treatment", description: "Treatment for improved traction on existing surfaces.", quantity: 1 },
       { id: "anti-slip-mat-shower", label: "Shower anti-slip mat", description: "Added grip in the shower zone.", quantity: 1 },
       { id: "anti-slip-mat-post-shower", label: "Post-shower anti-slip mat", description: "Added grip where feet leave the shower.", quantity: 1 },
-      { id: "shower-stool", label: "Shower seating stool", description: "Seated support for showering.", quantity: 1 },
+      { id: "raised-toilet-seat", label: "Raised Toilet Seat", quantity: 1 },
+      { id: "shower-stool", label: "Adjustable Shower seating stool", description: "Seated support for showering.", quantity: 1 },
       { id: "two-way-lock", label: "Two-way lock", description: "A lock designed for safer access and family response.", quantity: 1 },
-      { id: "corner-safety", label: "Edge & corner protection", description: "Protective cushioning for sharp edges and corners that could cause injury.", quantity: 1 },
-      { id: "drainage-solution", label: "Drainage support", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
-      { id: "slippers-one", label: "Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
+      { id: "corner-safety", label: "Soft Corner Guards", description: "Protective cushioning for sharp edges and corners that could cause injury.", quantity: 1 },
+      { id: "drainage-solution", label: "Drainage clearance", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
+      { id: "slippers-one", label: "EVA non-slip Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
       { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 },
-      { id: "raised-toilet-seat", label: "Raised Toilet Seat", quantity: 1 }
+      { id: "emergency-key-box", label: "Emergency Key box", quantity: 1 }
     ],
     plans: [
       {
@@ -488,13 +489,14 @@ export const homepageContent: HomepageContent = {
           "anti-slip-coating",
           "anti-slip-mat-shower",
           "anti-slip-mat-post-shower",
+          "raised-toilet-seat",
           "shower-stool",
           "two-way-lock",
           "corner-safety",
           "drainage-solution",
           "slippers-one",
           "total-support-solution",
-          "raised-toilet-seat"
+          "emergency-key-box"
         ],
         ctaLabel: "Book Standard"
       },
@@ -523,13 +525,14 @@ export const homepageContent: HomepageContent = {
           "anti-slip-coating",
           "anti-slip-mat-shower",
           "anti-slip-mat-post-shower",
+          "raised-toilet-seat",
           "shower-stool",
           "two-way-lock",
           "corner-safety",
           "drainage-solution",
           "slippers-one",
           "total-support-solution",
-          "raised-toilet-seat"
+          "emergency-key-box"
         ],
         ctaLabel: "Book Advanced"
       },
@@ -717,7 +720,7 @@ export const homepageContent: HomepageContent = {
     items: [
       {
         question: "What does Mason Company do?",
-        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support."
+        answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, soft corner guards, drainage clearance, slippers, reinforced fixture support, and an Emergency Key box."
       },
       {
         question: "Who is Mason Company for?",
@@ -737,11 +740,11 @@ export const homepageContent: HomepageContent = {
       },
       {
         question: "What is included in Standard?",
-        answer: "Standard includes the complete 13-component kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included."
+        answer: "Standard includes the complete 14-component kit: three Vertical grab bars, one L-shaped Shower grab bar, one Flip-up Toilet support bar, one Nanotechnology anti-slip surface treatment, one Shower anti-slip mat, one Post-shower anti-slip mat, one Raised Toilet Seat, one Adjustable Shower seating stool, one Two-way lock, one Soft Corner Guards treatment, four Drainage clearance solutions, one pair of EVA non-slip Bathroom slippers, one Reinforced fixture support, and an Emergency Key box. Sensor lighting and SOS hardware are not included."
       },
       {
         question: "What is included in Advanced?",
-        answer: "Advanced includes the same complete 13-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required."
+        answer: "Advanced includes the same complete 14-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required."
       },
       {
         question: "Can I buy only one product, like a grab bar?",

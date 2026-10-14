@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 const { JSDOM } = require("jsdom");
 import { homepageContent } from "../content/homepage.content";
 import { fallbackPackages, fallbackHome } from "./cms/fallback";
-import { resolvePublicSite } from "./cms/resolve";
+import { resolvePackages, resolvePublicSite } from "./cms/resolve";
 import LeadPrivacyNotice from "../app/components/lead-privacy-notice";
 
 Object.defineProperty(globalThis, "React", { value: React, configurable: true });
@@ -35,14 +35,43 @@ test("package cards use context-specific CTA copy and retain each package destin
   }
 });
 
-test("both packages include one Raised Toilet Seat among 13 component categories", () => {
+test("both packages share all 14 approved component categories and existing quantities", () => {
   const { packages } = resolvePublicSite(null);
+  assert.equal(packages.components.length, 14);
+  assert.deepEqual(packages.components.map(({ title }) => title), [
+    "Vertical grab bars", "L-shaped Shower grab bar", "Flip-up Toilet support bar",
+    "Nanotechnology anti-slip surface treatment", "Shower anti-slip mat", "Post-shower anti-slip mat",
+    "Raised Toilet Seat", "Adjustable Shower seating stool", "Two-way lock", "Soft Corner Guards",
+    "Drainage clearance", "EVA non-slip Bathroom slippers", "Reinforced fixture support", "Emergency Key box"
+  ]);
+  assert.deepEqual(packages.components.slice(0, 13).map(({ quantity }) => quantity), [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1]);
   for (const plan of packages.plans) {
-    assert.equal(plan.componentIds.length, 13);
+    assert.equal(plan.componentIds.length, 14);
+    assert.deepEqual(plan.componentIds, packages.components.map(({ id }) => id));
     const raisedSeat = packages.components.find((component) => component.id === "raised-toilet-seat");
     assert.equal(raisedSeat?.title, "Raised Toilet Seat");
     assert.equal(raisedSeat?.quantity, 1);
   }
+});
+
+test("published Sanity inclusions remain authoritative until the reviewed CMS update", () => {
+  const existing = fallbackPackages.components.slice(0, 13).map(({ id, title, quantity }) => ({ key: id, label: title, quantity }));
+  const cms13 = resolvePackages([
+    { code: "package-standard", priceInr: 29999, includedFeatures: existing },
+    { code: "package-advanced", priceInr: 36999, includedFeatures: existing }
+  ], null);
+  assert.equal(cms13.components.length, 13);
+  assert.ok(cms13.plans.every(({ componentIds }) => componentIds.length === 13));
+
+  const withEmergency = [...existing, { key: "emergency-key-box", label: "Emergency Key box", quantity: 1 }];
+  const cms14 = resolvePackages([
+    { code: "package-standard", priceInr: 29999, includedFeatures: withEmergency },
+    { code: "package-advanced", priceInr: 36999, includedFeatures: withEmergency }
+  ], null);
+  assert.equal(cms14.components.length, 14);
+  assert.equal(cms14.components.at(-1)?.image.src, "");
+  assert.equal(cms14.components.at(-1)?.quantity, 1);
+  assert.deepEqual(cms14.plans[0].componentIds, cms14.plans[1].componentIds);
 });
 
 test("founder copy and testimonial names are exact in the fallback content", () => {
@@ -189,16 +218,15 @@ test("customer phone fields show Mason's number only as an empty-field example",
   }
 });
 
-test("Raised Toilet Seat shows a quantity of 1 and other quantities are unchanged", () => {
+test("existing quantities remain unchanged and Emergency Key box uses the founder-approved quantity", () => {
   assert.deepEqual(fallbackPackages.components.map((item) => [item.id, item.quantity]), [
     ["vertical-grab-bars", 3], ["angled-grab-bar", 1], ["folding-bar", 1], ["anti-slip-coating", 1],
-    ["anti-slip-mat-shower", 1], ["anti-slip-mat-post-shower", 1], ["shower-stool", 1], ["two-way-lock", 1],
+    ["anti-slip-mat-shower", 1], ["anti-slip-mat-post-shower", 1], ["raised-toilet-seat", 1], ["shower-stool", 1], ["two-way-lock", 1],
     ["corner-safety", 1], ["drainage-solution", 4], ["slippers-one", 1], ["total-support-solution", 1],
-    ["raised-toilet-seat", 1]
+    ["emergency-key-box", 1]
   ]);
-  // The Packages page falls back to "Included" only for a component without a
-  // quantity, so every canonical component must carry one.
-  assert.ok(fallbackPackages.components.every((component) => typeof component.quantity === "number"));
+  assert.ok(fallbackPackages.components.slice(0, 13).every((component) => typeof component.quantity === "number"));
+  assert.equal(fallbackPackages.components.at(-1)?.quantity, 1);
 });
 
 test("old form legal copy is gone from every customer form", () => {

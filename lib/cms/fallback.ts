@@ -93,7 +93,7 @@ export const fallbackHome: HomeContent = {
   },
   packages: {
     eyebrow: "Choose your safety package",
-    heading: { text: "The same complete kit. You choose the cover.", highlights: ["cover"] },
+    heading: { text: "14 Components. One Comprehensive Bathroom Safety Solution.", highlights: ["Comprehensive"] },
     subtitle: "Both packages install everything, fitted by Mason-trained experts. Advanced includes annual safety visits for 2 years after installation.",
     footnote: "Both packages are planned for real bathroom movement and installed by trained Mason experts - so the result feels safe, thoughtful, and still beautifully at home."
   },
@@ -152,13 +152,13 @@ export const fallbackHome: HomeContent = {
     heading: { text: "Questions, answered", highlights: ["answered"] },
     subtitle: "Everything about packages, booking, and installation. Still unsure? Request a visit and we'll talk it through.",
     items: [
-      { question: "What does Mason Company do?", answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, edge and corner protection, drainage support, slippers, and reinforced fixture support." },
+      { question: "What does Mason Company do?", answer: "Mason Company upgrades existing bathrooms with grab support, anti-slip treatments and mats, shower seating, a Raised Toilet Seat, safer locks, soft corner guards, drainage clearance, slippers, reinforced fixture support, and an Emergency Key box." },
       { question: "Who is Mason Company for?", answer: "Mason is designed for families with ageing parents, seniors living independently, people with balance concerns, and households that want to reduce bathroom risk before an incident happens." },
       { question: "Do you renovate the entire bathroom?", answer: "No. Mason focuses on safety upgrades to the existing bathroom. Our installations do not require any renovation." },
       { question: "Will the bathroom look clinical?", answer: "No. Mason's solution is designed to feel premium and home-first. The goal is to improve safety while preserving the comfort and dignity of the space." },
       { question: "What packages do you offer?", answer: "Mason currently offers two packages: Standard at {standard_price} and Advanced at {advanced_price}. Both install the same complete kit. Advanced also includes a 2-Year Safety AMC: annual safety visits for 2 years after installation." },
-      { question: "What is included in Standard?", answer: "Standard includes the complete 13-component kit: three vertical grab bars, one L / angled grab bar, one folding support bar, one anti-slip treatment, one shower mat, one post-shower mat, one shower stool, one Raised Toilet Seat, one two-way lock, one edge and corner protection treatment, four drainage supports, one pair of bathroom slippers, and one reinforced fixture support. Sensor lighting and SOS hardware are not included." },
-      { question: "What is included in Advanced?", answer: "Advanced includes the same complete 13-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required." },
+      { question: "What is included in Standard?", answer: "Standard includes the complete 14-component kit: three Vertical grab bars, one L-shaped Shower grab bar, one Flip-up Toilet support bar, one Nanotechnology anti-slip surface treatment, one Shower anti-slip mat, one Post-shower anti-slip mat, one Raised Toilet Seat, one Adjustable Shower seating stool, one Two-way lock, one Soft Corner Guards treatment, four Drainage clearance solutions, one pair of EVA non-slip Bathroom slippers, one Reinforced fixture support, and an Emergency Key box. Sensor lighting and SOS hardware are not included." },
+      { question: "What is included in Advanced?", answer: "Advanced includes the same complete 14-component installation kit as Standard, plus a 2-Year Safety AMC: annual safety visits for 2 years after installation. We inspect the installed safety setup and fix, change or replace items where required." },
       { question: "Can I buy only one product, like a grab bar?", answer: "Mason is designed as a package-first service. We focus on complete bathroom safety coverage rather than isolated product installation." },
       { question: "How does booking work?", answer: "Leave your details and a Mason advisor will call to arrange the visit." },
       { question: "How can I pay?", answer: "Our team will confirm the package and payment details with you after your visit request." },
@@ -180,18 +180,19 @@ export const fallbackHome: HomeContent = {
 
 export const fallbackComponents: ResolvedComponent[] = [
   { id: "vertical-grab-bars", title: "Vertical grab bars", category: "Grab support", quantity: 3, description: "Support placed at key standing and movement points.", image: img("/prerna/images/bath-3.jpg", "") },
-  { id: "angled-grab-bar", title: "L / angled grab bar", category: "Grab support", quantity: 1, description: "Angled support for reaching and turning.", image: img("/prerna/images/bath-5.jpg", "") },
-  { id: "folding-bar", title: "Flip-up / folding support bar", category: "Grab support", quantity: 1, description: "Foldable support where access and clearance matter.", image: img("/prerna/images/bath-1.jpg", "") },
-  { id: "anti-slip-coating", title: "Anti-slip surface treatment", category: "Traction", quantity: 1, description: "Treatment for improved traction on existing surfaces.", image: img("/prerna/images/shower-3.jpg", "") },
+  { id: "angled-grab-bar", title: "L-shaped Shower grab bar", category: "Grab support", quantity: 1, description: "Angled support for reaching and turning.", image: img("/prerna/images/bath-5.jpg", "") },
+  { id: "folding-bar", title: "Flip-up Toilet support bar", category: "Grab support", quantity: 1, description: "Foldable support where access and clearance matter.", image: img("/prerna/images/bath-1.jpg", "") },
+  { id: "anti-slip-coating", title: "Nanotechnology anti-slip surface treatment", category: "Traction", quantity: 1, description: "Treatment for improved traction on existing surfaces.", image: img("/prerna/images/shower-3.jpg", "") },
   { id: "anti-slip-mat-shower", title: "Shower anti-slip mat", category: "Traction", quantity: 1, description: "Added grip in the shower zone.", image: img("/prerna/images/shower-4.jpg", "") },
   { id: "anti-slip-mat-post-shower", title: "Post-shower anti-slip mat", category: "Traction", quantity: 1, description: "Added grip where feet leave the shower.", image: img("/prerna/images/care-2.jpg", "") },
-  { id: "shower-stool", title: "Shower seating stool", category: "Support", quantity: 1, description: "Seated support for showering.", image: img("/prerna/images/shower-2.jpg", "") },
+  { id: "raised-toilet-seat", title: "Raised Toilet Seat", category: "Support", quantity: 1, image: img("/images/stock-web/upgrades/upgrade-toilet-support.jpg", "") },
+  { id: "shower-stool", title: "Adjustable Shower seating stool", category: "Support", quantity: 1, description: "Seated support for showering.", image: img("/prerna/images/shower-2.jpg", "") },
   { id: "two-way-lock", title: "Two-way lock", category: "Safety", quantity: 1, description: "A lock designed for safer access and family response.", image: img("/prerna/images/detail-1.jpg", "") },
-  { id: "corner-safety", title: "Edge & corner protection", category: "Protection", quantity: 1, description: "Protective cushioning for sharp edges and corners that could cause injury.", image: img("/prerna/images/bath-2.jpg", "") },
-  { id: "drainage-solution", title: "Drainage support", category: "Hygiene", quantity: 4, description: "Drainage improvements without redesigning the bathroom.", image: img("/prerna/images/shower-1.jpg", "") },
-  { id: "slippers-one", title: "Bathroom slippers", category: "Comfort", quantity: 1, description: "Bathroom-use slippers for steadier footing.", image: img("/prerna/images/care-1.jpg", "") },
+  { id: "corner-safety", title: "Soft Corner Guards", category: "Protection", quantity: 1, description: "Protective cushioning for sharp edges and corners that could cause injury.", image: img("/prerna/images/bath-2.jpg", "") },
+  { id: "drainage-solution", title: "Drainage clearance", category: "Hygiene", quantity: 4, description: "Drainage improvements without redesigning the bathroom.", image: img("/prerna/images/shower-1.jpg", "") },
+  { id: "slippers-one", title: "EVA non-slip Bathroom slippers", category: "Comfort", quantity: 1, description: "Bathroom-use slippers for steadier footing.", image: img("/prerna/images/care-1.jpg", "") },
   { id: "total-support-solution", title: "Reinforced fixture support", category: "Stability", quantity: 1, description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", image: img("/prerna/images/bath-4.jpg", "") },
-  { id: "raised-toilet-seat", title: "Raised Toilet Seat", category: "Support", quantity: 1, image: img("/images/stock-web/upgrades/upgrade-toilet-support.jpg", "") }
+  { id: "emergency-key-box", title: "Emergency Key box", category: "Safety", quantity: 1, image: img("", "") }
 ];
 
 const allComponentIds = fallbackComponents.map((component) => component.id);
