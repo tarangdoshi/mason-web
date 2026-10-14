@@ -17,9 +17,9 @@ The founder approved **14 component types** for the comprehensive bathroom safet
 | `drainage-solution` | Drainage clearance | 4 |
 | `slippers-one` | EVA non-slip Bathroom slippers | 1 |
 | `total-support-solution` | Reinforced fixture support | 1 |
-| `emergency-key-box` | Emergency Key box | **To confirm** |
+| `emergency-key-box` | Emergency Key box | 1 |
 
-The quantities above describe installed units, not component types. No existing type is removed. The Emergency Key box is a new type; its quantity, approved photograph, physical specification, placement, installation method and usage guidance were not supplied in the approval. Do not infer these from its name. Until confirmed, the public component row can say “Included” without a numeric quantity or a substitute product photograph.
+The quantities above describe installed units, not component types. No existing type is removed. The founder confirmed one Emergency Key box per package. Its approved photograph, physical specification, placement, installation method and usage guidance were not supplied; do not infer these from its name or substitute a product photograph.
 
 ## CMS publication packet — not applied
 
@@ -34,7 +34,7 @@ The published `package-package-standard` and `package-package-advanced` document
 | `packageFeature-corner-safety.label` | Edge & corner protection → Soft Corner Guards |
 | `packageFeature-drainage-solution.label` | Drainage support → Drainage clearance |
 | `packageFeature-slippers-one.label` | Bathroom slippers → EVA non-slip Bathroom slippers |
-| `packageFeature-emergency-key-box` | New document; key `emergency-key-box`, label `Emergency Key box`; quantity and photo pending |
+| `packageFeature-emergency-key-box` | New document; key `emergency-key-box`, label `Emergency Key box`, quantity 1; photo pending |
 | `package-package-standard.includedFeatures` | Existing 13 references → same 13 in approved display order plus new Emergency Key box reference |
 | `package-package-advanced.includedFeatures` | Existing 13 references → same 13 in approved display order plus new Emergency Key box reference |
 | `homepage.packagesSection.heading` | The same complete kit. You choose the cover. → 14 Components. One Comprehensive Bathroom Safety Solution. |
@@ -44,8 +44,10 @@ The published `package-package-standard` and `package-package-advanced` document
 The other six existing component names are already approved and need no label patch. Five unreferenced legacy component documents (`amc-recheck`, `anti-slip-mats`, `commode-support`, `sensor-lighting`, `slippers-two`) must remain untouched. The current kit has published uploaded images for 11 of 13 existing types; `anti-slip-coating` and `drainage-solution` currently use bundled fallbacks. There is no published Emergency Key box image.
 
 1. Patch only the `label` field on the existing component documents whose name changed. Keep each document ID, key, quantity, description, image asset, crop, hotspot and any custom fields.
-2. Create exactly one new `packageFeature` document for `emergency-key-box`, after checking that no published or draft document already has that key. Set only approved fields; leave image and operational description unset until supplied. Set quantity only after the founder confirms it.
+2. Create exactly one new `packageFeature` document for `emergency-key-box`, after checking that no published or draft document already has that key. Set only approved fields, including quantity 1; leave image and operational description unset until supplied.
 3. Add a reference to that same new document to the `includedFeatures` array of **both** published package documents. Keep all 13 existing references and `_key`s, move the existing Raised Toilet Seat reference to position 7 to match the founder-approved display order, then put Emergency Key box at position 14. Preserve every other package field. Standard and Advanced must resolve to the same 14 keys.
+
+   In draft Preview, the new component has no published counterpart, so each draft package uses a weak reference to it. Before publication, publish the component first, then change the package references to strong references and verify both packages again. Do not publish the draft packages while the references remain weak.
 4. Update `homepage.packagesSection.heading`, the relevant `faqs.items` answers, and any corresponding legacy `homepage.faqSection.items` answers. The live public FAQ resolver reads the separate `faqs` document. Preserve unrelated FAQ items and custom fields by `_key`.
 5. Verify both packages' prices, AMC wording, dynamic card/kit counts, public pages, and the approved image set before publication. Capture a backup of every document that will change. Do not run old broad migrations such as `migrate-prerna-content.ts` for this change.
 

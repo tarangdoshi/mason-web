@@ -461,7 +461,7 @@ export const homepageContent: HomepageContent = {
       { id: "drainage-solution", label: "Drainage clearance", description: "Drainage improvements without redesigning the bathroom.", quantity: 4 },
       { id: "slippers-one", label: "EVA non-slip Bathroom slippers", description: "Bathroom-use slippers for steadier footing.", quantity: 1 },
       { id: "total-support-solution", label: "Reinforced fixture support", description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", quantity: 1 },
-      { id: "emergency-key-box", label: "Emergency Key box" }
+      { id: "emergency-key-box", label: "Emergency Key box", quantity: 1 }
     ],
     plans: [
       {

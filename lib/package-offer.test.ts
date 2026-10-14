@@ -18,7 +18,7 @@ const expectedKit = [
   ["drainage-solution", 4],
   ["slippers-one", 1],
   ["total-support-solution", 1],
-  ["emergency-key-box", undefined]
+  ["emergency-key-box", 1]
 ] as const;
 
 test("the public kit keeps the locked components and quantities", () => {

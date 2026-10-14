@@ -192,7 +192,7 @@ export const fallbackComponents: ResolvedComponent[] = [
   { id: "drainage-solution", title: "Drainage clearance", category: "Hygiene", quantity: 4, description: "Drainage improvements without redesigning the bathroom.", image: img("/prerna/images/shower-1.jpg", "") },
   { id: "slippers-one", title: "EVA non-slip Bathroom slippers", category: "Comfort", quantity: 1, description: "Bathroom-use slippers for steadier footing.", image: img("/prerna/images/care-1.jpg", "") },
   { id: "total-support-solution", title: "Reinforced fixture support", category: "Stability", quantity: 1, description: "Upgraded high-strength fixings for toilets and washbasins to improve stability and long-term support.", image: img("/prerna/images/bath-4.jpg", "") },
-  { id: "emergency-key-box", title: "Emergency Key box", category: "Safety", image: img("", "") }
+  { id: "emergency-key-box", title: "Emergency Key box", category: "Safety", quantity: 1, image: img("", "") }
 ];
 
 const allComponentIds = fallbackComponents.map((component) => component.id);

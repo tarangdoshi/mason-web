@@ -63,14 +63,14 @@ test("published Sanity inclusions remain authoritative until the reviewed CMS up
   assert.equal(cms13.components.length, 13);
   assert.ok(cms13.plans.every(({ componentIds }) => componentIds.length === 13));
 
-  const withEmergency = [...existing, { key: "emergency-key-box", label: "Emergency Key box", quantity: undefined }];
+  const withEmergency = [...existing, { key: "emergency-key-box", label: "Emergency Key box", quantity: 1 }];
   const cms14 = resolvePackages([
     { code: "package-standard", priceInr: 29999, includedFeatures: withEmergency },
     { code: "package-advanced", priceInr: 36999, includedFeatures: withEmergency }
   ], null);
   assert.equal(cms14.components.length, 14);
   assert.equal(cms14.components.at(-1)?.image.src, "");
-  assert.equal(cms14.components.at(-1)?.quantity, undefined);
+  assert.equal(cms14.components.at(-1)?.quantity, 1);
   assert.deepEqual(cms14.plans[0].componentIds, cms14.plans[1].componentIds);
 });
 
@@ -218,15 +218,15 @@ test("customer phone fields show Mason's number only as an empty-field example",
   }
 });
 
-test("existing quantities remain unchanged and Emergency Key box has no invented quantity", () => {
+test("existing quantities remain unchanged and Emergency Key box uses the founder-approved quantity", () => {
   assert.deepEqual(fallbackPackages.components.map((item) => [item.id, item.quantity]), [
     ["vertical-grab-bars", 3], ["angled-grab-bar", 1], ["folding-bar", 1], ["anti-slip-coating", 1],
     ["anti-slip-mat-shower", 1], ["anti-slip-mat-post-shower", 1], ["raised-toilet-seat", 1], ["shower-stool", 1], ["two-way-lock", 1],
     ["corner-safety", 1], ["drainage-solution", 4], ["slippers-one", 1], ["total-support-solution", 1],
-    ["emergency-key-box", undefined]
+    ["emergency-key-box", 1]
   ]);
   assert.ok(fallbackPackages.components.slice(0, 13).every((component) => typeof component.quantity === "number"));
-  assert.equal(fallbackPackages.components.at(-1)?.quantity, undefined);
+  assert.equal(fallbackPackages.components.at(-1)?.quantity, 1);
 });
 
 test("old form legal copy is gone from every customer form", () => {
