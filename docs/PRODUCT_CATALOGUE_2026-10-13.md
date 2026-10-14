@@ -67,4 +67,12 @@ No Sanity publication, database migration, or operational catalogue mutation is 
 
 ## Operational catalogue boundary
 
-The separate `mason-api` Prisma `Package` and `PackageFeature` rows are operational records, not the website's Sanity package documents. `GOA-STANDARD` and `GOA-ADVANCED` are the active Goa offers in the migration on API `main`. Before changing active operational rows, inspect their current feature records and any orders that reference them. Add the new component only through a separately approved, non-retroactive catalogue operation; leave historical Orders and CommercialRevisions intact. The API schema does not contain a per-feature quantity field, so this document must not be treated as a database migration specification.
+Source of truth (verified 14 October 2026):
+
+| Concern | Authority |
+| --- | --- |
+| Published customer-facing 14-component catalogue (names, quantities, images) | Sanity; the website consumes it, with the code fallback only when Sanity is unavailable |
+| Operational package codes, active status and list prices | `mason-api` `Package` rows: `GOA-STANDARD` ₹29,999 and `GOA-ADVANCED` ₹36,999 are the only active packages (migration `20260930120000_goa_launch_package_catalogue`) |
+| Approved transaction amount | `CommercialRevision`; list prices are staff labels, not payment authority |
+
+The `mason-api` `PackageFeature` model belongs to the inactive legacy content CMS. No operational workflow (orders, commercial revisions, payments, CRM) reads it; the Goa launch migration created no feature rows, and the schema has no per-feature quantity. The live database row count for the two active packages is **unverified**. Do not duplicate Sanity components into the API without a separate business requirement; if one arises, use a separately approved, non-retroactive catalogue operation that leaves historical Orders and CommercialRevisions intact. This document is not a database migration specification.
