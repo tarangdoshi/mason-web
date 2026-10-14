@@ -2,6 +2,14 @@
 
 The founder approved **14 component types** for the comprehensive bathroom safety solution and the customer-facing line **“14 Components. One Comprehensive Bathroom Safety Solution.”** This records a product decision; published Sanity documents remain the public content source of truth. Standard and Advanced share the same physical kit. Standard remains ₹29,999 (reference ₹35,000); Advanced remains ₹36,999 (reference ₹44,000) with the existing 2-Year Safety AMC.
 
+## Canonical terminology (founder-approved, 14 October 2026)
+
+The names in the table below are the **exact** customer-facing component names. They supersede all earlier component terminology (for example "L / angled grab bar", "Flip-up / folding support bar", "Anti-slip surface treatment", "Shower seating stool", "Edge & corner protection", "Drainage support", "Bathroom slippers"). Preserve spelling, capitalisation and hyphenation exactly; do not reword them. Apply them to Sanity component labels, component image alt text, package and FAQ copy, and the web fallback catalogue.
+
+- Stable keys and document IDs (`angled-grab-bar`, `packageFeature-<key>`, …) are internal identifiers and must not change.
+- Descriptive prose that is not a component label (knowledge guides, solution-page option lists, photo descriptions) may describe items in ordinary language.
+- Unreferenced legacy Sanity documents and historical scripts such as `scripts/migrate-prerna-content.ts` keep their original wording.
+
 | Stable component key | Approved customer-facing name | Existing included quantity per package |
 | --- | --- | ---: |
 | `vertical-grab-bars` | Vertical grab bars | 3 |
@@ -19,9 +27,13 @@ The founder approved **14 component types** for the comprehensive bathroom safet
 | `total-support-solution` | Reinforced fixture support | 1 |
 | `emergency-key-box` | Emergency Key box | 1 |
 
-The quantities above describe installed units, not component types. No existing type is removed. The founder confirmed one Emergency Key box per package. Its approved photograph, physical specification, placement, installation method and usage guidance were not supplied; do not infer these from its name or substitute a product photograph.
+The quantities above describe installed units, not component types. No existing type is removed. The founder confirmed one Emergency Key box per package. Its physical specification, placement, installation method and usage guidance were not supplied; do not infer these from its name. (Its image was approved on 14 October 2026; see Publication status.)
 
-## CMS publication packet — not applied
+## Publication status — 14 October 2026
+
+The CMS publication below has been applied. Published Sanity holds all 14 components; `package-package-standard` and `package-package-advanced` each strongly reference the same 14 keys in the approved order, with unchanged quantities and prices; the homepage heading and FAQ answers use the approved wording. The founder approved the existing cropped Sanity asset as the Emergency Key box image. Its technical specification, placement and installation method are **not** approved and must not be published or inferred. The `image.alt` text of the seven renamed components was corrected to the canonical names on the same date (alt-only change; images, crops, references, quantities and prices untouched).
+
+## CMS publication packet — historical (applied 14 October 2026)
 
 The published `package-package-standard` and `package-package-advanced` documents currently each reference the same 13 `packageFeature-<key>` documents. Their prices and other presentation fields are unchanged. A reviewed CMS publication should:
 
