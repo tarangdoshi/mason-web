@@ -33,7 +33,8 @@ const TIERS: { value: ItemTier; label: string }[] = [
   { value: "essential", label: "Essential" },
   { value: "addon", label: "Add-on" }
 ];
-const PRICE_DEBOUNCE_MS = 700;
+/** Quiet period before a change is saved and priced, so a burst of taps or typing is one round (PATCH + price). */
+export const PRICE_DEBOUNCE_MS = 400;
 
 type Totals = { essentialPaise: number | null; addonPaise: number | null; priceListVersion: string | null };
 type Override = { essentialPaise: number | null; addonPaise: number | null; reason: string };
@@ -45,11 +46,17 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   const [totals, setTotals] = useState<Totals | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [override, setOverride] = useState<Override | null>(null);
+  // Bumped when a pricing round finishes, so edits made during it are priced after a fresh debounce.
+  const [roundsDone, setRoundsDone] = useState(0);
+  const [dateSaved, setDateSaved] = useState(false);
 
   // One pricing request at a time; edits made meanwhile are priced as soon as it returns.
   const inFlight = useRef(false);
   const latestDraft = useRef(draft);
   const lastPricedKey = useRef<string | null>(null);
+  // The draft state whose pricing failed. It is never retried automatically: staff tap retry, or edit again.
+  const failedKey = useRef<string | null>(null);
+  const failedMessage = useRef<string | undefined>(undefined);
   const idRef = useRef<string | null>(null);
   latestDraft.current = draft;
 
@@ -58,6 +65,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
     const snapshot = latestDraft.current;
     const key = pricingKey(snapshot);
     if (key === lastPricedKey.current || draftProblem(snapshot)) return;
+    failedKey.current = null;
     inFlight.current = true;
     setStatus({ kind: "pricing" });
     const result = await saveAndPriceProposal(idRef.current, snapshot);
@@ -70,13 +78,17 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
       lastPricedKey.current = key;
       setTotals({ essentialPaise: result.essentialPaise, addonPaise: result.addonPaise, priceListVersion: result.priceListVersion });
       setOverride(null); // any re-price clears an override on the server
+      setDateSaved(result.dateSaved);
       setStatus({ kind: "priced" });
     } else {
       setTotals(null);
+      lastPricedKey.current = null; // no priced state remains to restore; returning to it re-prices
       setOverride(null); // the save step may already have cleared it on the server
+      failedKey.current = key;
+      failedMessage.current = result.error;
       setStatus({ kind: "error", message: result.error });
     }
-    if (pricingKey(latestDraft.current) !== key && !draftProblem(latestDraft.current)) void runPricing();
+    setRoundsDone((count) => count + 1);
   }, []);
 
   const problem = draftProblem(draft);
@@ -84,16 +96,27 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   // Live re-pricing starts only once staff have created the draft explicitly, so a half-typed
   // Zoho Lead ID can never be saved (it is fixed after creation).
   useEffect(() => {
-    if (proposalId === null || problem || key === lastPricedKey.current) return;
-    setStatus((current) => (current.kind === "pricing" ? current : { kind: "waiting" }));
+    if (proposalId === null || problem || inFlight.current) return;
+    // An edit undone within the debounce lands back on a known state: restore it rather than stay "waiting".
+    if (key === lastPricedKey.current) {
+      setStatus((current) => (current.kind === "waiting" ? { kind: "priced" } : current));
+      return;
+    }
+    if (key === failedKey.current) {
+      setStatus((current) => (current.kind === "waiting" ? { kind: "error", message: failedMessage.current } : current));
+      return;
+    }
+    setStatus({ kind: "waiting" });
     const timer = setTimeout(() => void runPricing(), PRICE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [key, problem, proposalId, runPricing]);
+  }, [key, problem, proposalId, roundsDone, runPricing]);
 
   const retry = () => {
     lastPricedKey.current = null;
+    failedKey.current = null;
     void runPricing();
   };
+  const stale = proposalId !== null && status.kind === "error";
 
   const update = (patch: Partial<BuilderDraft>) => setDraft((current) => ({ ...current, ...patch }));
   const updateItem = (index: number, patch: Partial<BuilderItem>) =>
@@ -138,7 +161,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
           <label className={styles.field}>
             <span>Proposal date</span>
             <input name="proposalDate" type="date" value={draft.proposalDate} onChange={(event) => update({ proposalDate: event.target.value })} />
-            <small>Shown on the customer page (Phase 2). Not saved yet.</small>
+            <small data-testid="date-hint">{dateSaved ? "Saved with the draft." : "Shown on the customer page (Phase 2). Not saved by the API yet."}</small>
           </label>
           <div className={styles.field}>
             <span id="rooms-label">Bathrooms covered</span>
@@ -221,7 +244,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
 
       <aside className={styles.totals} aria-labelledby="proposal-totals" aria-live="polite">
         <h3 id="proposal-totals">Totals</h3>
-        <div className={styles.totalCards}>
+        <div className={styles.totalCards} data-stale={stale || undefined} data-updating={status.kind === "waiting" || status.kind === "pricing" || undefined}>
           <div className={styles.totalCard} data-testid="total-essential">
             <span>Essential</span>
             <strong>{formatRupees(essentialShown)}</strong>
@@ -234,6 +257,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
         <p className={styles.roomsLine} data-testid="rooms-line">Covers {roomsLabel}. Other rooms: quoted after inspection.</p>
         <p className={styles.status} data-status={status.kind} role={status.kind === "error" ? "alert" : undefined}>
           {problem ? problem
+            : stale ? "The totals above are not current. Do not quote a price until they update."
             : status.kind === "error" ? status.message
             : status.kind === "pricing" ? "Updating totals…"
             : status.kind === "waiting" ? "Totals will update in a moment."
@@ -246,8 +270,11 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
             {status.kind === "pricing" ? "Saving…" : "Save draft and price"}
           </button>
         )}
-        {proposalId !== null && status.kind === "error" && (
-          <button type="button" className={styles.secondary} onClick={retry}>Retry pricing</button>
+        {stale && (
+          <button type="button" className={styles.retry} onClick={retry} data-testid="price-retry">
+            <strong>Price not updated, tap to retry</strong>
+            <span>{status.message}</span>
+          </button>
         )}
         {override && <p className={styles.overrideNote} data-testid="override-applied">Admin override applied: {override.reason}</p>}
         {isAdmin && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
