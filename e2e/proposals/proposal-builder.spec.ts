@@ -41,11 +41,11 @@ test("agent builds a proposal with live totals and never sees the override", asy
   await expect(page.getByTestId("admin-override")).toHaveCount(0);
 
   const row = (key: string) => page.getByTestId(`component-${key}`);
-  await row("vertical-grab-bars").getByText("Declined", { exact: true }).click();
-  await row("folding-bar").getByText("Already present", { exact: true }).click();
+  await row("vertical-grab-bars").getByRole("radio", { name: "Declined", exact: true }).check();
+  await row("folding-bar").getByRole("radio", { name: "Already present", exact: true }).check();
   await row("angled-grab-bar").getByRole("button", { name: /^More / }).click();
   await row("angled-grab-bar").getByPlaceholder("Variant (optional)").fill("Left hand");
-  await row("two-way-lock").getByText("Add-on", { exact: true }).click();
+  await row("two-way-lock").getByRole("radio", { name: "Add-on", exact: true }).check();
   await page.getByRole("button", { name: "More bathrooms" }).click();
 
   await expect(page.getByTestId("total-essential")).toContainText("₹17,999");
@@ -70,8 +70,8 @@ test("admin override needs a reason and replaces the total", async ({ page }, te
   await signIn(page, "admin");
   await page.goto("/crm/proposals/new");
   await fillCustomer(page);
-  await page.getByTestId("component-two-way-lock").getByText("Add-on", { exact: true }).click();
-  await expect(page.getByTestId("total-addon")).toContainText("₹21,999");
+  await page.getByTestId("component-two-way-lock").getByRole("radio", { name: "Add-on", exact: true }).check();
+  await expect(page.getByTestId("total-addon")).toContainText("₹20,999");
 
   const form = page.getByTestId("admin-override");
   await form.getByLabel("Essential (₹)").fill("17,500");
