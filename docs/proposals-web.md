@@ -28,7 +28,9 @@ for founder review.
   the Proposal row). Page copy (headline with `{name}`, intro, state labels, option titles, other-rooms
   line), payment terms (≥ 1), what-happens-next steps (≥ 1), **disclaimer (required, whitespace refused)**.
 
-Seed copy lives in `content/proposals/seed.ts`. Until the founder's approved 20 Nov design is supplied
+Seed copy lives in `content/proposals/seed.ts` (approved 20 Nov copy; 5 approved benefit lines, 9 marked `CMO TO WRITE:` which Studio refuses to publish; Drainage clearance and EVA slippers complimentary by default). The 15 drafts were applied to the production dataset on 21 Nov (drafts only). With a Sanity read token, the dry run reports each document as "exists, skip" or "would create draft".
+
+Previous note: Until the founder's approved 20 Nov design is supplied
 (with the customer name removed), it holds `PENDING_FOUNDER_COPY` markers and the seed script refuses to
 run. Dry run by default; `--apply` needs `SANITY_API_WRITE_TOKEN`. A document that already exists
 (published or draft) is skipped entirely, so re-running never shadows published photos or resets edits.

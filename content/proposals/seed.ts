@@ -57,10 +57,16 @@ const APPROVED_BENEFIT_LINES: Partial<Record<ProposalComponentKey, string>> = {
   "emergency-key-box": "Lets family or helpers reach you quickly if ever needed."
 };
 
+/** Shown to the customer as included at no charge (founder default; editable in Studio). */
+export const COMPLIMENTARY_BY_DEFAULT: readonly ProposalComponentKey[] = ["drainage-solution", "slippers-one"];
+
 export const componentSeeds: Record<ProposalComponentKey, ComponentSeed> = Object.fromEntries(
   PROPOSAL_COMPONENTS.map((component) => [
     component.key,
-    { benefitLine: APPROVED_BENEFIT_LINES[component.key] ?? cmoPlaceholder(component.name), complimentary: false }
+    {
+      benefitLine: APPROVED_BENEFIT_LINES[component.key] ?? cmoPlaceholder(component.name),
+      complimentary: COMPLIMENTARY_BY_DEFAULT.includes(component.key)
+    }
   ])
 ) as Record<ProposalComponentKey, ComponentSeed>;
 

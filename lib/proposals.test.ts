@@ -105,6 +105,7 @@ test("the seed holds the approved copy: 5 benefit lines, 9 CMO placeholders, Saf
     .filter((key) => !["vertical-grab-bars", "angled-grab-bar", "anti-slip-coating", "two-way-lock", "emergency-key-box"].includes(key)).sort());
   assert.equal(componentSeeds["two-way-lock"].benefitLine, "Privacy from inside, with a door family can open from outside if needed.");
   assert.equal(templateSeed.addonName, "Safety Add-on");
+  assert.deepEqual(Object.entries(componentSeeds).filter(([, seed]) => seed.complimentary).map(([key]) => key).sort(), ["drainage-solution", "slippers-one"]);
   assert.match(templateSeed.disclaimer, /^Mason Company bathroom safety upgrades are preventive support measures\./);
   assert.equal(templateSeed.whatHappensNext.length, 3);
   // The copy source must stay free of customer data: only the template placeholders appear in braces.

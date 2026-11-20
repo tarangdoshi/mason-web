@@ -4,8 +4,9 @@ import { cmoPendingComponents, componentSeeds, seedProblems, templateSeed, type 
 import { sanityApiVersion, sanityDataset, sanityProjectId } from "../sanity/env";
 
 /* Seeds the Proposal Builder documents as Sanity DRAFTS (`drafts.*` IDs) for founder/CMO review.
-   Nothing is ever published by this script. Dry run by default (prints the planned documents);
-   `--apply` writes. A document that already exists (published or draft) is skipped entirely, so
+   Nothing is ever published by this script. Dry run by default (reads only);
+   `--apply` writes. With a Sanity token the dry run reports, per document, "exists, skip" or "would create draft".
+   A document that already exists (published or draft) is skipped entirely, so
    re-running never shadows published photos or resets edits. */
 
 const apply = process.argv.includes("--apply");
@@ -41,26 +42,37 @@ async function main() {
   }
   const docs = plannedDocuments();
   const pending = cmoPendingComponents(componentSeeds);
-  if (!apply) {
-    console.log(JSON.stringify(docs, null, 2));
-    console.log(`\nDry run (dataset "${sanityDataset}"). Would create ${docs.length} DRAFT documents if they do not exist:`);
-    for (const doc of docs) console.log(`  ${doc._id}`);
-    console.log(`Benefit lines awaiting the CMO (${pending.length}): ${pending.join(", ")}`);
-    console.log("Nothing is published. Re-run with --apply to write the drafts.");
-    return;
-  }
-
-  const token = process.env.SANITY_API_WRITE_TOKEN;
-  if (!token || !sanityProjectId) {
+  const baseId = (id: string) => id.replace(/^drafts\./, "");
+  // A dry run only reads, so any token that can see drafts will do; --apply needs the write token.
+  const token = apply ? process.env.SANITY_API_WRITE_TOKEN : process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN;
+  const canQuery = Boolean(token && sanityProjectId);
+  if (apply && !canQuery) {
     console.error("SANITY_API_WRITE_TOKEN and NEXT_PUBLIC_SANITY_PROJECT_ID are required with --apply.");
     process.exit(1);
   }
-  // "raw" so the existence check sees drafts as well as published documents.
-  const client = createClient({ projectId: sanityProjectId, dataset: sanityDataset, apiVersion: sanityApiVersion, token, useCdn: false, perspective: "raw" });
-  const baseIds = docs.map((doc) => doc._id.replace(/^drafts\./, ""));
-  const found = await client.fetch<string[]>("*[_id in $ids]._id", { ids: baseIds.flatMap((id) => [id, `drafts.${id}`]) });
-  const existing = new Set(found.map((id) => id.replace(/^drafts\./, "")));
-  const toWrite = docs.filter((doc) => !existing.has(doc._id.replace(/^drafts\./, "")));
+  let existing: Set<string> | null = null;
+  if (canQuery) {
+    // "raw" so the existence check sees drafts as well as published documents.
+    const client = createClient({ projectId: sanityProjectId, dataset: sanityDataset, apiVersion: sanityApiVersion, token, useCdn: false, perspective: "raw" });
+    const found = await client.fetch<string[]>("*[_id in $ids]._id", { ids: docs.flatMap((doc) => [baseId(doc._id), `drafts.${baseId(doc._id)}`]) });
+    existing = new Set(found.map(baseId));
+    if (apply) return write(client, docs, existing);
+  }
+
+  if (process.argv.includes("--json")) console.log(JSON.stringify(docs, null, 2));
+  console.log(`Dry run (dataset "${sanityDataset}"). Nothing is written or published.`);
+  for (const doc of docs) {
+    const state = existing === null ? "not checked (no Sanity token)" : existing.has(baseId(doc._id)) ? "exists, skip" : "would create draft";
+    console.log(`  ${doc._id}: ${state}`);
+  }
+  if (existing !== null) console.log(`Summary: ${docs.filter((doc) => existing!.has(baseId(doc._id))).length} exist (skip), ${docs.filter((doc) => !existing!.has(baseId(doc._id))).length} would be created.`);
+  console.log(`Benefit lines awaiting the CMO (${pending.length}): ${pending.join(", ")}`);
+  console.log("Re-run with --apply to write missing drafts; add --json to print the planned documents.");
+}
+
+async function write(client: ReturnType<typeof createClient>, docs: Doc[], existing: Set<string>) {
+  const baseId = (id: string) => id.replace(/^drafts\./, "");
+  const toWrite = docs.filter((doc) => !existing.has(baseId(doc._id)));
   if (toWrite.length === 0) {
     console.log("Nothing to seed: every proposal document already exists. Edit them in Studio.");
     return;
