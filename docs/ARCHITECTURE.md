@@ -76,7 +76,7 @@ next.config.ts · vercel.json · package.json · tsconfig.json
 
 ## Environment Variables
 
-**Browser-safe (`NEXT_PUBLIC_*`):** `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `NEXT_PUBLIC_SANITY_API_VERSION`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.
+**Browser-safe (`NEXT_PUBLIC_*`):** `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `NEXT_PUBLIC_SANITY_API_VERSION`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_PROPOSALS_ENABLED` (Proposal Builder; anything but `true` hides `/crm/proposals/*` with a 404 and the Studio "Proposals" menu — see `docs/proposals-web.md`).
 
 **Server-only:** `SANITY_API_READ_TOKEN`, `SANITY_PREVIEW_SECRET`, `SANITY_API_WRITE_TOKEN` (seed/import only). **Never** prefix a secret with `NEXT_PUBLIC_`. `NEXT_PUBLIC_*` values are baked at build → require a redeploy to change.
 
