@@ -21,6 +21,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutAction } from "./actions";
 import type { StaffUser } from "../../../lib/crm";
+import { proposalsEnabled } from "../../../lib/proposals/flag";
 import styles from "./crm.module.css";
 
 const { Header, Sider, Content } = Layout;
@@ -32,6 +33,9 @@ function getSelectedKey(pathname: string) {
   }
   if (pathname.startsWith("/crm/payments")) {
     return "payments";
+  }
+  if (pathname.startsWith("/crm/proposals")) {
+    return "proposals";
   }
   if (pathname === "/crm/content") {
     return "content-overview";
@@ -87,7 +91,10 @@ export default function CrmShell({
         {
           key: "payments",
           label: <Link href="/crm/payments">Payments</Link>
-        }
+        },
+        ...(proposalsEnabled()
+          ? [{ key: "proposals", label: <Link href="/crm/proposals/new">New proposal</Link> }]
+          : [])
       ]
     },
     {

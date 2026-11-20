@@ -2,6 +2,8 @@ import { defineConfig } from "sanity";
 import { presentationTool } from "sanity/presentation";
 import { structureTool, type StructureBuilder } from "sanity/structure";
 import { schemaTypes } from "./sanity/schemaTypes";
+import { proposalDocumentTypes } from "./sanity/schemaTypes/proposals";
+import { proposalsEnabled } from "./lib/proposals/flag";
 import { sanityApiVersion, sanityDataset, sanityProjectId } from "./sanity/env";
 
 /* Documents that exist exactly once. They open straight from the menu and
@@ -57,6 +59,22 @@ export default defineConfig({
             single(S, "gallery"),
             single(S, "siteSettings"),
             single(S, "seo"),
+            ...(proposalsEnabled()
+              ? [
+                  S.divider(),
+                  S.listItem()
+                    .title("Proposals")
+                    .id("proposals")
+                    .child(
+                      S.list()
+                        .title("Proposals")
+                        .items([
+                          S.documentTypeListItem("componentLibrary").title("Proposal components"),
+                          S.documentTypeListItem("proposalTemplate").title("Proposal templates")
+                        ])
+                    )
+                ]
+              : []),
             S.divider(),
             S.listItem()
               .title("More")
@@ -105,11 +123,11 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     // Singletons are opened from the menu, never created from "New document".
-    templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType) && schemaType !== "package" && schemaType !== "packageFeature")
+    templates: (templates) => templates.filter(({ schemaType }) => !singletonTypes.has(schemaType) && schemaType !== "package" && schemaType !== "packageFeature" && !proposalDocumentTypes.has(schemaType))
   },
   document: {
     actions: (actions, { schemaType }) =>
-      singletonTypes.has(schemaType) || schemaType === "package" || schemaType === "packageFeature"
+      singletonTypes.has(schemaType) || schemaType === "package" || schemaType === "packageFeature" || proposalDocumentTypes.has(schemaType)
         ? actions.filter(({ action }) => action !== "duplicate" && action !== "delete" && action !== "unpublish")
         : actions
   }

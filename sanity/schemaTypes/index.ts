@@ -7,6 +7,7 @@ import { riskQuiz } from "./riskQuiz";
 import { siteSettings } from "./siteSettings";
 import { testimonial } from "./testimonial";
 import { aboutPage, faqs, gallery, packagesPage, seo } from "./pages";
+import { proposalSchemaTypes } from "./proposals";
 import { ctaFields, evidenceCard, faqItem, imageWithAlt, processStep, sectionHeader, seoFields } from "./objects";
 
 export const schemaTypes = [
@@ -29,5 +30,6 @@ export const schemaTypes = [
   gallery,
   packagesPage,
   aboutPage,
-  seo
+  seo,
+  ...proposalSchemaTypes
 ];
