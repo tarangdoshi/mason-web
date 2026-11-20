@@ -10,6 +10,13 @@ const staff = {
 };
 const proposals = new Map();
 const log = [];
+let failNextPrice = false; // POST /__fail-next-price → the next price call answers 503
+let dateSupport = false; // POST /__date-support → behave as if the API stores proposalDate
+// Like zod's default object parsing in mason-api: unknown keys are dropped.
+const known = (body) => {
+  const { proposalDate, ...rest } = body ?? {};
+  return dateSupport ? { ...rest, proposalDate } : rest;
+};
 const roundUp999 = (paise) => Math.ceil((paise + 100) / 100_000) * 100_000 - 100;
 
 function price(items) {
@@ -27,7 +34,9 @@ createServer(async (req, res) => {
   const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : undefined;
   const url = new URL(req.url, "http://x");
   if (url.pathname === "/__log") return send(res, 200, { data: log });
-  if (url.pathname === "/__reset") { log.length = 0; proposals.clear(); return send(res, 200, {}); }
+  if (url.pathname === "/__reset") { log.length = 0; proposals.clear(); failNextPrice = false; dateSupport = false; return send(res, 200, {}); }
+  if (url.pathname === "/__fail-next-price") { failNextPrice = true; return send(res, 200, {}); }
+  if (url.pathname === "/__date-support") { dateSupport = true; return send(res, 200, {}); }
   const user = staff[(req.headers.authorization || "").replace("Bearer ", "")];
   if (!user) return send(res, 401, { error: "Unauthorized" });
   log.push({ method: req.method, path: url.pathname, role: user.role, body });
@@ -37,15 +46,19 @@ createServer(async (req, res) => {
   if (!match) return send(res, 404, { error: "Not found" });
   const [, id, action] = match;
   if (!id && req.method === "POST") {
-    const proposal = { id: randomUUID(), ...body, essentialTotalPaise: null, addonTotalPaise: null, priceListVersion: null, override: null };
+    const proposal = { id: randomUUID(), ...known(body), essentialTotalPaise: null, addonTotalPaise: null, priceListVersion: null, override: null };
     proposals.set(proposal.id, proposal);
     return send(res, 201, { data: proposal });
   }
   const proposal = proposals.get(id);
   if (!proposal) return send(res, 404, { error: "Proposal not found." });
   if (!action && req.method === "PATCH") {
-    Object.assign(proposal, body, { essentialTotalPaise: null, addonTotalPaise: null, override: null });
+    Object.assign(proposal, known(body), { essentialTotalPaise: null, addonTotalPaise: null, override: null });
     return send(res, 200, { data: proposal });
+  }
+  if (action === "price" && failNextPrice) {
+    failNextPrice = false;
+    return send(res, 503, { error: "Price list unavailable.", code: "PRICE_LIST_UNAVAILABLE" });
   }
   if (action === "price") {
     Object.assign(proposal, price(proposal.items), { priceListVersion: "synthetic01" });

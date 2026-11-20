@@ -123,3 +123,66 @@ test("touch targets are at least 44 px and the page never scrolls sideways", asy
   expect(offenders).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test("a failed price shows a visible retry state and is never retried silently", async ({ page }, testInfo) => {
+  await signIn(page, "agent");
+  await page.goto("/crm/proposals/new");
+  await fillCustomer(page);
+  await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
+
+  await page.request.post(`${API}/__fail-next-price`);
+  await page.getByTestId("component-two-way-lock").getByRole("radio", { name: "Add-on", exact: true }).check();
+  const retry = page.getByTestId("price-retry");
+  await expect(retry).toContainText("Price not updated, tap to retry");
+  await expect(page.getByTestId("total-essential")).toContainText("—");
+  const priceCalls = async () => (await writes(page)).filter((entry: { path: string }) => entry.path.endsWith("/price")).length;
+  const afterFailure = await priceCalls();
+  await page.waitForTimeout(2_000);
+  expect(await priceCalls()).toBe(afterFailure); // no silent retry
+  await page.screenshot({ path: testInfo.outputPath(`retry-${testInfo.project.name}.png`), fullPage: false });
+
+  await retry.click();
+  await expect(page.getByTestId("total-addon")).toContainText("₹25,999");
+  await expect(retry).toHaveCount(0);
+});
+
+test("a burst of quantity taps is one save-and-price round", async ({ page }) => {
+  await signIn(page, "agent");
+  await page.goto("/crm/proposals/new");
+  await fillCustomer(page);
+  await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
+  const before = (await writes(page)).length;
+  const rounds = async (from: number) =>
+    (await writes(page)).slice(from).map((entry: { method: string; path: string }) => `${entry.method} ${entry.path.endsWith("/price") ? "price" : "draft"}`);
+  // Five taps 150 ms apart (a brisk human cadence; Playwright's own clicks are slower than the debounce).
+  await page.getByTestId("component-shower-stool").getByRole("button", { name: /^More / }).evaluate(async (button: HTMLButtonElement) => {
+    for (let tap = 0; tap < 5; tap += 1) {
+      button.click();
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  });
+  await expect(page.getByTestId("qty-shower-stool")).toHaveText("6");
+  await expect(page.getByTestId("total-essential")).toContainText("₹29,999");
+  await page.waitForTimeout(1_000);
+  expect(await rounds(before)).toEqual(["PATCH draft", "POST price"]);
+
+  // Typing a variant at 80 ms per key is also a single round.
+  const afterTaps = (await writes(page)).length;
+  await page.getByTestId("component-shower-stool").getByPlaceholder("Variant (optional)").pressSequentially("Wall fixed", { delay: 80 });
+  await page.waitForTimeout(1_200);
+  expect(await rounds(afterTaps)).toEqual(["PATCH draft", "POST price"]);
+});
+
+test("the proposal date is sent and reported saved once the API stores it", async ({ page }) => {
+  await signIn(page, "agent");
+  await page.goto("/crm/proposals/new");
+  await fillCustomer(page);
+  await expect(page.getByTestId("date-hint")).toContainText("Not saved by the API yet");
+  const created = (await writes(page))[0];
+  expect(created.body.proposalDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+  await page.request.post(`${API}/__date-support`);
+  await page.getByLabel("Proposal date").fill("2026-12-01");
+  await expect(page.getByTestId("date-hint")).toHaveText("Saved with the draft.");
+  expect((await writes(page)).filter((entry: { method: string }) => entry.method === "PATCH").at(-1).body.proposalDate).toBe("2026-12-01");
+});
