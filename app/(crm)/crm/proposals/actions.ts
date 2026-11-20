@@ -38,7 +38,8 @@ async function session() {
 
 function message(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.status === 404) return "The proposal service is not available yet.";
+    // The API's own 404 (e.g. "Proposal not found.") is shown as-is; a bare 404 means the routes are off.
+    if (error.status === 404) return error.message && error.message !== "Request failed." && error.message !== "Not Found" ? error.message : "The proposal service is not available yet.";
     if (error.status === 503) return "The price list is unavailable. Totals will appear once it loads.";
     return error.message;
   }

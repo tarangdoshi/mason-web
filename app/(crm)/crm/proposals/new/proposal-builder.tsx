@@ -73,6 +73,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
       setStatus({ kind: "priced" });
     } else {
       setTotals(null);
+      setOverride(null); // the save step may already have cleared it on the server
       setStatus({ kind: "error", message: result.error });
     }
     if (pricingKey(latestDraft.current) !== key && !draftProblem(latestDraft.current)) void runPricing();
@@ -80,12 +81,19 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
 
   const problem = draftProblem(draft);
   const key = pricingKey(draft);
+  // Live re-pricing starts only once staff have created the draft explicitly, so a half-typed
+  // Zoho Lead ID can never be saved (it is fixed after creation).
   useEffect(() => {
-    if (problem || key === lastPricedKey.current) return;
+    if (proposalId === null || problem || key === lastPricedKey.current) return;
     setStatus((current) => (current.kind === "pricing" ? current : { kind: "waiting" }));
     const timer = setTimeout(() => void runPricing(), PRICE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [key, problem, runPricing]);
+  }, [key, problem, proposalId, runPricing]);
+
+  const retry = () => {
+    lastPricedKey.current = null;
+    void runPricing();
+  };
 
   const update = (patch: Partial<BuilderDraft>) => setDraft((current) => ({ ...current, ...patch }));
   const updateItem = (index: number, patch: Partial<BuilderItem>) =>
@@ -130,6 +138,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
           <label className={styles.field}>
             <span>Proposal date</span>
             <input name="proposalDate" type="date" value={draft.proposalDate} onChange={(event) => update({ proposalDate: event.target.value })} />
+            <small>Shown on the customer page (Phase 2). Not saved yet.</small>
           </label>
           <div className={styles.field}>
             <span id="rooms-label">Bathrooms covered</span>
@@ -229,8 +238,17 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
             : status.kind === "pricing" ? "Updating totals…"
             : status.kind === "waiting" ? "Totals will update in a moment."
             : status.kind === "priced" ? `Priced with price list ${totals?.priceListVersion ?? "—"}. Draft saved.`
+            : proposalId === null ? "Check the Zoho Lead ID, then save the draft. Totals update live after that."
             : ""}
         </p>
+        {proposalId === null && (
+          <button type="button" className={styles.primary} disabled={Boolean(problem) || status.kind === "pricing"} onClick={retry}>
+            {status.kind === "pricing" ? "Saving…" : "Save draft and price"}
+          </button>
+        )}
+        {proposalId !== null && status.kind === "error" && (
+          <button type="button" className={styles.secondary} onClick={retry}>Retry pricing</button>
+        )}
         {override && <p className={styles.overrideNote} data-testid="override-applied">Admin override applied: {override.reason}</p>}
         {isAdmin && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
       </aside>

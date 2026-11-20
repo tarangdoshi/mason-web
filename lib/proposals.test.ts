@@ -11,9 +11,9 @@ import { componentLibrary, proposalTemplate } from "../sanity/schemaTypes/propos
 
 const read = (file: string) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("the 14 proposal components match the founder-approved catalogue names and order exactly", () => {
+test("the 14 proposal components match the founder-approved catalogue names, order and quantities exactly", () => {
   const catalogue = read("docs/PRODUCT_CATALOGUE_2026-10-13.md");
-  const rows = [...catalogue.matchAll(/^\| `([a-z0-9-]+)` \| ([^|]+?) \| \d+ \|$/gm)].map(([, key, name]) => ({ key, name }));
+  const rows = [...catalogue.matchAll(/^\| `([a-z0-9-]+)` \| ([^|]+?) \| (\d+) \|$/gm)].map(([, key, name, qty]) => ({ key, name, defaultQty: Number(qty) }));
   assert.equal(rows.length, 14);
   assert.deepEqual(PROPOSAL_COMPONENTS.map((item) => ({ ...item })), rows);
 });
@@ -31,6 +31,13 @@ test("the staff route, nav link and Studio menu are all gated by the flag", () =
   assert.match(read("app/(crm)/crm/crm-shell.tsx"), /\.\.\.\(proposalsEnabled\(\)\n\s+\? \[\{ key: "proposals"/);
   assert.match(read("sanity.config.ts"), /\.\.\.\(proposalsEnabled\(\)\n\s+\? \[\n\s+S\.divider\(\),\n\s+S\.listItem\(\)\n\s+\.title\("Proposals"\)/);
   assert.match(read("app/(crm)/crm/proposals/actions.ts"), /if \(!proposalsEnabled\(\)\) return \{ error: "Proposals are not enabled\." \}/);
+});
+
+test("the first save is explicit (no half-typed lead ID) and the seed never overwrites existing documents", () => {
+  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| key === lastPricedKey\.current\) return;/);
+  const seed = read("scripts/seed-proposals.ts");
+  assert.match(seed, /filter\(\(doc\) => !existing\.has/);
+  assert.doesNotMatch(seed, /\.patch\(/);
 });
 
 test("override is ADMIN-only on the server action, not just hidden in the UI", () => {
@@ -60,6 +67,8 @@ test("items go to the API in the canonical shape with blank variants as null and
   assert.equal(api.length, 14);
   assert.deepEqual(api[0], { component: "vertical-grab-bars", state: "recommended", qty: 20, variant: "60 cm", tier: "essential" });
   assert.equal(api[1].variant, null);
+  assert.equal(api.find((item) => item.component === "drainage-solution")!.qty, 4, "catalogue default quantity");
+  assert.equal(initialItems()[0].qty, 3, "catalogue default quantity");
   assert.notEqual(pricingKey(draft()), pricingKey(draft({ rooms: 2 })));
   assert.equal(pricingKey(draft()), pricingKey(draft({ proposalDate: "2026-12-01", zohoLeadId: "99999" })));
 });

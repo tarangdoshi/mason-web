@@ -324,6 +324,18 @@
   cursor: pointer;
 }
 
+.secondary {
+  min-height: var(--tap);
+  padding: 0 20px;
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .primary:disabled {
   background: #c5bab4;
   cursor: not-allowed;

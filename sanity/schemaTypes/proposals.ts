@@ -53,7 +53,7 @@ export const componentLibrary = defineType({
       of: [defineArrayMember(imageField("photo", "Photo", "landscape"))],
       validation: (rule) => rule.max(6)
     }),
-    imageField("icon", "Icon", "landscape", { description: "Small square symbol shown beside the name. A simple line icon on a light background works best." }),
+    imageField("icon", "Icon", "landscape", { description: "Small symbol shown beside the name; keep the symbol centred so it survives a square crop. A simple line icon on a light background works best." }),
     defineField({
       name: "complimentary",
       title: "Complimentary",

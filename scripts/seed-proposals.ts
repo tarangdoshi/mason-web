@@ -4,8 +4,8 @@ import { componentSeeds, seedProblems, templateSeed } from "../content/proposals
 import { sanityApiVersion, sanityDataset, sanityProjectId } from "../sanity/env";
 
 /* Seeds the Proposal Builder documents as Sanity DRAFTS for founder review in Studio.
-   Dry run by default; `--apply` writes. Existing photos and icons are never touched:
-   component drafts are created if missing and only text fields are set. */
+   Dry run by default; `--apply` writes. A document that already exists (published or draft)
+   is skipped entirely, so re-running never shadows published photos or resets founder edits. */
 
 const apply = process.argv.includes("--apply");
 const problems = seedProblems(componentSeeds, templateSeed);
@@ -36,14 +36,19 @@ if (!token || !sanityProjectId) {
   process.exit(1);
 }
 const client = createClient({ projectId: sanityProjectId, dataset: sanityDataset, apiVersion: sanityApiVersion, token, useCdn: false });
-const tx = client.transaction();
-for (const { _id, _type, key, name, ...text } of componentDocs) {
-  tx.createIfNotExists({ _id, _type, key, name });
-  tx.patch(_id, (patch) => patch.set({ key, name, ...text }));
+
+// Only documents that exist in neither published nor draft form are written. Anything already there
+// (photos, icons, the founder's Complimentary choice, edited copy) is left exactly as it is.
+const ids = [...componentDocs.map((doc) => doc._id), templateDoc._id].map((id) => id.replace(/^drafts\./, ""));
+const existing = new Set(
+  (await client.fetch<string[]>("*[_id in $ids]._id", { ids: ids.flatMap((id) => [id, `drafts.${id}`]) })).map((id) => id.replace(/^drafts\./, ""))
+);
+const toWrite: { _id: string; _type: string; [field: string]: unknown }[] = [...componentDocs, templateDoc].filter((doc) => !existing.has(doc._id.replace(/^drafts\./, "")));
+if (toWrite.length === 0) {
+  console.log("Nothing to seed: every proposal document already exists. Edit them in Studio.");
+  process.exit(0);
 }
-tx.createIfNotExists({ _id: templateDoc._id, _type: templateDoc._type, version: templateDoc.version });
-const { _id: templateId, _type: _ignored, ...templateFields } = templateDoc;
-void _ignored;
-tx.patch(templateId, (patch) => patch.set(templateFields));
+const tx = client.transaction();
+for (const doc of toWrite) tx.createIfNotExists(doc);
 await tx.commit();
-console.log(`Wrote ${componentDocs.length} component drafts and ${templateId}. Review and publish them in Studio.`);
+console.log(`Created ${toWrite.length} draft(s); skipped ${existing.size} existing. Review and publish them in Studio.`);

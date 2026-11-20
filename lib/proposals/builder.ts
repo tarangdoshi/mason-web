@@ -38,7 +38,7 @@ export const OVERRIDE_REASON_MIN = 10;
 export const OVERRIDE_REASON_MAX = 500;
 
 export function initialItems(): BuilderItem[] {
-  return PROPOSAL_COMPONENTS.map((component) => ({ component: component.key, state: "recommended", qty: 1, variant: "", tier: "essential" }));
+  return PROPOSAL_COMPONENTS.map((component) => ({ component: component.key, state: "recommended", qty: component.defaultQty, variant: "", tier: "essential" }));
 }
 
 export function clampInt(value: number, min: number, max: number): number {

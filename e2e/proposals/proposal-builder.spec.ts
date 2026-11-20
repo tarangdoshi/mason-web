@@ -15,6 +15,11 @@ async function lastPriced(page: Page) {
 async function fillCustomer(page: Page) {
   await page.getByLabel("Customer display name").fill("Mrs Example");
   await page.getByLabel("Zoho Lead ID").fill("1234567890");
+  await page.getByRole("button", { name: "Save draft and price" }).click();
+}
+async function writes(page: Page) {
+  const { data } = await (await page.request.get(`${API}/__log`)).json();
+  return data.filter((entry: { method: string }) => entry.method !== "GET");
 }
 
 test.beforeEach(async ({ request }) => { await request.post(`${API}/__reset`); });
@@ -34,8 +39,18 @@ test("agent builds a proposal with live totals and never sees the override", asy
   await expect(page.locator("[data-testid^=component-]")).toHaveCount(14);
   await expect(page.getByTestId("total-essential")).toContainText("—");
 
-  await fillCustomer(page);
-  await expect(page.getByTestId("total-essential")).toContainText("₹19,999");
+  // A slowly typed Zoho Lead ID is never saved half-way: nothing is written until staff press Save.
+  await page.getByLabel("Customer display name").fill("Mrs Example");
+  await page.getByLabel("Zoho Lead ID").pressSequentially("12345", { delay: 50 });
+  await page.waitForTimeout(1_500);
+  expect(await writes(page)).toEqual([]);
+  await page.getByLabel("Zoho Lead ID").pressSequentially("67890", { delay: 50 });
+  await page.getByRole("button", { name: "Save draft and price" }).click();
+  await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
+  expect((await writes(page))[0]).toMatchObject({ method: "POST", path: "/api/v1/internal/proposals", body: { zohoLeadId: "1234567890" } });
+  await expect(page.getByLabel("Zoho Lead ID")).toHaveAttribute("readonly", "");
+  await expect(page.getByTestId("qty-vertical-grab-bars")).toHaveText("3");
+  await expect(page.getByTestId("qty-drainage-solution")).toHaveText("4");
   await expect(page.getByTestId("total-addon")).toContainText("No add-ons");
   await expect(page.getByTestId("rooms-line")).toHaveText("Covers 1 bathroom. Other rooms: quoted after inspection.");
   await expect(page.getByTestId("admin-override")).toHaveCount(0);
@@ -48,8 +63,8 @@ test("agent builds a proposal with live totals and never sees the override", asy
   await row("two-way-lock").getByRole("radio", { name: "Add-on", exact: true }).check();
   await page.getByRole("button", { name: "More bathrooms" }).click();
 
-  await expect(page.getByTestId("total-essential")).toContainText("₹17,999");
-  await expect(page.getByTestId("total-addon")).toContainText("₹19,999");
+  await expect(page.getByTestId("total-essential")).toContainText("₹20,999");
+  await expect(page.getByTestId("total-addon")).toContainText("₹22,999");
   await expect(page.getByTestId("rooms-line")).toHaveText("Covers 2 bathrooms. Other rooms: quoted after inspection.");
   await expect(row("vertical-grab-bars").getByRole("button", { name: /^More / })).toBeHidden();
 
@@ -62,6 +77,7 @@ test("agent builds a proposal with live totals and never sees the override", asy
   expect(byKey["angled-grab-bar"]).toMatchObject({ qty: 2, variant: "Left hand", tier: "essential" });
   expect(byKey["two-way-lock"].tier).toBe("addon");
   expect(JSON.stringify(sent)).not.toContain("1234567890"); // lead ID only on create, never in edits
+  expect(byKey["drainage-solution"].qty).toBe(4);
 
   await page.screenshot({ path: testInfo.outputPath(`agent-${testInfo.project.name}.png`), fullPage: true });
 });
@@ -71,7 +87,7 @@ test("admin override needs a reason and replaces the total", async ({ page }, te
   await page.goto("/crm/proposals/new");
   await fillCustomer(page);
   await page.getByTestId("component-two-way-lock").getByRole("radio", { name: "Add-on", exact: true }).check();
-  await expect(page.getByTestId("total-addon")).toContainText("₹20,999");
+  await expect(page.getByTestId("total-addon")).toContainText("₹25,999");
 
   const form = page.getByTestId("admin-override");
   await form.getByLabel("Essential (₹)").fill("17,500");

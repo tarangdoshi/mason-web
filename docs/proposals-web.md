@@ -30,7 +30,8 @@ for founder review.
 
 Seed copy lives in `content/proposals/seed.ts`. Until the founder's approved 20 Nov design is supplied
 (with the customer name removed), it holds `PENDING_FOUNDER_COPY` markers and the seed script refuses to
-run. Dry run by default; `--apply` needs `SANITY_API_WRITE_TOKEN`. It never touches photos or icons.
+run. Dry run by default; `--apply` needs `SANITY_API_WRITE_TOKEN`. A document that already exists
+(published or draft) is skipped entirely, so re-running never shadows published photos or resets edits.
 
 ## Staff screen `/crm/proposals/new`
 
@@ -39,11 +40,14 @@ landscape: list beside sticky totals), works on phones. All controls ≥ 44 × 4
 so iOS does not zoom.
 
 * Customer: display name (API rules mirrored: ≤ 80 chars, no phone number, no email), Zoho Lead ID
-  (prefilled from `?zohoLeadId=`; fixed once saved), proposal date, bathrooms 1–10.
+  (prefilled from `?zohoLeadId=`; fixed once saved), proposal date (display only until the API stores it),
+  bathrooms 1–10.
 * 14 components in the approved order: Recommended / Already present / Declined; for recommended items,
-  quantity 1–20, optional variant, Essential / Add-on.
-* Live totals: each change (debounced 700 ms, one request at a time) creates or PATCHes the draft and calls
-  `POST /:id/price`. Shows Essential and Essential + Add-on (or "No add-ons"), the price-list version,
+  quantity 1–20 (starting at the catalogue quantity: 3 Vertical grab bars, 4 Drainage clearance, else 1),
+  optional variant, Essential / Add-on.
+* Live totals: staff press **Save draft and price** once (so a half-typed Zoho Lead ID is never saved); after
+  that every change (debounced 700 ms, one request at a time) PATCHes the draft and calls `POST /:id/price`.
+  A failed pricing round shows the reason and a **Retry pricing** button, and clears any override shown. Shows Essential and Essential + Add-on (or "No add-ons"), the price-list version,
   and "Covers N bathroom(s). Other rooms: quoted after inspection."
 * ADMIN only: override Essential and/or Add-on with a reason of ≥ 10 characters (`POST /:id/override`).
   Hidden for AGENT and refused by the server action and the API. Any later edit re-prices and clears it
