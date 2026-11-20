@@ -35,7 +35,7 @@ test("the staff route, nav link and Studio menu are all gated by the flag", () =
 });
 
 test("the first save is explicit (no half-typed lead ID) and the seed never overwrites existing documents", () => {
-  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| key === lastPricedKey\.current \|\| key === failedKey\.current \|\| inFlight\.current\) return;/);
+  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| inFlight\.current\) return;/);
   const seed = read("scripts/seed-proposals.ts");
   assert.match(seed, /filter\(\(doc\) => !existing\.has/);
   assert.doesNotMatch(seed, /\.patch\(/);
@@ -46,6 +46,7 @@ test("a failed price is never retried silently, and live totals debounce at abou
   assert.match(source, /export const PRICE_DEBOUNCE_MS = 400;/);
   assert.match(source, /failedKey\.current = key;/);
   assert.match(source, /Price not updated, tap to retry/);
+  assert.match(source, /if \(key === failedKey\.current\) \{\n\s+setStatus\(\(current\) => \(current\.kind === "waiting" \? \{ kind: "error"/, "undo after a failure restores the retry state");
   assert.doesNotMatch(source, /void runPricing\(\);\n  \}, \[\]\);/, "no immediate re-run at the end of a round");
 });
 

@@ -141,6 +141,17 @@ test("a failed price shows a visible retry state and is never retried silently",
   expect(await priceCalls()).toBe(afterFailure); // no silent retry
   await page.screenshot({ path: testInfo.outputPath(`retry-${testInfo.project.name}.png`), fullPage: false });
 
+  // An edit undone within the debounce must bring the retry state back, not leave "waiting" forever.
+  await page.getByTestId("component-shower-stool").evaluate(async (row: HTMLElement) => {
+    const [more, fewer] = [row.querySelector<HTMLButtonElement>('button[aria-label^="More"]')!, row.querySelector<HTMLButtonElement>('button[aria-label^="Fewer"]')!];
+    more.click();
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    fewer.click();
+  });
+  await page.waitForTimeout(1_000);
+  await expect(retry).toBeVisible();
+  expect(await priceCalls()).toBe(afterFailure);
+
   await retry.click();
   await expect(page.getByTestId("total-addon")).toContainText("₹25,999");
   await expect(retry).toHaveCount(0);
@@ -177,6 +188,7 @@ test("the proposal date is sent and reported saved once the API stores it", asyn
   await signIn(page, "agent");
   await page.goto("/crm/proposals/new");
   await fillCustomer(page);
+  await expect(page.getByTestId("total-essential")).toContainText("₹24,999"); // the create has completed
   await expect(page.getByTestId("date-hint")).toContainText("Not saved by the API yet");
   const created = (await writes(page))[0];
   expect(created.body.proposalDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);

@@ -80,7 +80,7 @@ async function write(client: ReturnType<typeof createClient>, docs: Doc[], exist
   const tx = client.transaction();
   for (const doc of toWrite) tx.createIfNotExists(doc);
   await tx.commit();
-  console.log(`Created ${toWrite.length} DRAFT document(s) in dataset "${sanityDataset}"; skipped ${existing.size} existing:`);
+  console.log(`Created ${toWrite.length} DRAFT document(s) in dataset "${sanityDataset}"; skipped ${docs.length - toWrite.length} existing:`);
   for (const doc of toWrite) console.log(`  ${doc._id}`);
   console.log("Nothing was published. Review and publish in Studio once the CMO has written the remaining benefit lines.");
 }

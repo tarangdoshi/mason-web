@@ -48,7 +48,7 @@ export const componentLibrary = defineType({
       description: "One short line the customer reads under the name, e.g. what it prevents.",
       validation: (rule) =>
         rule.required().max(140).custom(nonEmpty("Benefit line")).custom((value) =>
-          typeof value === "string" && value.startsWith(CMO_PLACEHOLDER_PREFIX) ? "Still a placeholder: the CMO needs to write this benefit line before publishing." : true)
+          typeof value === "string" && value.startsWith(CMO_PLACEHOLDER_PREFIX) ? "Still a placeholder: the CMO needs to write this benefit line before publishing." : true).custom(placeholderCheck)
     }),
     defineField({ name: "description", title: "Description", type: "text", rows: 3, validation: (rule) => rule.max(600) }),
     defineField({
@@ -81,11 +81,11 @@ export function unknownPlaceholders(value: string): string[] {
   return [...value.matchAll(/\{([^{}]*)\}/g)].map((match) => match[1]).filter((name) => !(TEMPLATE_PLACEHOLDERS as readonly string[]).includes(name));
 }
 
-const placeholderCheck = (value: unknown) => {
+function placeholderCheck(value: unknown) {
   if (typeof value !== "string") return true;
   const unknown = unknownPlaceholders(value);
   return unknown.length ? `Unknown placeholder ${unknown.map((name) => `{${name}}`).join(", ")}. Use only ${TEMPLATE_PLACEHOLDERS.map((name) => `{${name}}`).join(", ")}.` : true;
-};
+}
 
 const copy = (name: string, title: string, options: { required?: boolean; text?: boolean; initialValue?: string; description?: string } = {}) =>
   defineField({
@@ -212,7 +212,7 @@ export const proposalTemplate = defineType({
       rows: 5,
       group: "legal",
       description: "Required. A proposal template cannot be published without it.",
-      validation: (rule) => rule.required().custom(nonEmpty("Disclaimer"))
+      validation: (rule) => rule.required().custom(nonEmpty("Disclaimer")).custom(placeholderCheck)
     })
   ],
   preview: { select: { title: "version", subtitle: "addonName" }, prepare: ({ title, subtitle }) => ({ title: `Proposal template ${title ?? ""}`.trim(), subtitle }) }

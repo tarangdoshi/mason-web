@@ -56,6 +56,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   const lastPricedKey = useRef<string | null>(null);
   // The draft state whose pricing failed. It is never retried automatically: staff tap retry, or edit again.
   const failedKey = useRef<string | null>(null);
+  const failedMessage = useRef<string | undefined>(undefined);
   const idRef = useRef<string | null>(null);
   latestDraft.current = draft;
 
@@ -83,6 +84,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
       setTotals(null);
       setOverride(null); // the save step may already have cleared it on the server
       failedKey.current = key;
+      failedMessage.current = result.error;
       setStatus({ kind: "error", message: result.error });
     }
     setRoundsDone((count) => count + 1);
@@ -93,7 +95,16 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   // Live re-pricing starts only once staff have created the draft explicitly, so a half-typed
   // Zoho Lead ID can never be saved (it is fixed after creation).
   useEffect(() => {
-    if (proposalId === null || problem || key === lastPricedKey.current || key === failedKey.current || inFlight.current) return;
+    if (proposalId === null || problem || inFlight.current) return;
+    // An edit undone within the debounce lands back on a known state: restore it rather than stay "waiting".
+    if (key === lastPricedKey.current) {
+      setStatus((current) => (current.kind === "waiting" ? { kind: "priced" } : current));
+      return;
+    }
+    if (key === failedKey.current) {
+      setStatus((current) => (current.kind === "waiting" ? { kind: "error", message: failedMessage.current } : current));
+      return;
+    }
     setStatus({ kind: "waiting" });
     const timer = setTimeout(() => void runPricing(), PRICE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
@@ -232,7 +243,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
 
       <aside className={styles.totals} aria-labelledby="proposal-totals" aria-live="polite">
         <h3 id="proposal-totals">Totals</h3>
-        <div className={styles.totalCards} data-stale={stale || undefined}>
+        <div className={styles.totalCards} data-stale={stale || undefined} data-updating={status.kind === "waiting" || status.kind === "pricing" || undefined}>
           <div className={styles.totalCard} data-testid="total-essential">
             <span>Essential</span>
             <strong>{formatRupees(essentialShown)}</strong>

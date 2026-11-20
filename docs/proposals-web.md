@@ -25,15 +25,9 @@ for founder review.
   photos (≤ 6), icon, complimentary flag (display only — pricing follows the sheet's Complimentary column;
   api open question 3).
 * `proposalTemplate` — ID `proposalTemplate-<version>`, `version` like `v1` (matches `templateVersion` on
-  the Proposal row). Page copy (headline with `{name}`, intro, state labels, option titles, other-rooms
-  line), payment terms (≥ 1), what-happens-next steps (≥ 1), **disclaimer (required, whitespace refused)**.
+  the Proposal row). Page copy (3-page copy with the placeholders `{customerName}`, `{date}`, `{essentialPrice}`, `{addonPrice}`, `{addonName}`; `addonName` defaults to "Safety Add-on"), payment terms (≥ 1), what-happens-next steps (≥ 1), **disclaimer (required, whitespace refused)**.
 
 Seed copy lives in `content/proposals/seed.ts` (approved 20 Nov copy; 5 approved benefit lines, 9 marked `CMO TO WRITE:` which Studio refuses to publish; Drainage clearance and EVA slippers complimentary by default). The 15 drafts were applied to the production dataset on 21 Nov (drafts only). With a Sanity read token, the dry run reports each document as "exists, skip" or "would create draft".
-
-Previous note: Until the founder's approved 20 Nov design is supplied
-(with the customer name removed), it holds `PENDING_FOUNDER_COPY` markers and the seed script refuses to
-run. Dry run by default; `--apply` needs `SANITY_API_WRITE_TOKEN`. A document that already exists
-(published or draft) is skipped entirely, so re-running never shadows published photos or resets edits.
 
 ## Staff screen `/crm/proposals/new`
 
@@ -58,6 +52,8 @@ so iOS does not zoom.
 No customer page in Phase 1.
 
 ## Gaps for the api lane
+
+0. **`proposalDate`**: the web sends `proposalDate: "YYYY-MM-DD"` on create and PATCH, or `null` when the field is cleared. Add it as a nullable date to `Proposal`, `createSchema` and `updateSchema` (it must accept `null`), and record it in `docs/proposals.md`. Note that every PATCH carries `items`/`rooms`, so a date-only edit re-prices and clears an admin override, as display-name edits already do.
 
 1. **Proposal date** has no field in the API model; the screen collects it but does not send it. Add
    `proposalDate` (date) to `Proposal`, or confirm the customer page should use `createdAt`/`sharedAt`.
