@@ -45,6 +45,7 @@ test("a failed price is never retried silently, and live totals debounce at abou
   const source = read("app/(crm)/crm/proposals/new/proposal-builder.tsx");
   assert.match(source, /export const PRICE_DEBOUNCE_MS = 400;/);
   assert.match(source, /failedKey\.current = key;/);
+  assert.match(source, /lastPricedKey\.current = null; \/\/ no priced state remains to restore/);
   assert.match(source, /Price not updated, tap to retry/);
   assert.match(source, /if \(key === failedKey\.current\) \{\n\s+setStatus\(\(current\) => \(current\.kind === "waiting" \? \{ kind: "error"/, "undo after a failure restores the retry state");
   assert.doesNotMatch(source, /void runPricing\(\);\n  \}, \[\]\);/, "no immediate re-run at the end of a round");

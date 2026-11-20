@@ -55,9 +55,7 @@ No customer page in Phase 1.
 
 0. **`proposalDate`**: the web sends `proposalDate: "YYYY-MM-DD"` on create and PATCH, or `null` when the field is cleared. Add it as a nullable date to `Proposal`, `createSchema` and `updateSchema` (it must accept `null`), and record it in `docs/proposals.md`. Note that every PATCH carries `items`/`rooms`, so a date-only edit re-prices and clears an admin override, as display-name edits already do.
 
-1. **Proposal date** has no field in the API model; the screen collects it but does not send it. Add
-   `proposalDate` (date) to `Proposal`, or confirm the customer page should use `createdAt`/`sharedAt`.
-2. **Live totals need a saved draft** (`POST /:id/price`), so every pricing round is two writes. A
+1. **Live totals need a saved draft** (`POST /:id/price`), so every pricing round is two writes. A
    stateless `POST /internal/proposals/quote` would avoid draft churn; fine to keep as-is for Phase 1.
 
 ## Tests

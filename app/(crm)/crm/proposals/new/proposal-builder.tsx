@@ -82,6 +82,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
       setStatus({ kind: "priced" });
     } else {
       setTotals(null);
+      lastPricedKey.current = null; // no priced state remains to restore; returning to it re-prices
       setOverride(null); // the save step may already have cleared it on the server
       failedKey.current = key;
       failedMessage.current = result.error;
