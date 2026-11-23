@@ -42,8 +42,9 @@ so iOS does not zoom.
   quantity 1–20 (starting at the catalogue quantity: 3 Vertical grab bars, 4 Drainage clearance, else 1),
   optional variant, Essential / Add-on.
 * Live totals: staff press **Save draft and price** once (so a half-typed Zoho Lead ID is never saved); after
-  that every change (debounced 700 ms, one request at a time) PATCHes the draft and calls `POST /:id/price`.
-  A failed pricing round shows the reason and a **Retry pricing** button, and clears any override shown. Shows Essential and Essential + Add-on (or "No add-ons"), the price-list version,
+  that every change (debounced 400 ms, one request at a time) PATCHes the draft and calls `POST /:id/price`;
+  totals dim while an update is pending. A failed pricing round dims the totals, shows the reason and a
+  **Price not updated, tap to retry** button (no silent retry), and clears any override shown. Shows Essential and Essential + Add-on (or "No add-ons"), the price-list version,
   and "Covers N bathroom(s). Other rooms: quoted after inspection."
 * ADMIN only: override Essential and/or Add-on with a reason of ≥ 10 characters (`POST /:id/override`).
   Hidden for AGENT and refused by the server action and the API. Any later edit re-prices and clears it
