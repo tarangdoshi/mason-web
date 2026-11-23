@@ -1,5 +1,5 @@
 import { PROPOSAL_COMPONENTS, type ProposalComponentKey } from "../../lib/proposals/components";
-import { CMO_PLACEHOLDER_PREFIX, unknownPlaceholders } from "../../sanity/schemaTypes/proposals";
+import { CMO_PLACEHOLDER_PREFIX, unknownPlaceholders } from "../../lib/proposals/placeholders";
 
 /* Seed copy for the Proposal Builder Sanity documents (written as DRAFTS for founder/CMO review).
    Source: docs/proposals/approved-template-copy-2026-11-20.md in the Aegis workspace — the founder-approved

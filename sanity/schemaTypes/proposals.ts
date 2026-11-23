@@ -1,9 +1,9 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { PROPOSAL_COMPONENT_KEYS, proposalComponentName } from "../../lib/proposals/components";
+import { CMO_PLACEHOLDER_PREFIX, TEMPLATE_PLACEHOLDERS, unknownPlaceholders } from "../../lib/proposals/placeholders";
 import { imageField } from "./fields";
 
-/** Draft benefit lines awaiting the CMO start with this; such a document cannot be published. */
-export const CMO_PLACEHOLDER_PREFIX = "CMO TO WRITE:";
+export { CMO_PLACEHOLDER_PREFIX, TEMPLATE_PLACEHOLDERS, unknownPlaceholders };
 
 /* Proposal Builder v1 (Phase 1, dark behind NEXT_PUBLIC_PROPOSALS_ENABLED).
    componentLibrary: one document per approved component, fixed ID `componentLibrary-<key>`.
@@ -73,14 +73,7 @@ export const componentLibrary = defineType({
   }
 });
 
-
-/** The only placeholders the proposal renderer fills in. Anything else in braces is a typo. */
-export const TEMPLATE_PLACEHOLDERS = ["customerName", "date", "essentialPrice", "addonPrice", "addonName"] as const;
-
-export function unknownPlaceholders(value: string): string[] {
-  return [...value.matchAll(/\{([^{}]*)\}/g)].map((match) => match[1]).filter((name) => !(TEMPLATE_PLACEHOLDERS as readonly string[]).includes(name));
-}
-
+/** Anything in braces other than TEMPLATE_PLACEHOLDERS is a typo. */
 function placeholderCheck(value: unknown) {
   if (typeof value !== "string") return true;
   const unknown = unknownPlaceholders(value);

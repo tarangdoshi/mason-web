@@ -4,6 +4,8 @@ import { apiFetch, ApiError } from "../../../../lib/api";
 import { getCrmSessionToken, getCurrentStaffUser } from "../../../../lib/crm";
 import { proposalsEnabled } from "../../../../lib/proposals/flag";
 import { draftBody, draftProblem, overridePayload, type BuilderDraft, type OverrideInput } from "../../../../lib/proposals/builder";
+import { loadProposalContent } from "../../../../lib/proposals/content";
+import { buildProposalDoc, viewFromStaffProposal, type ProposalDoc, type StaffProposal } from "../../../../lib/proposals/document";
 
 /* Server actions for the staff Proposal Builder. They return results instead of redirecting,
    so the tablet screen can show live totals without a page reload. The API is the authority on
@@ -99,5 +101,54 @@ export async function overrideProposal(id: string, input: OverrideInput, hasAddo
     };
   } catch (error) {
     return { ok: false, error: error instanceof ApiError ? error.message : "The override could not be saved." };
+  }
+}
+
+export type DocumentResult =
+  | { ok: true; doc: ProposalDoc; shareToken: string | null }
+  | { ok: false; error: string };
+
+function todayInIndia(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
+/** The customer document for a priced proposal, with DRAFT Sanity copy over published (staff preview).
+    The share token is returned only once the proposal is shared. */
+async function proposalDocument(token: string, id: string): Promise<DocumentResult> {
+  const response = await apiFetch<{ data: StaffProposal & { shareToken?: string } }>(`/api/v1/internal/proposals/${id}`, { token });
+  const proposal = response.data;
+  if (proposal.essentialTotalPaise === null) return { ok: false, error: "Price the proposal first." };
+  const content = await loadProposalContent({ preview: true });
+  if (!content) return { ok: false, error: "The proposal template is not set up in the CMS yet." };
+  const doc = buildProposalDoc(viewFromStaffProposal(proposal, todayInIndia()), content);
+  const shared = proposal.status.toUpperCase() !== "DRAFT";
+  return { ok: true, doc, shareToken: shared && proposal.shareToken ? proposal.shareToken : null };
+}
+
+/** "Show family": the proposal exactly as the customer will see it. */
+export async function loadProposalDocument(id: string): Promise<DocumentResult> {
+  const auth = await session();
+  if ("error" in auth) return { ok: false, error: auth.error ?? "Unavailable." };
+  if (!UUID.test(id)) return { ok: false, error: "Price the proposal first." };
+  try {
+    return await proposalDocument(auth.token, id);
+  } catch (error) {
+    return { ok: false, error: error instanceof ApiError ? message(error) : "The proposal could not be loaded." };
+  }
+}
+
+/** Shares the proposal (DRAFT → SHARED; the API records the SHARED event and locks the draft), then returns
+    the document and share token for the PDF and link. Repeating it on a shared proposal is harmless. */
+export async function shareProposal(id: string): Promise<DocumentResult> {
+  const auth = await session();
+  if ("error" in auth) return { ok: false, error: auth.error ?? "Unavailable." };
+  if (!UUID.test(id)) return { ok: false, error: "Price the proposal first." };
+  try {
+    await apiFetch(`/api/v1/internal/proposals/${id}/share`, { method: "POST", token: auth.token });
+    const result = await proposalDocument(auth.token, id);
+    if (result.ok && !result.shareToken) return { ok: false, error: "The proposal was not shared. Try again." };
+    return result;
+  } catch (error) {
+    return { ok: false, error: error instanceof ApiError ? message(error) : "The proposal could not be shared." };
   }
 }

@@ -22,6 +22,7 @@ import {
   type ItemTier
 } from "../../../../../lib/proposals/builder";
 import { overrideProposal, saveAndPriceProposal } from "../actions";
+import CustomerActions from "./customer-actions";
 import styles from "./proposals.module.css";
 
 const STATES: { value: ItemState; label: string }[] = [
@@ -49,6 +50,8 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   // Bumped when a pricing round finishes, so edits made during it are priced after a fresh debounce.
   const [roundsDone, setRoundsDone] = useState(0);
   const [dateSaved, setDateSaved] = useState(false);
+  // Once shared the API locks the proposal (no more PATCH), so editing and re-pricing stop here too.
+  const [shared, setShared] = useState(false);
 
   // One pricing request at a time; edits made meanwhile are priced as soon as it returns.
   const inFlight = useRef(false);
@@ -96,7 +99,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   // Live re-pricing starts only once staff have created the draft explicitly, so a half-typed
   // Zoho Lead ID can never be saved (it is fixed after creation).
   useEffect(() => {
-    if (proposalId === null || problem || inFlight.current) return;
+    if (proposalId === null || problem || inFlight.current || shared) return;
     // An edit undone within the debounce lands back on a known state: restore it rather than stay "waiting".
     if (key === lastPricedKey.current) {
       setStatus((current) => (current.kind === "waiting" ? { kind: "priced" } : current));
@@ -109,7 +112,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
     setStatus({ kind: "waiting" });
     const timer = setTimeout(() => void runPricing(), PRICE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [key, problem, proposalId, roundsDone, runPricing]);
+  }, [key, problem, proposalId, roundsDone, runPricing, shared]);
 
   const retry = () => {
     lastPricedKey.current = null;
@@ -130,7 +133,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
 
   return (
     <div className={styles.builder}>
-      <section className={styles.panel} aria-labelledby="proposal-customer">
+      <section className={styles.panel} aria-labelledby="proposal-customer" inert={shared}>
         <h3 id="proposal-customer">Customer</h3>
         <div className={styles.fieldGrid}>
           <label className={styles.field}>
@@ -174,7 +177,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
         </div>
       </section>
 
-      <section className={styles.panel} aria-labelledby="proposal-components">
+      <section className={styles.panel} aria-labelledby="proposal-components" inert={shared}>
         <div className={styles.panelHead}>
           <h3 id="proposal-components">Components</h3>
           <p>{recommended.length} recommended · {addonCount} add-on</p>
@@ -256,7 +259,8 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
         </div>
         <p className={styles.roomsLine} data-testid="rooms-line">Covers {roomsLabel}. Other rooms: quoted after inspection.</p>
         <p className={styles.status} data-status={status.kind} role={status.kind === "error" ? "alert" : undefined}>
-          {problem ? problem
+          {shared ? "Shared with the customer. This proposal is now locked; start a new one for changes."
+            : problem ? problem
             : stale ? "The totals above are not current. Do not quote a price until they update."
             : status.kind === "error" ? status.message
             : status.kind === "pricing" ? "Updating totals…"
@@ -277,7 +281,14 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
           </button>
         )}
         {override && <p className={styles.overrideNote} data-testid="override-applied">Admin override applied: {override.reason}</p>}
-        {isAdmin && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
+        {isAdmin && !shared && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
+        <CustomerActions
+          proposalId={proposalId}
+          ready={status.kind === "priced" && totals !== null && !stale}
+          version={`${key}|${override?.essentialPaise ?? ""}|${override?.addonPaise ?? ""}|${roundsDone}`}
+          shared={shared}
+          onShared={() => setShared(true)}
+        />
       </aside>
     </div>
   );

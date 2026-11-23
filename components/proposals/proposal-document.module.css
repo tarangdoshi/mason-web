@@ -1,0 +1,751 @@
+/* Approved 20 Nov proposal design. Font sizes are whole pixels: the browser image render used for the PDF
+   truncates fractional sizes, so whole pixels keep the PDF identical to the page.
+   A4 portrait = 794×1123 CSS px, padding 56/56/40.
+   Brand: #84422C accent, #FCF9F4 ground, #F6F3EE / #F0EDE8 panels, #1C1C19 text, #54433E muted,
+   #F6E3DA muted on accent, #D9D1C9 / #A25942 rules. Headings Newsreader, body Manrope. */
+
+.doc {
+  --accent: #84422c;
+  --ground: #fcf9f4;
+  --panel: #f6f3ee;
+  --panel-2: #f0ede8;
+  --ink: #1c1c19;
+  --muted: #54433e;
+  --muted-on-accent: #f6e3da;
+  --rule: #d9d1c9;
+  --rule-on-accent: #a25942;
+  --display: var(--font-proposal-display), var(--font-display), "Newsreader", Georgia, serif;
+  --body: var(--font-body), "Manrope", system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  color: var(--ink);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.doc *,
+.doc *::before,
+.doc *::after {
+  box-sizing: border-box;
+}
+
+.doc h1,
+.doc h2,
+.doc h3,
+.doc h4,
+.doc p,
+.doc ul,
+.doc ol {
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 794px;
+  min-height: 1123px; /* never clips: an unusually long proposal grows past A4 instead */
+  flex: none;
+  padding: 56px 56px 42px;
+  overflow: hidden;
+  background: var(--ground);
+}
+
+.doc[data-mode="screen"] .page {
+  box-shadow: 0 1px 2px rgb(28 28 25 / 6%), 0 12px 32px rgb(28 28 25 / 8%);
+}
+
+/* ---------- Header and footer ---------- */
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  font-family: var(--display);
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.24px;
+  color: var(--accent);
+  font-variation-settings: "opsz" 23; /* explicit, so the PDF render matches the page */
+}
+
+.header[data-large] .brand {
+  font-size: 26px;
+  font-variation-settings: "opsz" 26; /* explicit, so the PDF render matches the page */
+  letter-spacing: 0px;
+}
+
+.headerRight {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+/* ---------- Page 1 ---------- */
+
+.eyebrow[data-part] {
+  font-size: 13px;
+}
+
+
+.eyebrow {
+  margin-top: 28px !important;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title {
+  max-width: 440px;
+  margin-top: 14px !important;
+  font-family: var(--display);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+  font-variation-settings: "opsz" 40; /* explicit, so the PDF render matches the page */
+}
+
+.intro {
+  max-width: 600px;
+  margin-top: 12px !important;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.reassurances {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 25px;
+  padding: 20px 28px 22px;
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.reassuranceTitle {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+  font-variation-settings: "opsz" 18; /* explicit, so the PDF render matches the page */
+  letter-spacing: -0.17px;
+}
+
+.reassuranceBody {
+  margin-top: 6px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.sectionHeading {
+  margin-top: 20px !important;
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  font-variation-settings: "opsz" 24; /* explicit, so the PDF render matches the page */
+}
+
+.sectionHeading[data-tight] {
+  margin-top: 24px !important;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 11px;
+}
+
+.options[data-single] {
+  grid-template-columns: 1fr;
+  max-width: 330px;
+}
+
+.optionCard {
+  display: flex;
+  flex-direction: column;
+  padding: 25px 22px 22px;
+  border-radius: 18px;
+  background: var(--panel-2);
+  color: var(--ink);
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+  transition: outline-color 120ms ease;
+}
+
+.optionCard[role="button"] {
+  cursor: pointer;
+}
+
+.optionCard[role="button"]:focus-visible,
+.optionCard[data-chosen] {
+  outline-color: var(--accent);
+}
+
+.optionCard[data-accent] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.optionLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.optionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.optionCard[data-accent] .optionLabel {
+  color: var(--muted-on-accent);
+}
+
+.badge {
+  margin: -1px 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.optionTitle {
+  margin-top: 13px !important;
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variation-settings: "opsz" 22; /* explicit, so the PDF render matches the page */
+}
+
+.optionPrice {
+  margin-top: 10.5px !important;
+  font-family: var(--display);
+  font-size: 41px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.54px;
+  color: var(--accent);
+  font-variation-settings: "opsz" 41; /* explicit, so the PDF render matches the page */
+}
+
+.optionCard[data-accent] .optionPrice {
+  color: #fff;
+}
+
+.rule {
+  height: 1px;
+  margin: 7.5px 0 0;
+  border: 0;
+  background: var(--rule);
+}
+
+.optionCard[data-accent] .rule {
+  background: var(--rule-on-accent);
+}
+
+.listLabel {
+  margin-top: 17px !important;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.optionCard[data-accent] .listLabel {
+  color: var(--muted-on-accent);
+}
+
+.list {
+  display: grid;
+  gap: 7px;
+  margin-top: 13px !important;
+  list-style: none;
+}
+
+.list li {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.check {
+  width: 13px;
+  height: 13px;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.optionCard[data-accent] .check {
+  color: #fff;
+}
+
+.optionNote {
+  margin-top: 17px !important;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-on-accent);
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+  color: var(--accent);
+}
+
+/* ---------- Pages 2 and 3 ---------- */
+
+.partHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.partTitle {
+  margin-top: 9px !important;
+  font-family: var(--display);
+  font-size: 41px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.54px;
+  font-variation-settings: "opsz" 41; /* explicit, so the PDF render matches the page */
+}
+
+.partIntro {
+  max-width: 440px;
+  margin-top: 8px !important;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.partIntro[data-wide] {
+  max-width: 520px;
+}
+
+.partPrice {
+  flex: none;
+  text-align: right;
+}
+
+.bigPrice {
+  font-family: var(--display);
+  font-size: 41px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.26px;
+  color: var(--accent);
+  font-variation-settings: "opsz" 41; /* explicit, so the PDF render matches the page */
+}
+
+.priceSuffix {
+  margin-top: 4px !important;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 23px;
+}
+
+.itemCard {
+  display: flex;
+  gap: 14px;
+  padding: 17px 20px 18px;
+  border-radius: 16px;
+  background: var(--panel-2);
+}
+
+.itemGrid[data-compact] .itemName {
+  font-size: 19px;
+  font-variation-settings: "opsz" 19; /* explicit, so the PDF render matches the page */
+}
+
+.itemCard[data-wide] {
+  grid-column: 1 / -1;
+}
+
+.itemPhoto {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.itemText {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.itemName {
+  flex: 1;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.1;
+  font-variation-settings: "opsz" 20; /* explicit, so the PDF render matches the page */
+}
+
+.qty {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.itemBody {
+  margin-top: 4px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.panel {
+  margin-top: 20px;
+  padding: 20px 26px 24px;
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.panelTitle {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variation-settings: "opsz" 22; /* explicit, so the PDF render matches the page */
+}
+
+.panelGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 14px;
+}
+
+.panelItemTitle {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.panelItemBody {
+  margin-top: 3px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.priceStrip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 26px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--panel);
+}
+
+.priceStrip > div {
+  padding: 22px 26px 24px;
+}
+
+.priceStrip > div[data-accent] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.stripLabel {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.priceStrip > div[data-accent] .stripLabel {
+  color: var(--muted-on-accent);
+}
+
+.stripPrice {
+  margin-top: 4px !important;
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--accent);
+  font-variation-settings: "opsz" 34; /* explicit, so the PDF render matches the page */
+  letter-spacing: -0.2px;
+}
+
+.priceStrip > div[data-accent] .stripPrice {
+  color: #fff;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 14px !important;
+  list-style: none;
+}
+
+.stepNumber {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stepTitle {
+  margin-top: 9px !important;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.stepBody {
+  margin-top: 8px !important;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.payment {
+  margin-top: 22px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: var(--panel);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.payment strong {
+  font-weight: 700;
+}
+
+.closing {
+  margin-top: 25px !important;
+  font-size: 15px;
+  line-height: 1.53;
+}
+
+.signoff {
+  margin-top: 4px !important;
+  font-family: var(--display);
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--accent);
+  font-variation-settings: "opsz" 19; /* explicit, so the PDF render matches the page */
+}
+
+.disclaimer {
+  margin-top: auto !important;
+  padding-top: 20px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.disclaimer + .footer {
+  margin-top: 0;
+}
+
+/* ---------- Compact density: long proposals still fit the 3 A4 pages ---------- */
+
+.doc[data-density="compact"] .list {
+  gap: 3px;
+  margin-top: 10px !important;
+}
+
+.doc[data-density="compact"] .list li {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.doc[data-density="compact"] .check {
+  margin-top: 1px;
+}
+
+.doc[data-density="compact"] .reassurances {
+  margin-top: 18px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.doc[data-density="compact"] .itemGrid {
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.doc[data-density="compact"] .itemCard {
+  padding: 11px 16px 12px;
+  border-radius: 12px;
+}
+
+.doc[data-density="compact"] .itemName {
+  font-size: 17px;
+  font-variation-settings: "opsz" 17; /* explicit, so the PDF render matches the page */
+  letter-spacing: -0.2px;
+}
+
+.doc[data-density="compact"] .itemBody {
+  margin-top: 2px !important;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.doc[data-density="compact"] .panel {
+  margin-top: 14px;
+  padding: 14px 20px 16px;
+}
+
+/* ---------- Screen sizes (never applied to mode "a4", which the PDF uses) ---------- */
+
+/* Small tablets / large phones in landscape: keep A4, scaled to fit. */
+@media (min-width: 600px) and (max-width: 699.98px) {
+  .doc[data-mode="screen"] .page { zoom: 0.72; }
+}
+@media (min-width: 700px) and (max-width: 767.98px) {
+  .doc[data-mode="screen"] .page { zoom: 0.84; }
+}
+@media (min-width: 768px) and (max-width: 833.98px) {
+  .doc[data-mode="screen"] .page { zoom: 0.93; }
+}
+
+/* Phones: pages stack and reflow to the screen width. */
+@media (max-width: 599.98px) {
+  .doc[data-mode="screen"] {
+    gap: 16px;
+  }
+
+  .doc[data-mode="screen"] .page {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 28px 20px 22px;
+    border-radius: 14px;
+  }
+
+  .doc[data-mode="screen"] .header {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .doc[data-mode="screen"] .title,
+  .doc[data-mode="screen"] .partTitle {
+    font-size: 32px;
+  font-variation-settings: "opsz" 32; /* explicit, so the PDF render matches the page */
+}
+
+  .doc[data-mode="screen"] .reassurances,
+  .doc[data-mode="screen"] .options,
+  .doc[data-mode="screen"] .itemGrid,
+  .doc[data-mode="screen"] .panelGrid,
+  .doc[data-mode="screen"] .priceStrip,
+  .doc[data-mode="screen"] .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .doc[data-mode="screen"] .reassurances {
+    gap: 14px;
+    padding: 18px 20px;
+  }
+
+  .doc[data-mode="screen"] .options[data-single] {
+    max-width: none;
+  }
+
+  .doc[data-mode="screen"] .partHead {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .doc[data-mode="screen"] .partPrice {
+    text-align: left;
+  }
+
+  .doc[data-mode="screen"] .list li,
+  .doc[data-mode="screen"] .intro,
+  .doc[data-mode="screen"] .partIntro {
+    font-size: 15px;
+  }
+
+  .doc[data-mode="screen"] .disclaimer {
+    margin-top: 24px !important;
+  }
+
+  .doc[data-mode="screen"] .footer {
+    margin-top: 20px;
+  }
+}

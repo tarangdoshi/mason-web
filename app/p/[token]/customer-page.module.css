@@ -1,0 +1,11 @@
+.main {
+  min-height: 100vh;
+  padding: 32px 16px 48px;
+  background: #ece6dd;
+}
+
+@media (max-width: 599.98px) {
+  .main {
+    padding: 12px 12px 32px;
+  }
+}

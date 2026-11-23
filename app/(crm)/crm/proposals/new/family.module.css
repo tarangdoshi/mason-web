@@ -1,0 +1,103 @@
+.family {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow-y: auto;
+  padding: 32px 16px 48px;
+  background: #ece6dd;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 599.98px) {
+  .family {
+    padding: 12px 12px 32px;
+  }
+}
+
+/* Small and quiet: the family sees the proposal, not the tool. */
+.close {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(28 28 25 / 8%);
+  color: rgb(28 28 25 / 45%);
+  font: 400 24px/44px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.close:focus-visible {
+  outline: 2px solid #84422c;
+  outline-offset: 2px;
+}
+
+/* Offscreen A4 copy that the PDF is drawn from (never visible, never read by assistive tech). */
+.pdfSource {
+  position: fixed;
+  top: 0;
+  left: -12000px;
+  width: 794px;
+  pointer-events: none;
+}
+
+.sharePanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgb(0 0 0 / 8%);
+}
+
+.shareRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.shareButton {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #84422c;
+  border-radius: 10px;
+  background: #fff;
+  color: #84422c;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shareButton[data-primary] {
+  background: #84422c;
+  color: #fff;
+}
+
+.shareButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shareNote {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #54433e;
+}
+
+.shareError {
+  margin: 0;
+  font-size: 14px;
+  color: #a8071a;
+}
+
+.linkField {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgb(0 0 0 / 15%);
+  border-radius: 10px;
+  font-size: 16px;
+}

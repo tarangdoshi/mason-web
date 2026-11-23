@@ -35,7 +35,7 @@ test("the staff route, nav link and Studio menu are all gated by the flag", () =
 });
 
 test("the first save is explicit (no half-typed lead ID) and the seed never overwrites existing documents", () => {
-  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| inFlight\.current\) return;/);
+  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| inFlight\.current \|\| shared\) return;/);
   const seed = read("scripts/seed-proposals.ts");
   assert.match(seed, /filter\(\(doc\) => !existing\.has/);
   assert.doesNotMatch(seed, /\.patch\(/);
@@ -54,7 +54,7 @@ test("a failed price is never retried silently, and live totals debounce at abou
 test("override is ADMIN-only on the server action, not just hidden in the UI", () => {
   const actions = read("app/(crm)/crm/proposals/actions.ts");
   assert.match(actions, /if \(auth\.user\.role !== "ADMIN"\) return \{ ok: false, error: "Only an admin can override a proposal price\." \};/);
-  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /\{isAdmin && <AdminOverride /);
+  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /\{isAdmin && !shared && <AdminOverride /);
 });
 
 const draft = (patch: Partial<BuilderDraft> = {}): BuilderDraft => ({
