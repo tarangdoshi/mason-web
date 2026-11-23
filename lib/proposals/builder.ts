@@ -81,9 +81,20 @@ export function draftProblem(draft: BuilderDraft): string | null {
   return null;
 }
 
-/** Key for "has anything that affects the price changed since the last pricing". */
+/** ISO date (YYYY-MM-DD) or null when the input is empty or malformed. */
+export function proposalDateValue(value: string): string | null {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) ? value : null;
+}
+
+/** Body for create (plus zohoLeadId) and PATCH. `proposalDate` is ignored by the API until it adds the
+    field (zod strips unknown keys), then saved with no web change — see docs/proposals-web.md. */
+export function draftBody(draft: BuilderDraft) {
+  return { displayName: draft.displayName.trim(), rooms: draft.rooms, items: toApiItems(draft.items), proposalDate: proposalDateValue(draft.proposalDate) };
+}
+
+/** Key for "has anything saved with the draft changed since the last save and price". */
 export function pricingKey(draft: BuilderDraft): string {
-  return JSON.stringify({ d: draft.displayName.trim(), r: draft.rooms, i: toApiItems(draft.items) });
+  return JSON.stringify(draftBody(draft));
 }
 
 export function rupeesToPaise(input: string): number | null {

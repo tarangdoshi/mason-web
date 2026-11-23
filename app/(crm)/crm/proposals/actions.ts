@@ -3,7 +3,7 @@
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { getCrmSessionToken, getCurrentStaffUser } from "../../../../lib/crm";
 import { proposalsEnabled } from "../../../../lib/proposals/flag";
-import { draftProblem, overridePayload, toApiItems, type BuilderDraft, type OverrideInput } from "../../../../lib/proposals/builder";
+import { draftBody, draftProblem, overridePayload, type BuilderDraft, type OverrideInput } from "../../../../lib/proposals/builder";
 
 /* Server actions for the staff Proposal Builder. They return results instead of redirecting,
    so the tablet screen can show live totals without a page reload. The API is the authority on
@@ -16,10 +16,11 @@ type ProposalRecord = {
   addonTotalPaise: number | null;
   priceListVersion: string | null;
   override: { essentialPaise?: number; addonPaise?: number; reason: string } | null;
+  proposalDate?: string | null; // present once the api lane adds the field
 };
 
 export type PriceResult =
-  | { ok: true; id: string; essentialPaise: number | null; addonPaise: number | null; priceListVersion: string | null }
+  | { ok: true; id: string; essentialPaise: number | null; addonPaise: number | null; priceListVersion: string | null; dateSaved: boolean }
   | { ok: false; id: string | null; error: string };
 
 export type OverrideResult =
@@ -54,7 +55,7 @@ export async function saveAndPriceProposal(id: string | null, draft: BuilderDraf
   if (problem) return { ok: false, id, error: problem };
   if (id !== null && !UUID.test(id)) return { ok: false, id: null, error: "Unknown proposal." };
 
-  const body = { displayName: draft.displayName.trim(), rooms: draft.rooms, items: toApiItems(draft.items) };
+  const body = draftBody(draft);
   let proposalId = id;
   try {
     if (proposalId === null) {
@@ -69,7 +70,10 @@ export async function saveAndPriceProposal(id: string | null, draft: BuilderDraf
       method: "POST", token: auth.token
     });
     const proposal = priced.data.proposal;
-    return { ok: true, id: proposal.id, essentialPaise: proposal.essentialTotalPaise, addonPaise: proposal.addonTotalPaise, priceListVersion: proposal.priceListVersion };
+    return {
+      ok: true, id: proposal.id, essentialPaise: proposal.essentialTotalPaise, addonPaise: proposal.addonTotalPaise,
+      priceListVersion: proposal.priceListVersion, dateSaved: proposal.proposalDate !== undefined && proposal.proposalDate === body.proposalDate
+    };
   } catch (error) {
     return { ok: false, id: proposalId, error: message(error) };
   }
