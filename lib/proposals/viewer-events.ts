@@ -69,6 +69,15 @@ export function startHeartbeat(env: HeartbeatEnv) {
     if (env.isVisible()) flush(1);
   }, env.intervalMs ?? HEARTBEAT_MS);
   return {
+    /** pagehide (also into the back/forward cache): stop counting even though the page may still report visible. */
+    pageHidden() {
+      flush(MIN_FLUSH_MS);
+      since = null;
+    },
+    /** pageshow (including a return from the back/forward cache). */
+    pageShown() {
+      if (env.isVisible() && since === null) since = env.now();
+    },
     visibilityChanged() {
       if (env.isVisible()) {
         if (since === null) since = env.now();

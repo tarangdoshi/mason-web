@@ -41,7 +41,8 @@ test("prices and dates are formatted the same on server and browser", () => {
   assert.equal(formatProposalDate("2026-11-20"), "20 November 2026");
   assert.equal(formatProposalDate("2026-01-05"), "5 January 2026");
   assert.equal(pdfFilename("2026-11-20"), "Mason-Proposal-2026-11-20.pdf");
-  assert.equal(pdfFilename("Mrs Example"), "Mason-Proposal-proposal.pdf"); // never the customer name
+  assert.equal(pdfFilename("Mrs Example", () => "2026-11-23"), "Mason-Proposal-2026-11-23.pdf"); // never the customer name
+  assert.equal(pdfFilename(null, () => "2026-11-23"), "Mason-Proposal-2026-11-23.pdf");
 });
 
 test("quote B builds the approved document: grouped variants, add-on without prices, placeholders filled", () => {
@@ -80,6 +81,15 @@ test("no add-on total means one option and no add-on page content; an unpriced p
   assert.throws(() => buildProposalDoc({ ...quoteB, totals: { essentialPaise: null, addonPaise: null } }, content));
 });
 
+test("a proposal without a date renders (no dangling separator) and passes the view check", () => {
+  const view = { ...quoteB, proposalDate: null };
+  assert.equal(isProposalView(view), true);
+  const doc = buildProposalDoc(view, content);
+  assert.equal(doc.copy.optionsPage.headerLabel, "Proposal");
+  assert.equal(doc.dateLabel, "");
+  assert.equal(doc.date, null);
+});
+
 test("variant summaries and long proposals", () => {
   assert.equal(variantSummary([{ qty: 2, variant: "Short" }, { qty: 1, variant: "Long" }]), "2 short, 1 long");
   assert.equal(variantSummary([{ qty: 1, variant: null }]), null);
@@ -106,8 +116,8 @@ test("staff view mirrors the API's public view: lines pair with recommended item
     essentialTotalPaise: 1_000_000,
     addonTotalPaise: 1_200_000,
     override: { essentialPaise: 900_000 }
-  }, "2026-11-23");
-  assert.equal(view.proposalDate, "2026-11-23");
+  });
+  assert.equal(view.proposalDate, null); // as the public view: no invented date
   assert.deepEqual(view.totals, { essentialPaise: 900_000, addonPaise: 1_200_000 });
   assert.deepEqual(view.items.map((item) => item.complimentary), [false, false, true]);
   assert.equal(isProposalView(view), true);
@@ -170,6 +180,12 @@ test("heartbeats: one 'viewed' per 15 s of visible time; hidden time never count
   assert.equal(sent.length, 3);
   visible = true; beat.visibilityChanged(); advance(MAX_VIEW_MS + 60_000); tick!();
   assert.equal(sent.at(-1), MAX_VIEW_MS); // capped to the API's limit
+  // pagehide into the back/forward cache: counting stops even though the page still reports visible.
+  advance(3_000); beat.pageHidden();
+  assert.equal(sent.at(-1), 3_000);
+  advance(600_000); tick!(); // sitting in the cache (still "visible"): the tick finds no running spell
+  assert.equal(sent.at(-1), 3_000);
+  beat.pageShown();
   advance(2_000); beat.stop();
   assert.equal(sent.at(-1), 2_000);
   assert.equal(tick, null);
@@ -206,5 +222,8 @@ test("customer copy is PUBLISHED only; drafts only in staff preview; the seed so
   assert.match(read("app/p/[token]/page.tsx"), /loadProposalContent\(\{ preview: false \}\)/);
   assert.match(read("app/(crm)/crm/proposals/actions.ts"), /loadProposalContent\(\{ preview: true \}\)/);
   // The share token reaches the browser only once the proposal is shared.
-  assert.match(read("app/(crm)/crm/proposals/actions.ts"), /shareToken: shared && proposal\.shareToken \? proposal\.shareToken : null/);
+  assert.match(read("app/(crm)/crm/proposals/actions.ts"), /const shareToken = shared && proposal\.shareToken \? proposal\.shareToken : null;/);
+  // Customer links use the public site origin, never the CRM's own host.
+  assert.match(read("app/(crm)/crm/proposals/actions.ts"), /process\.env\.PROPOSALS_SHARE_ORIGIN \|\| "https:\/\/www\.masoncompany\.in"/);
+  assert.doesNotMatch(read("app/(crm)/crm/proposals/new/customer-actions.tsx"), /window\.location\.origin/);
 });

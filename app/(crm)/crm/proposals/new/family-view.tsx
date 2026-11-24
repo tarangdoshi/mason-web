@@ -22,7 +22,12 @@ export default function FamilyView({ doc, onClose }: { doc: ProposalDoc; onClose
       if (!active || document.visibilityState !== "visible" || !nav.wakeLock) return;
       try {
         await lock.current?.release().catch(() => undefined); // never hold two
-        lock.current = await nav.wakeLock.request("screen");
+        const sentinel = await nav.wakeLock.request("screen");
+        if (!active) {
+          await sentinel.release().catch(() => undefined); // closed while the request was pending
+          return;
+        }
+        lock.current = sentinel;
       } catch {
         lock.current = null; // battery saver or unsupported: the view still works
       }

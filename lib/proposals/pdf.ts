@@ -99,6 +99,25 @@ export async function prepareFonts(node: HTMLElement, displayVariable = "--font-
   return css.join("\n");
 }
 
+/** The document with every component photo as a data URL (fetched now, while online). A photo that cannot be
+    fetched keeps its URL. */
+export async function inlinePhotos<T extends { essential: { photoUrl: string | null }[]; complimentary: { photoUrl: string | null }[]; addon: { photoUrl: string | null }[] }>(doc: T): Promise<T> {
+  const cache = new Map<string, Promise<string>>();
+  const inlineOne = (url: string) => {
+    if (url.startsWith("data:")) return Promise.resolve(url);
+    if (!cache.has(url)) {
+      cache.set(url, fetch(url, { mode: "cors", credentials: "omit" })
+        .then((response) => (response.ok ? response.blob() : Promise.reject(new Error(String(response.status)))))
+        .then(dataUrl)
+        .catch(() => url));
+    }
+    return cache.get(url)!;
+  };
+  const list = async <I extends { photoUrl: string | null }>(items: I[]) =>
+    Promise.all(items.map(async (item) => (item.photoUrl ? { ...item, photoUrl: await inlineOne(item.photoUrl) } : item)));
+  return { ...doc, essential: await list(doc.essential), complimentary: await list(doc.complimentary), addon: await list(doc.addon) };
+}
+
 export const A4_PX = { width: 794, height: 1123 } as const;
 const A4_PT = { width: 595.28, height: 841.89 } as const;
 

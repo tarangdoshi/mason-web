@@ -52,6 +52,8 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   const [dateSaved, setDateSaved] = useState(false);
   // Once shared the API locks the proposal (no more PATCH), so editing and re-pricing stop here too.
   const [shared, setShared] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const locked = shared || sharing;
 
   // One pricing request at a time; edits made meanwhile are priced as soon as it returns.
   const inFlight = useRef(false);
@@ -99,7 +101,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   // Live re-pricing starts only once staff have created the draft explicitly, so a half-typed
   // Zoho Lead ID can never be saved (it is fixed after creation).
   useEffect(() => {
-    if (proposalId === null || problem || inFlight.current || shared) return;
+    if (proposalId === null || problem || inFlight.current || locked) return;
     // An edit undone within the debounce lands back on a known state: restore it rather than stay "waiting".
     if (key === lastPricedKey.current) {
       setStatus((current) => (current.kind === "waiting" ? { kind: "priced" } : current));
@@ -112,7 +114,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
     setStatus({ kind: "waiting" });
     const timer = setTimeout(() => void runPricing(), PRICE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [key, problem, proposalId, roundsDone, runPricing, shared]);
+  }, [key, problem, proposalId, roundsDone, runPricing, locked]);
 
   const retry = () => {
     lastPricedKey.current = null;
@@ -133,7 +135,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
 
   return (
     <div className={styles.builder}>
-      <section className={styles.panel} aria-labelledby="proposal-customer" inert={shared}>
+      <section className={styles.panel} aria-labelledby="proposal-customer" inert={locked}>
         <h3 id="proposal-customer">Customer</h3>
         <div className={styles.fieldGrid}>
           <label className={styles.field}>
@@ -177,7 +179,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
         </div>
       </section>
 
-      <section className={styles.panel} aria-labelledby="proposal-components" inert={shared}>
+      <section className={styles.panel} aria-labelledby="proposal-components" inert={locked}>
         <div className={styles.panelHead}>
           <h3 id="proposal-components">Components</h3>
           <p>{recommended.length} recommended · {addonCount} add-on</p>
@@ -287,6 +289,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
           ready={status.kind === "priced" && totals !== null && !stale}
           version={`${key}|${override?.essentialPaise ?? ""}|${override?.addonPaise ?? ""}|${roundsDone}`}
           shared={shared}
+          onSharing={setSharing}
           onShared={() => setShared(true)}
         />
       </aside>

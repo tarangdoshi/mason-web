@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import ProposalDocument, { ProposalFontSample } from "../../../../../components/proposals/ProposalDocument";
 import { pdfFilename, type ProposalDoc } from "../../../../../lib/proposals/document";
-import { prepareFonts, renderProposalPdf, warmPdf } from "../../../../../lib/proposals/pdf";
+import { inlinePhotos, prepareFonts, renderProposalPdf, warmPdf } from "../../../../../lib/proposals/pdf";
 import { loadProposalDocument, shareProposal } from "../actions";
 import FamilyView from "./family-view";
 import styles from "./family.module.css";
@@ -36,12 +36,15 @@ export default function CustomerActions({
   ready,
   version,
   shared,
+  onSharing,
   onShared
 }: {
   proposalId: string | null;
   ready: boolean;
   version: string;
   shared: boolean;
+  /** true while a share is in progress (the screen locks so nothing changes mid-share), false if it failed. */
+  onSharing: (active: boolean) => void;
   onShared: () => void;
 }) {
   const [doc, setDoc] = useState<ProposalDoc | null>(null);
@@ -79,9 +82,11 @@ export default function CustomerActions({
       setError(result.error);
       return null;
     }
-    setDoc(result.doc);
+    // Photos become data URLs now, while online, so a later PDF (or Show family) needs no network.
+    const loaded = await inlinePhotos(result.doc);
+    setDoc(loaded);
     setDocVersion(version);
-    return result.doc;
+    return loaded;
   }, [cached, proposalId, version]);
 
   // Draw the offscreen A4 copy, then turn its pages into a PDF.
@@ -138,21 +143,24 @@ export default function CustomerActions({
   const confirmShare = async () => {
     if (!proposalId) return;
     setError(null);
+    onSharing(true); // lock the screen first: an edit made during the share would not be in what is shared
     setShare({ stage: "working", label: "Sharing…" });
     const result = await shareProposal(proposalId);
-    if (!result.ok || !result.shareToken) {
+    if (!result.ok || !result.shareUrl) {
+      onSharing(false);
       setShare({ stage: "idle" });
       setError(result.ok ? "The proposal was not shared. Try again." : result.error);
       return;
     }
     onShared();
     if (!fonts.current && fontSample.current) fonts.current = prepareFonts(fontSample.current).catch(() => "");
-    setDoc(result.doc);
+    const sharedDoc = await inlinePhotos(result.doc);
+    setDoc(sharedDoc);
     setDocVersion(version);
     setShare({ stage: "working", label: "Making the PDF…" });
     try {
-      const file = await makePdf(result.doc);
-      const url = `${window.location.origin}/p/${result.shareToken}`;
+      const file = await makePdf(sharedDoc);
+      const url = result.shareUrl;
       const canShareFiles = typeof navigator.share === "function" && Boolean(navigator.canShare?.({ files: [file] }));
       setShare({ stage: "ready", url, file, canShareFiles });
     } catch {

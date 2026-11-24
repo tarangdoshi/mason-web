@@ -105,11 +105,12 @@ export async function overrideProposal(id: string, input: OverrideInput, hasAddo
 }
 
 export type DocumentResult =
-  | { ok: true; doc: ProposalDoc; shareToken: string | null }
+  | { ok: true; doc: ProposalDoc; shareToken: string | null; shareUrl: string | null }
   | { ok: false; error: string };
 
-function todayInIndia(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+/** Customer links always use the public site, never the host the CRM happens to be open on (preview, vercel.app). */
+function shareOrigin(): string {
+  return (process.env.PROPOSALS_SHARE_ORIGIN || "https://www.masoncompany.in").replace(/\/$/, "");
 }
 
 /** The customer document for a priced proposal, with DRAFT Sanity copy over published (staff preview).
@@ -120,9 +121,10 @@ async function proposalDocument(token: string, id: string): Promise<DocumentResu
   if (proposal.essentialTotalPaise === null) return { ok: false, error: "Price the proposal first." };
   const content = await loadProposalContent({ preview: true });
   if (!content) return { ok: false, error: "The proposal template is not set up in the CMS yet." };
-  const doc = buildProposalDoc(viewFromStaffProposal(proposal, todayInIndia()), content);
+  const doc = buildProposalDoc(viewFromStaffProposal(proposal), content);
   const shared = proposal.status.toUpperCase() !== "DRAFT";
-  return { ok: true, doc, shareToken: shared && proposal.shareToken ? proposal.shareToken : null };
+  const shareToken = shared && proposal.shareToken ? proposal.shareToken : null;
+  return { ok: true, doc, shareToken, shareUrl: shareToken ? `${shareOrigin()}/p/${shareToken}` : null };
 }
 
 /** "Show family": the proposal exactly as the customer will see it. */

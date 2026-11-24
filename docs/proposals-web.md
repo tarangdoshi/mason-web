@@ -93,6 +93,13 @@ the customer page, Show family and the PDF can never disagree.
   **Send to customer** (`navigator.share({ files: [pdf], url, text })`, a separate tap because share sheets
   need a fresh gesture). Without file sharing: **Download PDF** + **Copy link** (the link is also shown).
 
+* **Details from review**: a proposal with no date (staff cleared it) renders "Proposal" with no date, and the
+  PDF filename uses today's date. Customer links always use `PROPOSALS_SHARE_ORIGIN` (server env, default
+  `https://www.masoncompany.in`), never the CRM's own host. The builder locks the moment Share is tapped.
+  Component photos are inlined (data URLs) when a proposal is loaded, so offline PDFs keep them. Leaving into
+  the back/forward cache stops reading time; returning resumes it. The wake lock is released even if the view
+  closes while it is being requested.
+
 ## Gaps for the api lane (please pick up in docs/proposals.md)
 
 The api-proposals lane (branch `feat/proposal-builder-phase2-api`) is building token issue/revoke, private PDF

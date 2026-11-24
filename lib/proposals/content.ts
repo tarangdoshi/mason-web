@@ -15,7 +15,8 @@ const COMPONENTS_QUERY = `*[_type == "componentLibrary" && defined(key)]{ key, b
 function seedContent(): ProposalContent {
   return {
     template: templateSeed,
-    components: Object.fromEntries(Object.entries(componentSeeds).map(([key, seed]) => [key, { benefitLine: seed.benefitLine, photoUrl: null }]))
+    // One stand-in photo (a same-origin site icon) so tests cover photos in the page and the offline PDF.
+    components: Object.fromEntries(Object.entries(componentSeeds).map(([key, seed]) => [key, { benefitLine: seed.benefitLine, photoUrl: key === "angled-grab-bar" ? "/apple-icon.png" : null }]))
   };
 }
 

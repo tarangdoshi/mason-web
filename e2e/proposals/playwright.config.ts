@@ -23,6 +23,7 @@ const nextServer = (port: number, enabled: boolean) => ({
     NEXT_PUBLIC_API_URL: api,
     NEXT_PUBLIC_PROPOSALS_ENABLED: enabled ? "true" : "false",
     PROPOSALS_CONTENT_SOURCE: "seed",
+    PROPOSALS_SHARE_ORIGIN: `http://127.0.0.1:${port}`,
     NEXT_TELEMETRY_DISABLED: "1"
   }
 });

@@ -24,7 +24,7 @@ export type ProposalViewItem = {
 };
 export type ProposalView = {
   displayName: string;
-  proposalDate: string;
+  proposalDate: string | null; // null when staff cleared the date
   rooms: number;
   status: string;
   totals: { essentialPaise: number | null; addonPaise: number | null };
@@ -48,8 +48,8 @@ export type DocItem = {
 
 export type ProposalDoc = {
   customerName: string;
-  date: string; // YYYY-MM-DD, for the PDF filename
-  dateLabel: string; // "20 November 2026"
+  date: string | null; // YYYY-MM-DD, for the PDF filename; null when no date was set
+  dateLabel: string; // "20 November 2026", or "" when no date was set
   essentialPrice: string;
   addonPrice: string | null;
   addonName: string;
@@ -81,8 +81,13 @@ export function formatProposalDate(iso: string): string {
 }
 
 /** PDF filename: never the customer name. */
-export function pdfFilename(date: string): string {
-  return `Mason-Proposal-${/^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "proposal"}.pdf`;
+export function pdfFilename(date: string | null, today: () => string = todayInIndia): string {
+  return `Mason-Proposal-${date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today()}.pdf`;
+}
+
+/** Today's date in India as YYYY-MM-DD. */
+export function todayInIndia(now: Date = new Date()): string {
+  return new Date(now.getTime() + 330 * 60_000).toISOString().slice(0, 10);
 }
 
 function fill(text: string, values: Record<string, string>): string {
@@ -138,9 +143,11 @@ export function buildProposalDoc(view: ProposalView, content: ProposalContent): 
   const essentialPrice = formatPrice(view.totals.essentialPaise);
   const addonPrice = view.totals.addonPaise === null || addon.length === 0 ? null : formatPrice(view.totals.addonPaise);
   const addonName = content.template.addonName?.trim() || "Safety Add-on";
-  const dateLabel = formatProposalDate(view.proposalDate);
+  const dateLabel = view.proposalDate ? formatProposalDate(view.proposalDate) : "";
   const values = { customerName: view.displayName.trim(), date: dateLabel, essentialPrice, addonPrice: addonPrice ?? "", addonName };
   const copy = fillAll(content.template, values);
+  // No date: "Proposal · {date}" becomes "Proposal", never a dangling separator.
+  if (!dateLabel) copy.optionsPage = { ...copy.optionsPage, headerLabel: copy.optionsPage.headerLabel.replace(/\s*[·|,–-]\s*$/, "").trim() };
   return {
     customerName: values.customerName,
     date: view.proposalDate,
@@ -196,7 +203,7 @@ export type StaffProposal = {
 };
 
 /** Mirrors mason-api `publicView`: priced lines pair positionally with the recommended items; override applied. */
-export function viewFromStaffProposal(proposal: StaffProposal, fallbackDate: string): ProposalView {
+export function viewFromStaffProposal(proposal: StaffProposal): ProposalView {
   const lines = proposal.priceSnapshot?.lines ?? [];
   let next = 0;
   const items = proposal.items.map((item) => {
@@ -208,7 +215,7 @@ export function viewFromStaffProposal(proposal: StaffProposal, fallbackDate: str
   const override = proposal.override ?? null;
   return {
     displayName: proposal.displayName,
-    proposalDate: proposal.proposalDate ?? fallbackDate,
+    proposalDate: proposal.proposalDate ?? null, // as the API's public view: staff see what the customer sees
     rooms: proposal.rooms,
     status: proposal.status.toLowerCase(),
     totals: {
@@ -223,7 +230,7 @@ export function viewFromStaffProposal(proposal: StaffProposal, fallbackDate: str
 export function isProposalView(value: unknown): value is ProposalView {
   const view = value as ProposalView | null;
   return Boolean(
-    view && typeof view.displayName === "string" && typeof view.proposalDate === "string" && Array.isArray(view.items) &&
+    view && typeof view.displayName === "string" && (typeof view.proposalDate === "string" || view.proposalDate === null) && Array.isArray(view.items) &&
       view.totals && (typeof view.totals.essentialPaise === "number" || view.totals.essentialPaise === null)
   );
 }

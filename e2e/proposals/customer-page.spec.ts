@@ -74,6 +74,12 @@ test("complimentary items are marked, and a proposal without an add-on has one o
   // A component without an approved benefit line shows its name only, never the CMO placeholder.
   await expect(page.getByTestId("doc-item-folding-bar")).not.toContainText("CMO");
 
+  // Staff may clear the date: the page still renders, with "Proposal" and no dangling separator.
+  const noDate = await page.goto("/p/NoDateExample000000000");
+  expect(noDate?.status()).toBe(200);
+  await expect(page.getByTestId("proposal-page-1")).toContainText("Proposal");
+  await expect(page.getByTestId("proposal-page-1")).not.toContainText("Proposal ·");
+
   await page.goto(`/p/${NO_ADDON}`);
   await expect(page.getByTestId("proposal-option-addon")).toHaveCount(0);
   await expect(page.getByTestId("proposal-disclaimer")).toBeVisible();
@@ -200,8 +206,9 @@ test("staff: PDF is made in the browser, works offline, and the share falls back
   await page.getByRole("button", { name: "Save draft and price" }).click();
   await expect(page.getByTestId("total-essential")).toContainText("₹");
 
-  // Load once online (Show family), then make the PDF with the network off.
+  // Load once online (Show family), then make the PDF with the network off. Photos are inlined at load.
   await page.getByTestId("show-family").click();
+  await expect(page.getByTestId("family-view").getByTestId("doc-item-angled-grab-bar").locator("img")).toHaveAttribute("src", /^data:image\//);
   await page.getByTestId("family-close").click();
   await context.setOffline(true);
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("download-pdf").click()]);
@@ -224,7 +231,7 @@ test("staff: PDF is made in the browser, works offline, and the share falls back
   expect((await log(page)).some((entry) => entry.method === "POST" && /\/share$/.test(entry.path))).toBe(true);
   await expect(page.getByTestId("share-send")).toHaveCount(0);
   const link = await page.getByTestId("share-link").inputValue();
-  expect(link).toMatch(/\/p\/[A-Za-z0-9_-]{22}$/);
+  expect(link).toMatch(/^http:\/\/127\.0\.0\.1:3410\/p\/[A-Za-z0-9_-]{22}$/); // PROPOSALS_SHARE_ORIGIN, not the CRM host
   expect(link).not.toContain("Example");
   await page.getByTestId("share-copy").click();
   await expect(page.getByTestId("share-copy")).toHaveText("Link copied");

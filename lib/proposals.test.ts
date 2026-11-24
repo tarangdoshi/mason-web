@@ -35,7 +35,7 @@ test("the staff route, nav link and Studio menu are all gated by the flag", () =
 });
 
 test("the first save is explicit (no half-typed lead ID) and the seed never overwrites existing documents", () => {
-  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| inFlight\.current \|\| shared\) return;/);
+  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| inFlight\.current \|\| locked\) return;/);
   const seed = read("scripts/seed-proposals.ts");
   assert.match(seed, /filter\(\(doc\) => !existing\.has/);
   assert.doesNotMatch(seed, /\.patch\(/);

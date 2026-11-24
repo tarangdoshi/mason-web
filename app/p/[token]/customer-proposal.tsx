@@ -27,11 +27,15 @@ export default function CustomerProposal({ doc, token, apiBase }: { doc: Proposa
       clearInterval: (handle) => window.clearInterval(handle as number)
     });
     const onVisibility = () => heartbeat.visibilityChanged();
+    const onPageHide = () => heartbeat.pageHidden();
+    const onPageShow = () => heartbeat.pageShown();
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("pagehide", onVisibility);
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("pageshow", onPageShow);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("pagehide", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("pageshow", onPageShow);
       heartbeat.stop();
     };
   }, [url]);

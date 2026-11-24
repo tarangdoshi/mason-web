@@ -43,6 +43,7 @@ const publicViews = {
     row("shower-stool", "addon"), row("two-way-lock", "addon")
   ], 2_299_900, 2_999_900),
   NoAddonExample00000000: view("Ms Example", [row("anti-slip-coating", "essential")], 899_900, null),
+  NoDateExample000000000: { ...view("Mx Example", [row("anti-slip-coating", "essential")], 899_900, null), proposalDate: null },
   // Every component recommended: the longest proposal staff can build.
   AllItemsExample0000000: view("Dr Example", [
     row("vertical-grab-bars", "essential", 2, "Short"), row("vertical-grab-bars", "essential", 1, "Long"), row("angled-grab-bar", "essential"),
