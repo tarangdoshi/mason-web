@@ -106,7 +106,8 @@ export async function inlinePhotos<T extends { essential: { photoUrl: string | n
   const inlineOne = (url: string) => {
     if (url.startsWith("data:")) return Promise.resolve(url);
     if (!cache.has(url)) {
-      cache.set(url, fetch(url, { mode: "cors", credentials: "omit" })
+      // A hanging photo must not stall Show family, the PDF or sharing: give up after 8 s and keep the URL.
+      cache.set(url, fetch(url, { mode: "cors", credentials: "omit", signal: AbortSignal.timeout(8_000) })
         .then((response) => (response.ok ? response.blob() : Promise.reject(new Error(String(response.status)))))
         .then(dataUrl)
         .catch(() => url));

@@ -145,7 +145,12 @@ export default function CustomerActions({
     setError(null);
     onSharing(true); // lock the screen first: an edit made during the share would not be in what is shared
     setShare({ stage: "working", label: "Sharing…" });
-    const result = await shareProposal(proposalId);
+    let result: Awaited<ReturnType<typeof shareProposal>>;
+    try {
+      result = await shareProposal(proposalId);
+    } catch {
+      result = { ok: false, error: "The proposal could not be shared. Check the connection and try again." };
+    }
     if (!result.ok || !result.shareUrl) {
       onSharing(false);
       setShare({ stage: "idle" });
