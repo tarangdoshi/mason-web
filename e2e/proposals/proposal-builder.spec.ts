@@ -68,8 +68,9 @@ test("agent builds a proposal with live totals and never sees the override", asy
   await expect(page.getByTestId("rooms-line")).toHaveText("Covers 2 bathrooms. Other rooms: quoted after inspection.");
   await expect(row("vertical-grab-bars").getByRole("button", { name: /^More / })).toBeHidden();
 
+  // Rooms do not change the mock price, so the totals can settle before the rooms edit is saved: wait for it.
+  await expect.poll(async () => (await lastPriced(page)).rooms).toBe(2);
   const sent = await lastPriced(page);
-  expect(sent.rooms).toBe(2);
   const byKey = Object.fromEntries(sent.items.map((item) => [item.component, item]));
   expect(sent.items).toHaveLength(14);
   expect(byKey["vertical-grab-bars"].state).toBe("declined");

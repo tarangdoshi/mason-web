@@ -1,7 +1,9 @@
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
-/* Proposal Builder staff screen at tablet sizes (plus one phone), against a synthetic mock API.
+/* Proposal Builder staff screen and customer page at tablet sizes (plus one phone), against a synthetic mock API.
+   Copy comes from the bundled approved seed (PROPOSALS_CONTENT_SOURCE=seed), never from Sanity.
+   The golden visual test (@golden) runs once, at A4 scale, against the approved 20 Nov page 1.
    Two Next dev servers: one with NEXT_PUBLIC_PROPOSALS_ENABLED=true, one with it off (must 404).
    Run: pnpm test:e2e:proposals */
 
@@ -20,6 +22,8 @@ const nextServer = (port: number, enabled: boolean) => ({
     AEGIS_DIST_DIR: `.next-e2e-proposals-${enabled ? "on" : "off"}`,
     NEXT_PUBLIC_API_URL: api,
     NEXT_PUBLIC_PROPOSALS_ENABLED: enabled ? "true" : "false",
+    PROPOSALS_CONTENT_SOURCE: "seed",
+    PROPOSALS_SHARE_ORIGIN: `http://127.0.0.1:${port}`,
     NEXT_TELEMETRY_DISABLED: "1"
   }
 });
@@ -30,6 +34,7 @@ const chromium = (device: (typeof devices)[string]) => ({ ...device, browserName
 export default defineConfig({
   testDir: ".",
   outputDir: "../../test-results/proposals",
+  snapshotPathTemplate: "{testDir}/__screenshots__/{arg}{ext}",
   timeout: 90_000,
   expect: { timeout: 15_000 },
   workers: 1,
@@ -37,10 +42,11 @@ export default defineConfig({
   use: { baseURL: `http://127.0.0.1:${ON_PORT}`, trace: "retain-on-failure" },
   metadata: { offBaseURL: `http://127.0.0.1:${OFF_PORT}`, api },
   projects: [
-    { name: "ipad-portrait", use: chromium(devices["iPad (gen 7)"]) },
-    { name: "ipad-landscape", use: chromium(devices["iPad (gen 7) landscape"]) },
-    { name: "android-tablet", use: chromium(devices["Galaxy Tab S4"]) },
-    { name: "android-phone", use: chromium(devices["Pixel 7"]) }
+    { name: "ipad-portrait", use: chromium(devices["iPad (gen 7)"]), grepInvert: /@golden/ },
+    { name: "ipad-landscape", use: chromium(devices["iPad (gen 7) landscape"]), grepInvert: /@golden/ },
+    { name: "android-tablet", use: chromium(devices["Galaxy Tab S4"]), grepInvert: /@golden/ },
+    { name: "android-phone", use: chromium(devices["Pixel 7"]), grepInvert: /@golden/ },
+    { name: "a4-golden", use: { browserName: "chromium", viewport: { width: 1280, height: 1400 }, deviceScaleFactor: 1 }, grep: /@golden/ }
   ],
   webServer: [
     { command: `node e2e/proposals/mock-api.mjs`, cwd: ROOT, url: `${api}/__log`, env: { MOCK_API_PORT: String(MOCK_PORT) }, reuseExistingServer: false, timeout: 20_000 },
