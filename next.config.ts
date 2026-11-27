@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "Cache-Control", value: "private, no-store" }
         ]
+      },
+      {
+        // Proposals service worker: always revalidated, so a fix reaches tablets on their next visit.
+        source: "/proposals-sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, max-age=0" },
+          { key: "Content-Type", value: "text/javascript; charset=utf-8" }
+        ]
       }
     ];
   },

@@ -16,9 +16,10 @@ type ShareState =
   | { stage: "idle" }
   | { stage: "confirm" }
   | { stage: "working"; label: string }
-  | { stage: "ready"; url: string; file: File; canShareFiles: boolean };
+  | { stage: "ready"; url: string | null; file: File; canShareFiles: boolean };
 
 const SHARE_TEXT = "Here is your Mason Company proposal. The PDF is attached, and the link opens it online.";
+const SHARE_TEXT_NO_LINK = "Here is your Mason Company proposal. The PDF is attached.";
 
 function download(file: File) {
   const href = URL.createObjectURL(file);
@@ -36,13 +37,25 @@ export default function CustomerActions({
   ready,
   version,
   shared,
+  queueMode = false,
+  offlineDoc,
+  onQueueShare,
+  shareUrl = null,
   onSharing,
-  onShared
+  onShared,
+  onFamilyShown
 }: {
   proposalId: string | null;
   ready: boolean;
   version: string;
   shared: boolean;
+  /** No signal (or earlier work still waiting): the document is built on the tablet and the share is queued. */
+  queueMode?: boolean;
+  offlineDoc?: () => ProposalDoc | null;
+  onQueueShare?: () => Promise<void>;
+  /** The customer link once a queued share has synced. */
+  shareUrl?: string | null;
+  onFamilyShown?: () => void;
   /** true while a share is in progress (the screen locks so nothing changes mid-share), false if it failed. */
   onSharing: (active: boolean) => void;
   onShared: () => void;
@@ -72,12 +85,31 @@ export default function CustomerActions({
   const cached = doc && docVersion === version ? doc : null;
   const closeFamily = useCallback(() => setFamily(false), []);
 
+  const localDoc = useCallback(async (): Promise<ProposalDoc | null> => {
+    const built = offlineDoc?.() ?? null;
+    if (!built) {
+      setError("Offline, this needs the proposal copy and price list on the tablet. Open the proposal screen once with signal.");
+      return null;
+    }
+    // Photos come from the service worker's cache.
+    const loaded = await inlinePhotos(built);
+    setDoc(loaded);
+    setDocVersion(version);
+    return loaded;
+  }, [offlineDoc, version]);
+
   const fetchDoc = useCallback(async (): Promise<ProposalDoc | null> => {
     if (cached) return cached;
     if (!proposalId) return null;
     // Exactly the fonts the document uses, from the hidden sample (html-to-image embeds only fonts in the node).
     if (!fonts.current && fontSample.current) fonts.current = prepareFonts(fontSample.current).catch(() => "");
-    const result = await loadProposalDocument(proposalId);
+    if (queueMode) return localDoc();
+    let result: Awaited<ReturnType<typeof loadProposalDocument>>;
+    try {
+      result = await loadProposalDocument(proposalId);
+    } catch {
+      return localDoc(); // the connection dropped
+    }
     if (!result.ok) {
       setError(result.error);
       return null;
@@ -87,7 +119,7 @@ export default function CustomerActions({
     setDoc(loaded);
     setDocVersion(version);
     return loaded;
-  }, [cached, proposalId, version]);
+  }, [cached, proposalId, version, queueMode, localDoc]);
 
   // Draw the offscreen A4 copy, then turn its pages into a PDF.
   useEffect(() => {
@@ -123,7 +155,10 @@ export default function CustomerActions({
     setBusy("Opening…");
     const loaded = await fetchDoc();
     setBusy(null);
-    if (loaded) setFamily(true);
+    if (loaded) {
+      setFamily(true);
+      onFamilyShown?.();
+    }
     else if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
   };
 
@@ -140,8 +175,41 @@ export default function CustomerActions({
     }
   };
 
+  /** No signal: queue the share, make the PDF here; the link follows when the share syncs. */
+  const queueShare = async () => {
+    setError(null);
+    onSharing(true);
+    setShare({ stage: "working", label: "Making the PDF…" });
+    try {
+      await onQueueShare?.();
+    } catch {
+      onSharing(false);
+      setShare({ stage: "idle" });
+      setError("The share could not be saved on this tablet. Try again.");
+      return;
+    }
+    onShared();
+    onSharing(false);
+    try {
+      const loaded = await localDoc();
+      if (!loaded) throw new Error("no document");
+      const file = await makePdf(loaded);
+      const canShareFiles = typeof navigator.share === "function" && Boolean(navigator.canShare?.({ files: [file] }));
+      setShare({ stage: "ready", url: shareUrl, file, canShareFiles });
+    } catch {
+      setShare({ stage: "idle" });
+      setError("The share is queued, but the PDF could not be made. Tap Download PDF to try again.");
+    }
+  };
+
+  // A queued share synced: the customer link is now known.
+  useEffect(() => {
+    if (shareUrl) setShare((current) => (current.stage === "ready" && !current.url ? { ...current, url: shareUrl } : current));
+  }, [shareUrl]);
+
   const confirmShare = async () => {
     if (!proposalId) return;
+    if (queueMode) return queueShare();
     setError(null);
     onSharing(true); // lock the screen first: an edit made during the share would not be in what is shared
     setShare({ stage: "working", label: "Sharing…" });
@@ -149,7 +217,9 @@ export default function CustomerActions({
     try {
       result = await shareProposal(proposalId);
     } catch {
-      result = { ok: false, error: "The proposal could not be shared. Check the connection and try again." };
+      // The connection dropped before the server answered: queue it instead (sharing again is harmless).
+      onSharing(false);
+      return queueShare();
     }
     if (!result.ok || !result.shareUrl) {
       onSharing(false);
@@ -177,7 +247,9 @@ export default function CustomerActions({
   // A separate tap for the share sheet: browsers only open it straight from a user gesture.
   const sendNative = async (state: Extract<ShareState, { stage: "ready" }>) => {
     try {
-      await navigator.share({ files: [state.file], url: state.url, text: SHARE_TEXT, title: "Mason Company proposal" });
+      await navigator.share(state.url
+        ? { files: [state.file], url: state.url, text: SHARE_TEXT, title: "Mason Company proposal" }
+        : { files: [state.file], text: SHARE_TEXT_NO_LINK, title: "Mason Company proposal" });
     } catch (reason) {
       if ((reason as DOMException)?.name !== "AbortError") setShare({ ...state, canShareFiles: false });
     }
@@ -241,11 +313,17 @@ export default function CustomerActions({
             <button type="button" className={styles.shareButton} onClick={() => download(share.file)} data-testid="share-download">
               Download PDF
             </button>
-            <button type="button" className={styles.shareButton} onClick={() => copyLink(share.url)} data-testid="share-copy">
-              {copied ? "Link copied" : "Copy link"}
-            </button>
+            {share.url ? (
+              <button type="button" className={styles.shareButton} onClick={() => copyLink(share.url!)} data-testid="share-copy">
+                {copied ? "Link copied" : "Copy link"}
+              </button>
+            ) : null}
           </div>
-          <input className={styles.linkField} readOnly value={share.url} aria-label="Customer link" data-testid="share-link" onFocus={(event) => event.currentTarget.select()} />
+          {share.url ? (
+            <input className={styles.linkField} readOnly value={share.url} aria-label="Customer link" data-testid="share-link" onFocus={(event) => event.currentTarget.select()} />
+          ) : (
+            <p className={styles.shareNote} data-testid="share-link-pending">The customer link will be created when signal returns. The PDF is ready now.</p>
+          )}
         </div>
       ) : null}
       {error ? <p className={styles.shareError} role="alert" data-testid="share-error">{error}</p> : null}

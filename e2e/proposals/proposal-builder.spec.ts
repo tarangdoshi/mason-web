@@ -64,7 +64,7 @@ test("agent builds a proposal with live totals and never sees the override", asy
   await page.getByRole("button", { name: "More bathrooms" }).click();
 
   await expect(page.getByTestId("total-essential")).toContainText("₹20,999");
-  await expect(page.getByTestId("total-addon")).toContainText("₹22,999");
+  await expect(page.getByTestId("total-addon")).toContainText("₹21,999");
   await expect(page.getByTestId("rooms-line")).toHaveText("Covers 2 bathrooms. Other rooms: quoted after inspection.");
   await expect(row("vertical-grab-bars").getByRole("button", { name: /^More / })).toBeHidden();
 
@@ -88,7 +88,7 @@ test("admin override needs a reason and replaces the total", async ({ page }, te
   await page.goto("/crm/proposals/new");
   await fillCustomer(page);
   await page.getByTestId("component-two-way-lock").getByRole("radio", { name: "Add-on", exact: true }).check();
-  await expect(page.getByTestId("total-addon")).toContainText("₹25,999");
+  await expect(page.getByTestId("total-addon")).toContainText("₹24,999");
 
   const form = page.getByTestId("admin-override");
   await form.getByLabel("Essential (₹)").fill("17,500");
@@ -154,7 +154,7 @@ test("a failed price shows a visible retry state and is never retried silently",
   expect(await priceCalls()).toBe(afterFailure);
 
   await retry.click();
-  await expect(page.getByTestId("total-addon")).toContainText("₹25,999");
+  await expect(page.getByTestId("total-addon")).toContainText("₹24,999");
   await expect(retry).toHaveCount(0);
 });
 

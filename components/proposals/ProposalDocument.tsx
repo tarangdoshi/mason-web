@@ -1,6 +1,7 @@
 import type { KeyboardEvent } from "react";
 import { Newsreader } from "next/font/google";
 import { cardBody, documentDensity, optionLine, type DocItem, type ProposalDoc } from "../../lib/proposals/document";
+import { photoSources } from "../../lib/proposals/photos";
 import styles from "./proposal-document.module.css";
 
 // Newsreader with its optical-size axis, as in the approved design (display sizes use the finer display cut).
@@ -47,6 +48,19 @@ function Header({ right, large }: { right: string; large?: boolean }) {
   );
 }
 
+/** WebP where the browser declares it, JPEG otherwise (old Safari); the <picture> adds no box of its own. */
+function ItemPhoto({ url }: { url: string }) {
+  const { webp, jpeg } = photoSources(url);
+  const img = <img className={styles.itemPhoto} src={jpeg} alt="" crossOrigin="anonymous" />;
+  if (!webp) return img;
+  return (
+    <picture style={{ display: "contents" }}>
+      <source type="image/webp" srcSet={webp} />
+      {img}
+    </picture>
+  );
+}
+
 function ItemCards({ items, showQty }: { items: DocItem[]; showQty: "always" | "many" }) {
   return (
     <div className={styles.itemGrid} data-compact={showQty === "many" ? "" : undefined}>
@@ -58,7 +72,7 @@ function ItemCards({ items, showQty }: { items: DocItem[]; showQty: "always" | "
           data-testid={`doc-item-${item.key}`}
         >
           {item.photoUrl ? (
-            <img className={styles.itemPhoto} src={item.photoUrl} alt="" crossOrigin="anonymous" />
+            <ItemPhoto url={item.photoUrl} />
           ) : null}
           <div className={styles.itemText}>
             <div className={styles.itemHead}>

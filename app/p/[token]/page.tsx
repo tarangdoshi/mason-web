@@ -6,6 +6,7 @@ import { buildProposalDoc, SHARE_TOKEN_PATTERN } from "../../../lib/proposals/do
 import { proposalsEnabled } from "../../../lib/proposals/flag";
 import { fetchPublicView } from "../../../lib/proposals/public";
 import CustomerProposal from "./customer-proposal";
+import RegisterProposalsWorker from "../../../components/proposals/RegisterProposalsWorker";
 
 /* Customer proposal page. Server-rendered from the API's public view plus PUBLISHED Sanity copy.
    No customer data in the title or URL (the URL carries only the share token); never indexed.
@@ -31,5 +32,11 @@ export default async function CustomerProposalPage({ params }: { params: Promise
   const content = await loadProposalContent({ preview: false });
   if (!content) notFound(); // the template is not published yet
   const doc = buildProposalDoc(view, content);
-  return <CustomerProposal doc={doc} token={token} apiBase={getPublicApiBaseUrl()} />;
+  return (
+    <>
+      {/* Keeps this one proposal readable with no signal (the worker holds only the most recent /p/ page). */}
+      <RegisterProposalsWorker scope="/p/" />
+      <CustomerProposal doc={doc} token={token} apiBase={getPublicApiBaseUrl()} />
+    </>
+  );
 }

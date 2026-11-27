@@ -196,7 +196,24 @@ export default function CrmShell({
               </Tag>
             </Space>
 
-            <form action={logoutAction} style={{ marginTop: 16 }}>
+            <form
+              action={logoutAction}
+              style={{ marginTop: 16 }}
+              onSubmit={(event) => {
+                // Proposals offline data (queued work, the open proposal, cached copy and photos) never outlives the session.
+                if (!proposalsEnabled() || event.currentTarget.dataset.cleared) return;
+                event.preventDefault();
+                const form = event.currentTarget;
+                void (async () => {
+                  const { clearOfflineData, pendingCount } = await import("../../../lib/proposals/offline/idb");
+                  const waiting = await pendingCount();
+                  if (waiting && !window.confirm(`${waiting} proposal ${waiting === 1 ? "change has" : "changes have"} not synced yet and will be lost. Sign out anyway?`)) return;
+                  await clearOfflineData();
+                  form.dataset.cleared = "1";
+                  form.requestSubmit();
+                })();
+              }}
+            >
               <Button icon={<LogoutOutlined />} htmlType="submit" block>
                 Sign out
               </Button>

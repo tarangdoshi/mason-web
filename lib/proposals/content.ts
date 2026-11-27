@@ -20,7 +20,8 @@ function seedContent(): ProposalContent {
   };
 }
 
-const sized = (url: string | null | undefined) => (url ? `${url}?w=320&h=320&fit=crop&auto=format` : null);
+// Size only; the format is chosen per browser in the page (lib/proposals/photos.ts), JPEG as the fallback.
+const sized = (url: string | null | undefined) => (url ? `${url}?w=320&h=320&fit=crop` : null);
 
 /** Null when no template is available (customer pages then 404 until the template is published). */
 export async function loadProposalContent({ preview }: { preview: boolean }): Promise<ProposalContent | null> {

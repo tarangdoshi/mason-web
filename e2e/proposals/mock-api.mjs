@@ -1,7 +1,11 @@
 // Synthetic stand-in for the mason-api proposal endpoints (docs/proposals.md), for Playwright only.
-// Prices are made up: every essential line ₹1,000/unit, add-on ₹2,000/unit, fixed ₹5,250, rounded up to …999.
+// Run with `node --import tsx` so it prices with the same engine as the staff screen's offline copy
+// (lib/proposals/pricing.ts, itself checked against the API engine's own outputs). Prices are made up:
+// every component ₹1,000 a unit, manpower & shipping ₹5,250, totals rounded up to …999.
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
+import { priceProposal, DEFAULT_PRICING_CONFIG } from "../../lib/proposals/pricing.ts";
+import { PROPOSAL_COMPONENT_KEYS } from "../../lib/proposals/components.ts";
 
 const port = Number(process.env.MOCK_API_PORT || 4410);
 const staff = {
@@ -17,14 +21,29 @@ const known = (body) => {
   const { proposalDate, ...rest } = body ?? {};
   return dateSupport ? { ...rest, proposalDate } : rest;
 };
-const roundUp999 = (paise) => Math.ceil((paise + 100) / 100_000) * 100_000 - 100;
+const priceList = {
+  version: "synthetic01",
+  entries: [
+    ...PROPOSAL_COMPONENT_KEYS.map((component) => ({ component, variant: null, unitPaise: 100_000 })),
+    { component: "angled-grab-bar", variant: "Left hand", unitPaise: 100_000 },
+    { component: "vertical-grab-bars", variant: "Short", unitPaise: 100_000 },
+    { component: "vertical-grab-bars", variant: "Long", unitPaise: 100_000 }
+  ]
+};
+let priceListAvailable = true; // POST /__no-price-list → the price-list read answers 404 (endpoint not built yet)
+let priceDelta = 0; // POST /__price-delta {paise} → the server list differs from the tablet's (re-priced on sync)
+let failNextPatch = false; // POST /__fail-next-patch → the next PATCH answers 500 (a passing server error)
+let lostSupport = true; // POST /__no-lost → POST /:id/lost answers a bare 404 (endpoint not built yet)
 
+class PricingRefusal extends Error {}
 function price(items) {
-  const rec = items.filter((item) => item.state === "recommended");
-  const essential = rec.filter((item) => item.tier === "essential").reduce((sum, item) => sum + item.qty * 100_000, 0) + 525_000;
-  const addonLines = rec.filter((item) => item.tier === "addon").reduce((sum, item) => sum + item.qty * 200_000, 0);
-  const lines = rec.map((item) => ({ component: item.component, variant: item.variant ?? null, qty: item.qty, tier: item.tier, complimentary: item.component === "slippers-one", linePaise: item.qty * (item.tier === "addon" ? 200_000 : 100_000) }));
-  return { essentialTotalPaise: roundUp999(essential), addonTotalPaise: addonLines ? roundUp999(essential + addonLines) : null, priceSnapshot: { version: "synthetic01", lines } };
+  try {
+    const list = priceDelta ? { ...priceList, version: "synthetic02", entries: priceList.entries.map((entry) => ({ ...entry, unitPaise: entry.unitPaise + priceDelta })) } : priceList;
+    const result = priceProposal(items, list, DEFAULT_PRICING_CONFIG);
+    return { essentialTotalPaise: result.essentialTotalPaise, addonTotalPaise: result.addonTotalPaise, priceListVersion: list.version, priceSnapshot: result.snapshot };
+  } catch (error) {
+    throw new PricingRefusal(error.message);
+  }
 }
 
 // Customer views (GET /api/v1/public/proposals/:token), made-up names only. Quote B is the 20 Nov golden quote.
@@ -62,7 +81,14 @@ createServer(async (req, res) => {
   const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : undefined;
   const url = new URL(req.url, "http://x");
   if (url.pathname === "/__log") return send(res, 200, { data: log });
-  if (url.pathname === "/__reset") { log.length = 0; proposals.clear(); failNextPrice = false; dateSupport = false; return send(res, 200, {}); }
+  if (url.pathname === "/__reset") {
+    log.length = 0; proposals.clear(); failNextPrice = false; dateSupport = false; priceListAvailable = true; priceDelta = 0; failNextPatch = false; lostSupport = true;
+    return send(res, 200, {});
+  }
+  if (url.pathname === "/__no-price-list") { priceListAvailable = false; return send(res, 200, {}); }
+  if (url.pathname === "/__price-delta") { priceDelta = Number(body?.paise ?? 0); return send(res, 200, {}); }
+  if (url.pathname === "/__fail-next-patch") { failNextPatch = true; return send(res, 200, {}); }
+  if (url.pathname === "/__no-lost") { lostSupport = false; return send(res, 200, {}); }
   if (url.pathname === "/__fail-next-price") { failNextPrice = true; return send(res, 200, {}); }
   if (url.pathname === "/__date-support") { dateSupport = true; return send(res, 200, {}); }
   const pub = url.pathname.match(/^\/api\/v1\/public\/proposals\/([^/]+)(\/events)?$/);
@@ -80,7 +106,11 @@ createServer(async (req, res) => {
   log.push({ method: req.method, path: url.pathname, role: user.role, body });
   if (url.pathname === "/api/v1/internal/auth/me") return send(res, 200, { data: user });
 
-  const match = url.pathname.match(/^\/api\/v1\/internal\/proposals(?:\/([0-9a-f-]{36}))?(?:\/(price|override|share))?$/);
+  if (url.pathname === "/api/v1/internal/proposals/price-list" && req.method === "GET") {
+    if (!priceListAvailable) return send(res, 404, { error: "Not Found" });
+    return send(res, 200, { data: { ...priceList, config: DEFAULT_PRICING_CONFIG } });
+  }
+  const match = url.pathname.match(/^\/api\/v1\/internal\/proposals(?:\/([0-9a-f-]{36}))?(?:\/(price|override|share|accept|lost))?$/);
   if (!match) return send(res, 404, { error: "Not found" });
   const [, id, action] = match;
   if (!id && req.method === "POST") {
@@ -92,11 +122,38 @@ createServer(async (req, res) => {
   if (!proposal) return send(res, 404, { error: "Proposal not found." });
   if (!action && req.method === "GET") return send(res, 200, { data: proposal });
   if (action === "share") {
+    if (proposal.status === "LOST") return send(res, 409, { error: "A lost proposal cannot be shared.", code: "PROPOSAL_LOST" });
     if (proposal.essentialTotalPaise === null) return send(res, 409, { error: "Price the proposal before sharing it." });
-    proposal.status = "SHARED";
+    if (proposal.status === "DRAFT") proposal.status = "SHARED";
+    return send(res, 200, { data: proposal });
+  }
+  if (action === "accept") {
+    // As mason-api today: ADMIN only, SHARED only, idempotent for the same option.
+    if (user.role !== "ADMIN") return send(res, 403, { error: "Only an admin can accept a proposal.", code: "FORBIDDEN" });
+    const option = body?.option;
+    if (option !== "essential" && option !== "essential_addon") return send(res, 400, { error: "Invalid proposal input." });
+    if (proposal.status === "ACCEPTED") {
+      if (proposal.acceptedOption !== option) return send(res, 409, { error: "This proposal is already accepted with the other option.", code: "ALREADY_ACCEPTED" });
+      return send(res, 200, { data: { proposal, commercialCaseId: proposal.commercialCaseId } });
+    }
+    if (proposal.status !== "SHARED") return send(res, 409, { error: "Only a shared proposal can be accepted.", code: "NOT_SHARED" });
+    if (option === "essential_addon" && proposal.addonTotalPaise === null) return send(res, 422, { error: "This proposal has no Add-on option.", code: "NO_ADDON" });
+    Object.assign(proposal, { status: "ACCEPTED", acceptedOption: option, commercialCaseId: randomUUID() });
+    return send(res, 200, { data: { proposal, commercialCaseId: proposal.commercialCaseId } });
+  }
+  if (action === "lost") {
+    if (!lostSupport) return send(res, 404, { error: "Not Found" });
+    const reasons = ["price", "timing", "family_decision", "not_needed", "other"];
+    if (!reasons.includes(body?.reason) || (body.reason === "other" && !(body.note ?? "").trim())) return send(res, 400, { error: "Invalid proposal input." });
+    if (proposal.status === "ACCEPTED") return send(res, 409, { error: "An accepted proposal cannot be marked lost.", code: "ALREADY_ACCEPTED" });
+    Object.assign(proposal, { status: "LOST", lost: { reason: body.reason, note: body.note ?? null } });
     return send(res, 200, { data: proposal });
   }
   if (!action && req.method === "PATCH" && proposal.status !== "DRAFT") return send(res, 409, { error: "Only a draft proposal can be changed." });
+  if (!action && req.method === "PATCH" && failNextPatch) {
+    failNextPatch = false;
+    return send(res, 500, { error: "Proposal request could not be completed." });
+  }
   if (!action && req.method === "PATCH") {
     Object.assign(proposal, known(body), { essentialTotalPaise: null, addonTotalPaise: null, override: null, priceSnapshot: null });
     return send(res, 200, { data: proposal });
@@ -106,7 +163,12 @@ createServer(async (req, res) => {
     return send(res, 503, { error: "Price list unavailable.", code: "PRICE_LIST_UNAVAILABLE" });
   }
   if (action === "price") {
-    Object.assign(proposal, price(proposal.items), { priceListVersion: "synthetic01" });
+    if (proposal.status !== "DRAFT") return send(res, 409, { error: "Only a draft proposal can be priced.", code: "NOT_DRAFT" });
+    try {
+      Object.assign(proposal, price(proposal.items));
+    } catch (error) {
+      return send(res, 422, { error: error.message, code: "UNKNOWN_PRICE" });
+    }
     return send(res, 200, { data: { proposal, essentialRawPaise: 0, addonRawPaise: null } });
   }
   if (action === "override") {

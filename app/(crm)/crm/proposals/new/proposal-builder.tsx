@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PROPOSAL_COMPONENTS } from "../../../../../lib/proposals/components";
 import {
   DISPLAY_NAME_MAX,
@@ -21,8 +22,16 @@ import {
   type ItemState,
   type ItemTier
 } from "../../../../../lib/proposals/builder";
-import { overrideProposal, saveAndPriceProposal } from "../actions";
+import type { ProposalDoc } from "../../../../../lib/proposals/document";
+import { localDocument, OFFLINE_BUNDLE_PATH, isOfflineBundle, priceLocally, type OfflineBundle } from "../../../../../lib/proposals/offline/bundle";
+import { clearOfflineData, kv, offlineStore } from "../../../../../lib/proposals/offline/idb";
+import { isLocalRef, newLocalRef, type AcceptOption, type SyncEvent } from "../../../../../lib/proposals/offline/queue";
+import type { PricingResult } from "../../../../../lib/proposals/pricing";
+import type { LostReason } from "../../../../../lib/proposals/lost";
+import { acceptProposal, markProposalLost, overrideProposal, saveAndPriceProposal, shareProposal, type PriceResult, type DocumentResult, type AcceptResult } from "../actions";
+import { AcceptPanel, LostPanel, SyncBadge } from "./decision-panels";
 import CustomerActions from "./customer-actions";
+import { useOfflineQueue } from "./use-offline-queue";
 import styles from "./proposals.module.css";
 
 const STATES: { value: ItemState; label: string }[] = [
@@ -39,11 +48,22 @@ export const PRICE_DEBOUNCE_MS = 400;
 
 type Totals = { essentialPaise: number | null; addonPaise: number | null; priceListVersion: string | null };
 type Override = { essentialPaise: number | null; addonPaise: number | null; reason: string };
-type Status = { kind: "idle" | "waiting" | "pricing" | "priced" | "error"; message?: string };
+/** "offline": priced on this tablet from the cached price list; the save is queued and the API re-prices it on sync. */
+type Status = { kind: "idle" | "waiting" | "pricing" | "priced" | "offline" | "error"; message?: string };
+type Accepted = { option: AcceptOption; commercialCaseId: string | null };
+type Lost = { reason: LostReason; note: string; pending: boolean };
+/** The open proposal, kept on the tablet while it has queued work, so an offline reload can carry on. */
+type OpenProposal = { ref: string; draft: BuilderDraft; local: PricingResult | null; shared: boolean; accepted: Accepted | null; lost: Lost | null; owner: string };
+const OPEN_KEY = "open-proposal";
+const OWNER_KEY = "owner";
 
-export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: { isAdmin: boolean; initialZohoLeadId: string; today: string }) {
+export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, staffId }: { isAdmin: boolean; initialZohoLeadId: string; today: string; staffId: string }) {
+  const router = useRouter();
   const [draft, setDraft] = useState<BuilderDraft>({ zohoLeadId: initialZohoLeadId, displayName: "", proposalDate: today, rooms: 1, items: initialItems() });
+  // Server id once the API has the draft. `ref` names the proposal in the offline queue: the server id, or a
+  // local id for a draft first saved with no signal (mapped to the server id when it syncs).
   const [proposalId, setProposalId] = useState<string | null>(null);
+  const [ref, setRef] = useState<string | null>(null);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [override, setOverride] = useState<Override | null>(null);
@@ -53,7 +73,16 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   // Once shared the API locks the proposal (no more PATCH), so editing and re-pricing stop here too.
   const [shared, setShared] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const locked = shared || sharing;
+  const [accepted, setAccepted] = useState<Accepted | null>(null);
+  const [lost, setLost] = useState<Lost | null>(null);
+  const [deciding, setDeciding] = useState(false);
+  const [familyShown, setFamilyShown] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [local, setLocal] = useState<PricingResult | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [online, setOnline] = useState(true);
+  const [bundle, setBundle] = useState<OfflineBundle | null>(null);
+  const locked = shared || sharing || accepted !== null || lost !== null || deciding;
 
   // One pricing request at a time; edits made meanwhile are priced as soon as it returns.
   const inFlight = useRef(false);
@@ -63,20 +92,189 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
   const failedKey = useRef<string | null>(null);
   const failedMessage = useRef<string | undefined>(undefined);
   const idRef = useRef<string | null>(null);
+  const refRef = useRef<string | null>(null);
+  const bundleRef = useRef<OfflineBundle | null>(null);
   latestDraft.current = draft;
+  bundleRef.current = bundle;
+
+  // Queue events: the API confirmed something sent from the tablet.
+  const onSynced = useCallback((event: SyncEvent) => {
+    if (event.op.ref !== refRef.current) return;
+    idRef.current = event.serverId;
+    setProposalId(event.serverId);
+    const data = event.result.data;
+    if (event.op.kind === "save") {
+      const priced = data as Extract<PriceResult, { ok: true }>;
+      if (pricingKey(event.op.draft) === pricingKey(latestDraft.current)) {
+        lastPricedKey.current = pricingKey(event.op.draft);
+        setTotals((current) => {
+          if (current && (current.essentialPaise !== priced.essentialPaise || current.addonPaise !== priced.addonPaise)) {
+            setNotice("Synced. The server re-priced this proposal with the latest price list: check the totals before quoting.");
+          }
+          return { essentialPaise: priced.essentialPaise, addonPaise: priced.addonPaise, priceListVersion: priced.priceListVersion };
+        });
+        setDateSaved(priced.dateSaved);
+        setLocal(null);
+        setStatus((current) => (current.kind === "offline" ? { kind: "priced" } : current));
+      }
+    } else if (event.op.kind === "share") {
+      setShareUrl((data as Extract<DocumentResult, { ok: true }>).shareUrl);
+    } else if (event.op.kind === "accept") {
+      setAccepted({ option: event.op.option, commercialCaseId: (data as Extract<AcceptResult, { ok: true }>).commercialCaseId });
+    } else if (event.op.kind === "lost") {
+      setLost((current) => (current ? { ...current, pending: false } : current));
+    }
+  }, []);
+  const queue = useOfflineQueue(onSynced);
+  // The hook's callbacks are stable; the object around them is not (it carries the counts).
+  const { enqueue, sync } = queue;
+  // Work on this proposal goes through the queue while anything for it is still waiting, so nothing overtakes it.
+  const pendingHere = ref !== null && queue.refs.includes(ref);
+  const queueMode = !online || pendingHere || (ref !== null && isLocalRef(ref) && proposalId === null);
+  const queueModeRef = useRef(queueMode);
+  queueModeRef.current = queueMode;
+
+  // Connection state, the offline bundle (copy, components, price list) and the open proposal after a reload.
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+  // The cached (offline) copy of this page is stored without its query string: read the lead id here too.
+  useEffect(() => {
+    if (initialZohoLeadId) return;
+    const fromUrl = new URLSearchParams(window.location.search).get("zohoLeadId");
+    if (fromUrl && /^\d{5,30}$/.test(fromUrl)) setDraft((current) => (current.zohoLeadId ? current : { ...current, zohoLeadId: fromUrl }));
+  }, [initialZohoLeadId]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      // Someone else signed in on this tablet: nothing of the previous staff member's stays.
+      const owner = await kv.get<string>(OWNER_KEY).catch(() => undefined);
+      if (owner && owner !== staffId) await clearOfflineData();
+      await kv.set(OWNER_KEY, staffId).catch(() => undefined);
+      const open = await kv.get<OpenProposal>(OPEN_KEY).catch(() => undefined);
+      if (open && open.owner === staffId && !cancelled) {
+        const ops = (await (await offlineStore()).ops()).filter((op) => op.ref === open.ref);
+        if (ops.length && !cancelled) {
+          refRef.current = open.ref;
+          setRef(open.ref);
+          setDraft(open.draft);
+          setLocal(open.local);
+          setShared(open.shared);
+          setAccepted(open.accepted);
+          setLost(open.lost);
+          if (open.local) {
+            lastPricedKey.current = pricingKey(open.draft);
+            setTotals({ essentialPaise: open.local.essentialTotalPaise, addonPaise: open.local.addonTotalPaise, priceListVersion: open.local.snapshot.version });
+            setStatus({ kind: "offline" });
+          }
+        } else {
+          await kv.delete(OPEN_KEY).catch(() => undefined);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
+  }, [staffId]);
+  useEffect(() => {
+    if (!online) return;
+    let cancelled = false;
+    fetch(OFFLINE_BUNDLE_PATH, { credentials: "same-origin", cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((value) => {
+        if (cancelled || !isOfflineBundle(value) || value.staff.id !== staffId) return;
+        setBundle(value);
+        // Photos into the service worker's cache now, so Show family and the PDF have them with no signal.
+        void import("../../../../../lib/proposals/pdf").then(({ precachePhotos }) =>
+          precachePhotos(Object.values(value.content?.components ?? {}).map((component) => component?.photoUrl)));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [online, staffId]);
+  // Offline with no bundle yet in memory (the page was opened offline): the service worker's copy.
+  useEffect(() => {
+    if (online || bundle) return;
+    fetch(OFFLINE_BUNDLE_PATH, { credentials: "same-origin" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((value) => (isOfflineBundle(value) && value.staff.id === staffId ? setBundle(value) : undefined))
+      .catch(() => undefined);
+  }, [online, bundle, staffId]);
+
+  // Keep the open proposal on the tablet while it has queued work; drop it once everything has synced.
+  useEffect(() => {
+    if (ref === null) return;
+    if (!pendingHere && proposalId !== null) {
+      void kv.delete(OPEN_KEY).catch(() => undefined);
+      return;
+    }
+    const open: OpenProposal = { ref, draft, local, shared, accepted, lost, owner: staffId };
+    void kv.set(OPEN_KEY, open).catch(() => undefined);
+  }, [ref, draft, local, shared, accepted, lost, pendingHere, proposalId, staffId]);
+
+  /** Prices on the tablet and queues the save (no signal, or earlier work for this proposal still waiting). */
+  const priceOffline = useCallback(async (snapshot: BuilderDraft, key: string) => {
+    const priced = priceLocally(snapshot, bundleRef.current);
+    if (!priced.ok) {
+      setTotals(null);
+      setLocal(null);
+      lastPricedKey.current = null;
+      failedKey.current = key;
+      failedMessage.current = priced.error;
+      setStatus({ kind: "error", message: priced.error });
+      return;
+    }
+    const proposalRef = refRef.current ?? idRef.current ?? newLocalRef();
+    refRef.current = proposalRef;
+    setRef(proposalRef);
+    await enqueue({ kind: "save", ref: proposalRef, draft: snapshot });
+    lastPricedKey.current = key;
+    failedKey.current = null;
+    setLocal(priced.result);
+    setTotals({ essentialPaise: priced.result.essentialTotalPaise, addonPaise: priced.result.addonTotalPaise, priceListVersion: priced.result.snapshot.version });
+    setOverride(null);
+    setStatus({ kind: "offline" });
+    void sync();
+  }, [enqueue, sync]);
 
   const runPricing = useCallback(async () => {
     if (inFlight.current) return;
     const snapshot = latestDraft.current;
     const key = pricingKey(snapshot);
     if (key === lastPricedKey.current || draftProblem(snapshot)) return;
+    if (queueModeRef.current) {
+      inFlight.current = true;
+      await priceOffline(snapshot, key).finally(() => (inFlight.current = false));
+      setRoundsDone((count) => count + 1); // after inFlight clears, so edits made meanwhile are priced next
+      return;
+    }
     failedKey.current = null;
     inFlight.current = true;
     setStatus({ kind: "pricing" });
-    const result = await saveAndPriceProposal(idRef.current, snapshot);
+    let result: PriceResult;
+    try {
+      result = await saveAndPriceProposal(idRef.current, snapshot);
+    } catch {
+      // No connection (the request never reached the server): price on the tablet and queue the save.
+      setOnline(false);
+      await priceOffline(snapshot, key).finally(() => (inFlight.current = false));
+      setRoundsDone((count) => count + 1);
+      return;
+    }
     inFlight.current = false;
     if (result.id) {
       idRef.current = result.id;
+      refRef.current ??= result.id;
+      setRef((current) => current ?? result.id);
       setProposalId(result.id);
     }
     if (result.ok) {
@@ -84,6 +282,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
       setTotals({ essentialPaise: result.essentialPaise, addonPaise: result.addonPaise, priceListVersion: result.priceListVersion });
       setOverride(null); // any re-price clears an override on the server
       setDateSaved(result.dateSaved);
+      setLocal(null);
       setStatus({ kind: "priced" });
     } else {
       setTotals(null);
@@ -94,14 +293,14 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
       setStatus({ kind: "error", message: result.error });
     }
     setRoundsDone((count) => count + 1);
-  }, []);
+  }, [priceOffline]);
 
   const problem = draftProblem(draft);
   const key = pricingKey(draft);
   // Live re-pricing starts only once staff have created the draft explicitly, so a half-typed
   // Zoho Lead ID can never be saved (it is fixed after creation).
   useEffect(() => {
-    if (proposalId === null || problem || inFlight.current || locked) return;
+    if (ref === null || problem || inFlight.current || locked) return;
     // An edit undone within the debounce lands back on a known state: restore it rather than stay "waiting".
     if (key === lastPricedKey.current) {
       setStatus((current) => (current.kind === "waiting" ? { kind: "priced" } : current));
@@ -114,14 +313,93 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
     setStatus({ kind: "waiting" });
     const timer = setTimeout(() => void runPricing(), PRICE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [key, problem, proposalId, roundsDone, runPricing, locked]);
+  }, [key, problem, ref, roundsDone, runPricing, locked]);
 
   const retry = () => {
     lastPricedKey.current = null;
     failedKey.current = null;
     void runPricing();
   };
-  const stale = proposalId !== null && status.kind === "error";
+  const stale = ref !== null && status.kind === "error";
+  const priced = (status.kind === "priced" || status.kind === "offline") && totals !== null && !stale;
+
+  /** The customer document built on the tablet (no signal): same builder as the server's. */
+  const offlineDoc = useCallback((): ProposalDoc | null => {
+    const content = bundleRef.current?.content;
+    const snapshot = latestDraft.current;
+    const pricedHere = local ?? (() => {
+      const result = priceLocally(snapshot, bundleRef.current);
+      return result.ok ? result.result : null;
+    })();
+    if (!content || !pricedHere) return null;
+    return localDocument(snapshot, pricedHere, content, shared ? "shared" : "draft", override);
+  }, [local, override, shared]);
+
+  const queueShare = useCallback(async () => {
+    const proposalRef = refRef.current ?? idRef.current;
+    if (!proposalRef) throw new Error("Save the proposal first.");
+    await enqueue({ kind: "share", ref: proposalRef });
+    void sync();
+  }, [enqueue, sync]);
+
+  /** "Customer accepts": shares first if needed (the API accepts shared proposals only), then records the option
+      and opens the payments case. With no signal both are queued. */
+  const accept = useCallback(async (option: AcceptOption): Promise<string | null> => {
+    const proposalRef = refRef.current ?? idRef.current;
+    if (!proposalRef) return "Save the proposal first.";
+    setDeciding(true);
+    try {
+      if (!queueModeRef.current && idRef.current) {
+        try {
+          if (!shared) {
+            const sharedResult = await shareProposal(idRef.current);
+            if (!sharedResult.ok) return sharedResult.error;
+            setShared(true);
+            setShareUrl(sharedResult.shareUrl);
+          }
+          const result = await acceptProposal(idRef.current, option);
+          if (!result.ok) return result.error;
+          setAccepted({ option, commercialCaseId: result.commercialCaseId });
+          router.push(`/crm/payments/${encodeURIComponent(result.commercialCaseId)}`);
+          return null;
+        } catch {
+          setOnline(false); // fall through to the queue
+        }
+      }
+      if (!shared) await enqueue({ kind: "share", ref: proposalRef });
+      await enqueue({ kind: "accept", ref: proposalRef, option });
+      setShared(true);
+      setAccepted({ option, commercialCaseId: null });
+      void sync();
+      return null;
+    } finally {
+      setDeciding(false);
+    }
+  }, [enqueue, sync, router, shared]);
+
+  const markLost = useCallback(async (reason: LostReason, note: string): Promise<string | null> => {
+    const proposalRef = refRef.current ?? idRef.current;
+    if (!proposalRef) return "Save the proposal first.";
+    setDeciding(true);
+    try {
+      if (!queueModeRef.current && idRef.current) {
+        try {
+          const result = await markProposalLost(idRef.current, reason, note);
+          if (!result.ok) return result.error;
+          setLost({ reason, note, pending: false });
+          return null;
+        } catch {
+          setOnline(false);
+        }
+      }
+      await enqueue({ kind: "lost", ref: proposalRef, reason, note });
+      setLost({ reason, note, pending: true });
+      void sync();
+      return null;
+    } finally {
+      setDeciding(false);
+    }
+  }, [enqueue, sync]);
 
   const update = (patch: Partial<BuilderDraft>) => setDraft((current) => ({ ...current, ...patch }));
   const updateItem = (index: number, patch: Partial<BuilderItem>) =>
@@ -158,10 +436,10 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
               inputMode="numeric"
               pattern="[0-9]{5,30}"
               autoComplete="off"
-              readOnly={proposalId !== null}
+              readOnly={ref !== null}
               onChange={(event) => update({ zohoLeadId: event.target.value.replace(/\D/g, "") })}
             />
-            <small>{proposalId ? "Fixed once the draft is saved." : "Contact details stay in Zoho."}</small>
+            <small>{ref ? "Fixed once the draft is saved." : "Contact details stay in Zoho."}</small>
           </label>
           <label className={styles.field}>
             <span>Proposal date</span>
@@ -260,18 +538,23 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
           </div>
         </div>
         <p className={styles.roomsLine} data-testid="rooms-line">Covers {roomsLabel}. Other rooms: quoted after inspection.</p>
+        <SyncBadge count={queue.count} online={online} syncing={queue.syncing} failed={queue.failed} onRetry={() => void queue.sync(true)} onDiscard={() => void queue.discardFailed()} />
+        {notice ? <p className={styles.notice} data-testid="sync-notice" role="status">{notice}</p> : null}
         <p className={styles.status} data-status={status.kind} role={status.kind === "error" ? "alert" : undefined}>
-          {shared ? "Shared with the customer. This proposal is now locked; start a new one for changes."
+          {lost ? `Marked lost (${lost.pending ? "will be recorded when signal returns" : "recorded"}). This proposal is closed.`
+            : accepted ? (accepted.commercialCaseId ? "Accepted. The payments case is open for the Razorpay links." : "Accepted on this tablet. It will be recorded, and the payments case opened, when signal returns.")
+            : shared ? "Shared with the customer. This proposal is now locked; start a new one for changes."
             : problem ? problem
             : stale ? "The totals above are not current. Do not quote a price until they update."
             : status.kind === "error" ? status.message
             : status.kind === "pricing" ? "Updating totals…"
             : status.kind === "waiting" ? "Totals will update in a moment."
             : status.kind === "priced" ? `Priced with price list ${totals?.priceListVersion ?? "—"}. Draft saved.`
-            : proposalId === null ? "Check the Zoho Lead ID, then save the draft. Totals update live after that."
+            : status.kind === "offline" ? `No signal: priced on this tablet with price list ${totals?.priceListVersion ?? "—"}. The draft will save when signal returns.`
+            : ref === null ? "Check the Zoho Lead ID, then save the draft. Totals update live after that."
             : ""}
         </p>
-        {proposalId === null && (
+        {ref === null && (
           <button type="button" className={styles.primary} disabled={Boolean(problem) || status.kind === "pricing"} onClick={retry}>
             {status.kind === "pricing" ? "Saving…" : "Save draft and price"}
           </button>
@@ -283,15 +566,36 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today }: {
           </button>
         )}
         {override && <p className={styles.overrideNote} data-testid="override-applied">Admin override applied: {override.reason}</p>}
-        {isAdmin && !shared && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
+        {isAdmin && !locked && !queueMode && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
+        {accepted?.commercialCaseId ? (
+          <a className={styles.primary} href={`/crm/payments/${encodeURIComponent(accepted.commercialCaseId)}`} data-testid="open-payments-case">Open the payments case</a>
+        ) : null}
         <CustomerActions
-          proposalId={proposalId}
-          ready={status.kind === "priced" && totals !== null && !stale}
-          version={`${key}|${override?.essentialPaise ?? ""}|${override?.addonPaise ?? ""}|${roundsDone}`}
+          proposalId={proposalId ?? ref}
+          ready={priced && lost === null}
+          version={`${key}|${override?.essentialPaise ?? ""}|${override?.addonPaise ?? ""}|${roundsDone}|${queueMode ? "local" : "server"}`}
           shared={shared}
+          queueMode={queueMode}
+          offlineDoc={offlineDoc}
+          onQueueShare={queueShare}
+          shareUrl={shareUrl}
           onSharing={setSharing}
           onShared={() => setShared(true)}
+          onFamilyShown={() => setFamilyShown(true)}
         />
+        {(familyShown || shared) && priced && !lost ? (
+          <AcceptPanel
+            accepted={accepted}
+            hasAddon={totals?.addonPaise != null}
+            essentialPaise={essentialShown}
+            addonPaise={addonShown}
+            shared={shared}
+            blockedReason={override && !isAdmin ? "The price was overridden, so an admin must record the acceptance." : null}
+            busy={deciding || sharing}
+            onAccept={accept}
+          />
+        ) : null}
+        {ref !== null && !accepted ? <LostPanel lost={lost} busy={deciding || sharing} onLost={markLost} /> : null}
       </aside>
     </div>
   );
