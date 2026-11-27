@@ -186,17 +186,25 @@ always uses the JPEG. `AbortSignal.timeout` falls back to an AbortController whe
   is logged once.
 * **Per-client-IP limit before signing** (`middleware.ts`, `lib/proposals/rate-limit.ts`): `/p/…` only, and only
   while the flag is on. 30 page loads per IP per minute (`PROPOSALS_PAGE_RATE_LIMIT`), then a plain 429 with
-  `Retry-After`. The IP comes from Vercel's `x-real-ip` / `x-forwarded-for` (set by Vercel's edge; elsewhere only
-  with `PROPOSALS_TRUST_PROXY_HEADERS=true`) and is hashed before use. Store: Vercel's Redis/KV integration over
+  `Retry-After` (the service worker shows a returning customer their saved copy instead). Any method other than
+  GET/HEAD is a 405: the page is dynamic, so Next would otherwise render it, and make the signed call, for a POST.
+  The IP comes from Vercel's `x-real-ip` / `x-forwarded-for` (set by Vercel's edge; elsewhere only with
+  `PROPOSALS_TRUST_PROXY_HEADERS=true`); IPv6 is keyed on its /64, and keys are an HMAC with the signing secret,
+  so they never reveal IPs. Store: Vercel's Redis/KV integration over
   REST (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) so the limit holds across instances; without it, a window per
   instance. A store error lets the request through (the API's own per-token limits and 1,200/min ceiling stay
   behind it).
 * **Zoho note on share**: the share response's `zohoNote` shows as a neutral chip — "Zoho note pending",
   "Zoho note added" or "Zoho note not added yet" — never as an error (the share itself succeeded).
 
-Env: `PROPOSALS_WEB_SIGNING_SECRET` is already set (sensitive) on aegis-living-web and aegis-living-api. A
-cross-instance limit needs the Redis/KV integration connected to aegis-living-web (a Production change: founder's
-yes first).
+Env: `PROPOSALS_WEB_SIGNING_SECRET` is already set (sensitive) on aegis-living-web and aegis-living-api.
+
+**Gates before the flag goes on** (both need the founder):
+1. Connect the Redis/KV integration to aegis-living-web (`KV_REST_API_URL`, `KV_REST_API_TOKEN`). Middleware runs on
+   the Edge runtime, whose instances are many and short-lived, so the per-instance fallback barely limits anyone on
+   Vercel (it logs a warning once per instance).
+2. Confirm www.masoncompany.in is not behind another proxy (e.g. Cloudflare with proxying on). Vercel's IP headers
+   would then carry the proxy's few IPs, and every customer would share one bucket (mass 429s).
 
 ## Gaps for the api lane (please pick up in docs/proposals.md)
 

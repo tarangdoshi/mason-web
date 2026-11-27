@@ -31,8 +31,29 @@ export function clientIp(headers: Headers, trusted: boolean = process.env.VERCEL
   return forwarded || null;
 }
 
-export async function hashIp(ip: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`mason-proposals-page:${ip}`));
+/** IPv6 is keyed on its /64 (one host usually holds a whole /64 and could rotate through it); IPv4 as is. */
+export function ipKey(ip: string): string {
+  const address = ip.replace(/^\[|\]$/g, "").split("%")[0];
+  if (!address.includes(":")) return address;
+  if (/^::ffff:\d+\.\d+\.\d+\.\d+$/i.test(address)) return address.slice(7); // IPv4-mapped
+  const [head, tail = ""] = address.toLowerCase().split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const groups = address.includes("::") ? [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right] : left;
+  return `${groups.slice(0, 4).map((group) => group.replace(/^0+(?=.)/, "")).join(":")}::/64`;
+}
+
+/** Keyed hash of the client IP: an HMAC with the server's signing secret when set (a plain hash of an IPv4
+    address could be reversed by trying all 2^32), so stored keys never reveal IPs. */
+export async function hashIp(ip: string, secret: string | undefined = process.env.PROPOSALS_WEB_SIGNING_SECRET): Promise<string> {
+  const data = new TextEncoder().encode(`mason-proposals-page:${ipKey(ip)}`);
+  let digest: ArrayBuffer;
+  if (secret && secret.trim().length >= 32) {
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret.trim()), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    digest = await crypto.subtle.sign("HMAC", key, data);
+  } else {
+    digest = await crypto.subtle.digest("SHA-256", data);
+  }
   return Array.from(new Uint8Array(digest).slice(0, 16), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
@@ -59,20 +80,21 @@ export function memoryWindowStore(now: () => number = Date.now): WindowStore & {
   };
 }
 
-/** Upstash REST pipeline: INCR, then PEXPIRE … NX (the window starts at the first hit). */
+/** Upstash REST pipeline: INCR, then PEXPIRE. The window number is part of the key, so a plain PEXPIRE (twice
+    the window, no NX: works on any Redis) only has to make the key go away; an error on either command fails. */
 export function upstashWindowStore(url: string, token: string, fetcher: typeof fetch = fetch): WindowStore {
   return {
     async increment(key, windowMs) {
       const response = await fetcher(`${url.replace(/\/$/, "")}/pipeline`, {
         method: "POST",
         headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-        body: JSON.stringify([["INCR", key], ["PEXPIRE", key, String(windowMs), "NX"]]),
+        body: JSON.stringify([["INCR", key], ["PEXPIRE", key, String(windowMs * 2)]]),
         cache: "no-store",
         signal: AbortSignal.timeout(1_500)
       });
       if (!response.ok) throw new Error(`rate store ${response.status}`);
-      const [incr] = (await response.json()) as { result?: number; error?: string }[];
-      if (typeof incr?.result !== "number") throw new Error("rate store reply");
+      const [incr, expire] = (await response.json()) as ({ result?: number; error?: string } | undefined)[];
+      if (typeof incr?.result !== "number" || incr.error || expire?.error) throw new Error("rate store reply");
       return incr.result;
     }
   };
@@ -84,7 +106,11 @@ export function defaultWindowStore(): WindowStore {
   const url = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
   if (url && token) return upstashWindowStore(url, token);
-  fallback ??= memoryWindowStore();
+  if (!fallback) {
+    fallback = memoryWindowStore();
+    // Edge instances are many and short-lived: without the shared store the limit barely holds on Vercel.
+    if (process.env.VERCEL === "1") console.warn("proposalPageLimit: no KV store configured; per-instance limit only");
+  }
   return fallback;
 }
 

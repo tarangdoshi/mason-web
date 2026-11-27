@@ -7,8 +7,15 @@ import { clientIp, limitPageView } from "./lib/proposals/rate-limit";
 
 export const config = { matcher: ["/p/:path*"] };
 
+const QUIET_HEADERS = { "cache-control": "no-store", "x-robots-tag": "noindex, nofollow", "referrer-policy": "no-referrer" };
+
 export async function middleware(request: NextRequest) {
-  if (!proposalsEnabled() || (request.method !== "GET" && request.method !== "HEAD")) return NextResponse.next();
+  if (!proposalsEnabled()) return NextResponse.next();
+  // The page is dynamic, so Next would render it (and make the signed API call) for any method. Only GET and
+  // HEAD are real; refusing the rest here means nothing reaches the signed call without passing the limit.
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new NextResponse(null, { status: 405, headers: { allow: "GET, HEAD", ...QUIET_HEADERS } });
+  }
   const ip = clientIp(request.headers);
   if (!ip) return NextResponse.next(); // no trusted client IP (local dev without a proxy): nothing to key on
   const result = await limitPageView(ip);
@@ -18,9 +25,7 @@ export async function middleware(request: NextRequest) {
     headers: {
       "content-type": "text/plain; charset=utf-8",
       "retry-after": String(result.retryAfterSeconds),
-      "cache-control": "no-store",
-      "x-robots-tag": "noindex, nofollow",
-      "referrer-policy": "no-referrer"
+      ...QUIET_HEADERS
     }
   });
 }

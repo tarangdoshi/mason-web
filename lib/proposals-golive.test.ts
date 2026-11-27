@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { NextRequest } from "next/server";
-import { clientIp, hashIp, limitPageView, memoryWindowStore, pageLimit, PAGE_LIMIT_DEFAULT, upstashWindowStore } from "./proposals/rate-limit";
+import { clientIp, hashIp, ipKey, limitPageView, memoryWindowStore, pageLimit, PAGE_LIMIT_DEFAULT, upstashWindowStore } from "./proposals/rate-limit";
 import { signWebRequest, webSignatureHeaders, webSigningSecret, WEB_SIGNATURE_HEADER, WEB_TS_HEADER } from "./proposals/web-signing";
 
 /* Proposal go-live hardening (web): signed public calls, the per-client-IP limit, the Zoho note chip.
@@ -78,7 +78,8 @@ test("Upstash store: INCR then PEXPIRE NX in one pipeline, bearer token, key wit
   assert.equal((calls[0].init.headers as Record<string, string>).authorization, "Bearer token-for-test");
   const body = JSON.parse(String(calls[0].init.body)) as string[][];
   assert.equal(body[0][0], "INCR");
-  assert.deepEqual(body[1].slice(0, 1).concat(body[1].slice(2)), ["PEXPIRE", "60000", "NX"]);
+  assert.deepEqual(body[1].slice(0, 1).concat(body[1].slice(2)), ["PEXPIRE", "120000"]); // no NX: any Redis
+  assert.equal(body[1][1], body[0][1]);
   assert.doesNotMatch(String(calls[0].init.body), /203\.0\.113\.5/);
 });
 
@@ -113,6 +114,53 @@ test("middleware: 429 with Retry-After once one IP passes the limit; only /p/; n
 test("Zoho note: 'pending' is a neutral chip, never an error", () => {
   const source = read("app/(crm)/crm/proposals/new/customer-actions.tsx");
   assert.match(source, /note === "pending"\) return <span className=\{styles\.noteChip\}[^>]*>Zoho note pending<\/span>/);
+  assert.match(source, />Zoho note not added<\/span>/);
+  assert.match(source, /const shownNote = note === undefined \? zohoNote : note;/, "a share made here never shows an older note");
   assert.doesNotMatch(source, /zohoNote[^\n]*setError/);
   assert.match(read("app/(crm)/crm/proposals/actions.ts"), /export type ZohoNote = "added" \| "failed" \| "skipped" \| "unchanged" \| "pending";/);
+});
+
+test("Upstash: an error on either command fails open instead of being ignored (keys never pile up unnoticed)", async () => {
+  const reply = (results: unknown) => (async () => new Response(JSON.stringify(results), { status: 200 })) as unknown as typeof fetch;
+  for (const results of [[{ result: 1 }, { error: "ERR syntax error" }], [{ error: "WRONGTYPE" }, { result: 1 }], []]) {
+    const store = upstashWindowStore("https://kv.example.test", "token-for-test", reply(results));
+    await assert.rejects(store.increment("k", 60_000));
+    assert.equal((await limitPageView("203.0.113.5", { store, limit: 1 })).ok, true);
+  }
+});
+
+test("IP keys: IPv6 by /64 (no rotating through a block), IPv4 and mapped IPv4 as is; HMAC with the secret", async () => {
+  assert.equal(ipKey("2001:db8:abcd:12:1:2:3:4"), "2001:db8:abcd:12::/64");
+  assert.equal(ipKey("2001:db8:abcd:12:ffff::9"), "2001:db8:abcd:12::/64");
+  assert.equal(ipKey("2001:db8::1"), "2001:db8:0:0::/64");
+  assert.equal(ipKey("[2001:0db8:0000:0012::1]"), "2001:db8:0:12::/64");
+  assert.equal(ipKey("::ffff:203.0.113.5"), "203.0.113.5");
+  assert.equal(ipKey("203.0.113.5"), "203.0.113.5");
+  assert.equal(await hashIp("2001:db8:abcd:12:1:2:3:4", undefined), await hashIp("2001:db8:abcd:12:9:9:9:9", undefined));
+  const plain = await hashIp("203.0.113.5", undefined);
+  const keyed = await hashIp("203.0.113.5", SECRET);
+  assert.notEqual(plain, keyed);
+  assert.match(keyed, /^[0-9a-f]{32}$/);
+});
+
+test("middleware: any method other than GET/HEAD on /p/ is 405 (never rendered, so never a signed call)", async () => {
+  const saved = process.env.NEXT_PUBLIC_PROPOSALS_ENABLED;
+  try {
+    process.env.NEXT_PUBLIC_PROPOSALS_ENABLED = "true";
+    const { middleware } = await import("../middleware");
+    for (const method of ["POST", "PUT", "DELETE", "PATCH", "OPTIONS"]) {
+      const response = await middleware(new NextRequest("https://www.example.test/p/AbcAbcAbcAbcAbcAbcAbc1", { method }));
+      assert.equal(response.status, 405, method);
+      assert.equal(response.headers.get("allow"), "GET, HEAD");
+    }
+    process.env.NEXT_PUBLIC_PROPOSALS_ENABLED = "false";
+    assert.notEqual((await middleware(new NextRequest("https://www.example.test/p/AbcAbcAbcAbcAbcAbcAbc1", { method: "POST" }))).status, 405);
+  } finally {
+    if (saved === undefined) delete process.env.NEXT_PUBLIC_PROPOSALS_ENABLED;
+    else process.env.NEXT_PUBLIC_PROPOSALS_ENABLED = saved;
+  }
+});
+
+test("service worker: a 429 on /p/ shows the copy opened before, if there is one", () => {
+  assert.match(read("public/proposals-sw.js"), /if \(response\.status === 429\) return \(await caches\.match\(url\.pathname, \{ cacheName: OPEN \}\)\) \|\| response;/);
 });

@@ -70,8 +70,9 @@ export default function CustomerActions({
   const [error, setError] = useState<string | null>(null);
   const [share, setShare] = useState<ShareState>({ stage: "idle" });
   const [copied, setCopied] = useState(false);
-  const [note, setNote] = useState<ZohoNote | null>(null);
-  const shownNote = note ?? zohoNote;
+  // The note of a share made here; `undefined` until one is made (then the queued share's note from the parent).
+  const [note, setNote] = useState<ZohoNote | null | undefined>(undefined);
+  const shownNote = note === undefined ? zohoNote : note;
   const [pdfDoc, setPdfDoc] = useState<ProposalDoc | null>(null);
   const pdfRoot = useRef<HTMLDivElement | null>(null);
   const pdfWaiter = useRef<{ resolve: (file: File) => void; reject: (error: unknown) => void } | null>(null);
@@ -359,6 +360,6 @@ export default function CustomerActions({
 function ZohoNoteChip({ note }: { note: ZohoNote | null }) {
   if (note === "pending") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="pending">Zoho note pending</span>;
   if (note === "added") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="added">Zoho note added</span>;
-  if (note === "failed") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="failed">Zoho note not added yet</span>;
+  if (note === "failed") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="failed">Zoho note not added</span>;
   return null;
 }
