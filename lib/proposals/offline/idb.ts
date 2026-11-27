@@ -71,6 +71,29 @@ const idbStore: OfflineStore = {
   add: (op) => tx(OPS, "readwrite", (objects) => objects.add(op)).then((key) => Number(key)),
   put: (op) => tx(OPS, "readwrite", (objects) => objects.put(op)).then(() => undefined),
   remove: (seq) => tx(OPS, "readwrite", (objects) => objects.delete(seq)).then(() => undefined),
+  // Read and delete in one readwrite transaction, so a newer draft merged in between is never deleted.
+  async removeIfVersion(seq, version) {
+    const db = await open();
+    const transaction = db.transaction(OPS, "readwrite");
+    const objects = transaction.objectStore(OPS);
+    const removed = await new Promise<boolean>((resolve, reject) => {
+      const get = objects.get(seq);
+      get.onerror = () => reject(get.error);
+      get.onsuccess = () => {
+        const op = get.result as QueuedOp | undefined;
+        if (!op || (op.version ?? 0) !== version) return resolve(false);
+        const del = objects.delete(seq);
+        del.onerror = () => reject(del.error);
+        del.onsuccess = () => resolve(true);
+      };
+    });
+    await new Promise<void>((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+    return removed;
+  },
   serverId: async (ref) => (await kv.get<string>(`id:${ref}`)) ?? null,
   setServerId: (ref, id) => kv.set(`id:${ref}`, id)
 };

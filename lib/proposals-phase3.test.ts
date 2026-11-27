@@ -244,7 +244,9 @@ test("queue: a throw is reported as such (an out-of-date page after a deploy), a
 test("accept is refused for non-admins before anything is sent; network failures are passing (review findings 2, 6)", () => {
   const actions = read("app/(crm)/crm/proposals/actions.ts");
   assert.match(actions, /if \(auth\.user\.role !== "ADMIN"\) return \{ ok: false, error: ACCEPT_ADMIN_ONLY \};/);
-  assert.match(actions, /return !\(error instanceof ApiError\) \|\| error\.status >= 500 \|\| error\.status === 429;/);
+  assert.match(actions, /if \(error instanceof TypeError\) return true;\n\s+return error instanceof ApiError && \(error\.status >= 500 \|\| error\.status === 429\);/);
+  const shell = read("app/(crm)/crm/crm-shell.tsx");
+  assert.match(shell, /\} catch \{\n\s+\/\/ fall through to sign out\n\s+\}\n\s+form\.dataset\.cleared = "1";\n\s+form\.requestSubmit\(\);/, "sign-out always submits");
   const builder = read("app/(crm)/crm/proposals/new/proposal-builder.tsx");
   assert.match(builder, /if \(!isAdmin\) return ACCEPT_ADMIN_ONLY;\n\s+setDeciding\(true\);/, "checked before the share");
   assert.match(builder, /blockedReason=\{!isAdmin \? ACCEPT_ADMIN_ONLY : null\}/);
@@ -289,7 +291,7 @@ test("service worker: two narrow scopes, caches named for logout, one customer p
   assert.match(sw, /type === "clear"/);
   assert.match(read("lib/proposals/offline/idb.ts"), /SW_CACHE_PREFIX = "mason-proposals-"/);
   assert.match(read("app/(crm)/crm/crm-shell.tsx"), /clearOfflineData/);
-  assert.match(read("app/(crm)/crm/crm-shell.tsx"), /if \(!\(await hasOfflineData\(\)\)\)/, "cleared on sign-out flag on or off");
+  assert.match(read("app/(crm)/crm/crm-shell.tsx"), /if \(await hasOfflineData\(\)\)/, "cleared on sign-out flag on or off");
   assert.match(sw, /ignoreVary: true/);
   const manifest = JSON.parse(read("public/proposals.webmanifest")) as { scope: string; start_url: string; icons: { sizes: string }[] };
   assert.equal(manifest.scope, "/crm/proposals/");
@@ -303,4 +305,16 @@ test("offline bundle route: flag-gated, signed-in only, no customer data", () =>
   assert.match(route, /status: 401/);
   assert.match(route, /private, no-store/);
   assert.doesNotMatch(route, /displayName|zohoLeadId|email|fullName/);
+});
+
+test("queue: a draft merged in just before the op is removed is never deleted (version checked with the delete)", async () => {
+  const store = memoryStore();
+  await enqueue(store, { kind: "save", ref: "srv-f", draft: draft({ rooms: 1 }) });
+  const [op] = await store.ops();
+  await enqueue(store, { kind: "save", ref: "srv-f", draft: draft({ rooms: 5 }) });
+  assert.equal(await store.removeIfVersion(op.seq, op.version ?? 0), false);
+  const [kept] = await store.ops();
+  assert.equal(kept.kind === "save" ? kept.draft.rooms : null, 5);
+  assert.equal(await store.removeIfVersion(op.seq, 1), true);
+  assert.deepEqual(await store.ops(), []);
 });

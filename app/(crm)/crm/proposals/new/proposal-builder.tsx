@@ -356,6 +356,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
     if (op.kind === "share") {
       setShared(false);
       setShareUrl(null);
+      setAccepted(null); // its queued accept was dropped with it
     }
   }, [queue]);
 

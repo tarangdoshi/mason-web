@@ -61,7 +61,8 @@ async function withLease(run: () => Promise<void>) {
   try {
     await run();
   } finally {
-    await kv.delete(LEASE_KEY).catch(() => undefined);
+    const held = await kv.get<{ tab: string }>(LEASE_KEY).catch(() => undefined);
+    if (held?.tab === TAB) await kv.delete(LEASE_KEY).catch(() => undefined);
   }
 }
 
@@ -112,11 +113,18 @@ export function useOfflineQueue(onDone: (event: SyncEvent) => void) {
     await refresh();
   }, [refresh]);
 
-  /** Drops the op the server refused (staff chose to discard it) and returns it, so the screen can undo it. */
+  /** Drops the op the server refused (staff chose to discard it) and returns it, so the screen can undo it.
+      Discarding a share also drops that proposal's queued accept (the API accepts shared proposals only). */
   const discardFailed = useCallback(async (): Promise<QueuedOp | null> => {
     const store = await offlineStore();
-    const failed = (await store.ops()).find((op) => op.error) ?? null;
-    if (failed) await store.remove(failed.seq);
+    const ops = await store.ops();
+    const failed = ops.find((op) => op.error) ?? null;
+    if (failed) {
+      await store.remove(failed.seq);
+      if (failed.kind === "share") {
+        for (const op of ops) if (op.ref === failed.ref && op.kind === "accept" && op.seq > failed.seq) await store.remove(op.seq);
+      }
+    }
     await refresh();
     return failed;
   }, [refresh]);

@@ -31,6 +31,8 @@ export interface OfflineStore {
   add(op: Op & { queuedAt: number }): Promise<number>;
   put(op: QueuedOp): Promise<void>;
   remove(seq: number): Promise<void>;
+  /** Removes the op only if it still has this version (one transaction); true when removed. */
+  removeIfVersion(seq: number, version: number): Promise<boolean>;
   serverId(ref: string): Promise<string | null>;
   setServerId(ref: string, id: string): Promise<void>;
 }
@@ -137,12 +139,11 @@ export async function syncQueue(store: OfflineStore, executors: Executors, optio
       continue;
     }
     // Remove only what was sent: a save that took a newer draft meanwhile stays, and goes next.
-    const current = (await store.ops()).find((queued) => queued.seq === op.seq);
-    if (current && (current.version ?? 0) === (op.version ?? 0)) await store.remove(op.seq);
+    const removed = await store.removeIfVersion(op.seq, op.version ?? 0);
     done += 1;
     options.onDone?.({ op, serverId: id ?? known!, result });
     // Offline price ≠ server price: hold the proposal's queued share/accept for staff to check.
-    if (op.kind === "save" && current && (current.version ?? 0) === (op.version ?? 0) && differs(op.expected, result.totals)) {
+    if (op.kind === "save" && removed && differs(op.expected, result.totals)) {
       const next = (await store.ops()).find((queued) => queued.ref === op.ref);
       if (next && (next.kind === "share" || next.kind === "accept")) {
         await store.put({ ...next, error: PRICE_CHANGED });
@@ -165,6 +166,12 @@ export function memoryStore(): OfflineStore & { dump: () => { ops: QueuedOp[]; i
     async add(op) { seq += 1; ops.set(seq, { ...op, seq } as QueuedOp); return seq; },
     async put(op) { ops.set(op.seq, { ...op }); },
     async remove(key) { ops.delete(key); },
+    async removeIfVersion(key, version) {
+      const op = ops.get(key);
+      if (!op || (op.version ?? 0) !== version) return false;
+      ops.delete(key);
+      return true;
+    },
     async serverId(ref) { return ids.get(ref) ?? null; },
     async setServerId(ref, id) { ids.set(ref, id); },
     dump: () => ({ ops: [...ops.values()], ids: Object.fromEntries(ids) })

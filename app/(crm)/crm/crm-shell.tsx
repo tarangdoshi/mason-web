@@ -206,15 +206,17 @@ export default function CrmShell({
                 event.preventDefault();
                 const form = event.currentTarget;
                 void (async () => {
-                  const { clearOfflineData, hasOfflineData, pendingCount } = await import("../../../lib/proposals/offline/idb");
-                  if (!(await hasOfflineData())) {
-                    form.dataset.cleared = "1";
-                    form.requestSubmit();
-                    return;
+                  // Sign-out must never depend on this: any failure (e.g. the chunk is gone after a deploy) still signs out.
+                  try {
+                    const { clearOfflineData, hasOfflineData, pendingCount } = await import("../../../lib/proposals/offline/idb");
+                    if (await hasOfflineData()) {
+                      const waiting = await pendingCount();
+                      if (waiting && !window.confirm(`${waiting} proposal ${waiting === 1 ? "change has" : "changes have"} not synced yet and will be lost. Sign out anyway?`)) return;
+                      await clearOfflineData();
+                    }
+                  } catch {
+                    // fall through to sign out
                   }
-                  const waiting = await pendingCount();
-                  if (waiting && !window.confirm(`${waiting} proposal ${waiting === 1 ? "change has" : "changes have"} not synced yet and will be lost. Sign out anyway?`)) return;
-                  await clearOfflineData();
                   form.dataset.cleared = "1";
                   form.requestSubmit();
                 })();

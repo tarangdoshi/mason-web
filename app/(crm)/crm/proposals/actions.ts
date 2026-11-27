@@ -42,8 +42,10 @@ async function session() {
 
 /** A passing problem (server error, price list briefly unavailable): queued work waits and tries again. */
 function retryable(error: unknown): boolean {
-  // Not an ApiError: the API could not be reached at all (network) — also passing.
-  return !(error instanceof ApiError) || error.status >= 500 || error.status === 429;
+  // fetch() itself failed (the API could not be reached): a TypeError, often with a network `cause`. Anything
+  // else that is not an ApiError is a bug and is reported, not retried forever.
+  if (error instanceof TypeError) return true;
+  return error instanceof ApiError && (error.status >= 500 || error.status === 429);
 }
 
 function message(error: unknown): string {
