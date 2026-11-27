@@ -42,7 +42,8 @@ async function session() {
 
 /** A passing problem (server error, price list briefly unavailable): queued work waits and tries again. */
 function retryable(error: unknown): boolean {
-  return error instanceof ApiError && (error.status >= 500 || error.status === 429);
+  // Not an ApiError: the API could not be reached at all (network) — also passing.
+  return !(error instanceof ApiError) || error.status >= 500 || error.status === 429;
 }
 
 function message(error: unknown): string {
@@ -161,6 +162,8 @@ export async function shareProposal(id: string): Promise<DocumentResult> {
   }
 }
 
+const ACCEPT_ADMIN_ONLY = "Only an admin can record the acceptance. Ask an admin to confirm it on this screen.";
+
 export type AcceptResult =
   | { ok: true; commercialCaseId: string; option: "essential" | "essential_addon" }
   | { ok: false; error: string; retryable?: boolean };
@@ -172,6 +175,8 @@ export async function acceptProposal(id: string, option: "essential" | "essentia
   if ("error" in auth) return { ok: false, error: auth.error ?? "Unavailable." };
   if (!UUID.test(id)) return { ok: false, error: "Save the proposal first." };
   if (option !== "essential" && option !== "essential_addon") return { ok: false, error: "Choose an option." };
+  // mason-api accepts from admins only (docs/proposals-web.md gap 9); refuse here before anything is sent.
+  if (auth.user.role !== "ADMIN") return { ok: false, error: ACCEPT_ADMIN_ONLY };
   try {
     const current = await apiFetch<{ data: { override: ProposalRecord["override"] } }>(`/api/v1/internal/proposals/${id}`, { token: auth.token });
     if (current.data.override && auth.user.role !== "ADMIN") return { ok: false, error: "The price was overridden, so an admin must record the acceptance." };

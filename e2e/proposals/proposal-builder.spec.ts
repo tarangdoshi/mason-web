@@ -181,6 +181,8 @@ test("a burst of quantity taps is one save-and-price round", async ({ page }) =>
   // Typing a variant at 80 ms per key is also a single round.
   const afterTaps = (await writes(page)).length;
   await page.getByTestId("component-shower-stool").getByPlaceholder("Variant (optional)").pressSequentially("Wall fixed", { delay: 80 });
+  // Wait for the round (a loaded machine can be slow to start it), then make sure no second one follows.
+  await expect.poll(async () => (await rounds(afterTaps)).length).toBeGreaterThanOrEqual(2);
   await page.waitForTimeout(1_200);
   expect(await rounds(afterTaps)).toEqual(["PATCH draft", "POST price"]);
 });

@@ -55,6 +55,8 @@ type Lost = { reason: LostReason; note: string; pending: boolean };
 /** The open proposal, kept on the tablet while it has queued work, so an offline reload can carry on. */
 type OpenProposal = { ref: string; draft: BuilderDraft; local: PricingResult | null; shared: boolean; accepted: Accepted | null; lost: Lost | null; owner: string };
 const OPEN_KEY = "open-proposal";
+/** mason-api accepts from admins only (the CTO's rule is "admin only if overridden": docs/proposals-web.md gap 9). */
+const ACCEPT_ADMIN_ONLY = "Only an admin can record the acceptance. Ask an admin to confirm it on this screen.";
 const OWNER_KEY = "owner";
 
 export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, staffId }: { isAdmin: boolean; initialZohoLeadId: string; today: string; staffId: string }) {
@@ -117,7 +119,8 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
         });
         setDateSaved(priced.dateSaved);
         setLocal(null);
-        setStatus((current) => (current.kind === "offline" ? { kind: "priced" } : current));
+        failedKey.current = null;
+        setStatus((current) => (current.kind === "offline" || current.kind === "error" ? { kind: "priced" } : current));
       }
     } else if (event.op.kind === "share") {
       setShareUrl((data as Extract<DocumentResult, { ok: true }>).shareUrl);
@@ -147,6 +150,11 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
       window.removeEventListener("offline", update);
     };
   }, []);
+  // The cached (offline) copy may be from an earlier day: default the date to today on this tablet.
+  useEffect(() => {
+    const local = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    if (local !== today) setDraft((current) => (current.proposalDate === today ? { ...current, proposalDate: local } : current));
+  }, [today]);
   // The cached (offline) copy of this page is stored without its query string: read the lead id here too.
   useEffect(() => {
     if (initialZohoLeadId) return;
@@ -158,7 +166,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
     (async () => {
       // Someone else signed in on this tablet: nothing of the previous staff member's stays.
       const owner = await kv.get<string>(OWNER_KEY).catch(() => undefined);
-      if (owner && owner !== staffId) await clearOfflineData();
+      if (owner && owner !== staffId) await clearOfflineData({ keepWorker: true });
       await kv.set(OWNER_KEY, staffId).catch(() => undefined);
       const open = await kv.get<OpenProposal>(OPEN_KEY).catch(() => undefined);
       if (open && open.owner === staffId && !cancelled) {
@@ -225,19 +233,22 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
   /** Prices on the tablet and queues the save (no signal, or earlier work for this proposal still waiting). */
   const priceOffline = useCallback(async (snapshot: BuilderDraft, key: string) => {
     const priced = priceLocally(snapshot, bundleRef.current);
+    const proposalRef = refRef.current ?? idRef.current ?? newLocalRef();
+    refRef.current = proposalRef;
+    setRef(proposalRef);
     if (!priced.ok) {
+      // The draft is still kept and synced; only the totals are unknown until the server prices it.
+      await enqueue({ kind: "save", ref: proposalRef, draft: snapshot, expected: null });
       setTotals(null);
       setLocal(null);
       lastPricedKey.current = null;
       failedKey.current = key;
-      failedMessage.current = priced.error;
-      setStatus({ kind: "error", message: priced.error });
+      failedMessage.current = `${priced.error} The draft is saved on this tablet.`;
+      setStatus({ kind: "error", message: failedMessage.current });
+      void sync();
       return;
     }
-    const proposalRef = refRef.current ?? idRef.current ?? newLocalRef();
-    refRef.current = proposalRef;
-    setRef(proposalRef);
-    await enqueue({ kind: "save", ref: proposalRef, draft: snapshot });
+    await enqueue({ kind: "save", ref: proposalRef, draft: snapshot, expected: { essentialPaise: priced.result.essentialTotalPaise, addonPaise: priced.result.addonTotalPaise } });
     lastPricedKey.current = key;
     failedKey.current = null;
     setLocal(priced.result);
@@ -336,6 +347,18 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
     return localDocument(snapshot, pricedHere, content, shared ? "shared" : "draft", override);
   }, [local, override, shared]);
 
+  /** Discarding a refused share/accept/lost undoes it on screen too. */
+  const discard = useCallback(async () => {
+    const op = await queue.discardFailed();
+    if (!op || op.ref !== refRef.current) return;
+    if (op.kind === "accept") setAccepted(null);
+    if (op.kind === "lost") setLost(null);
+    if (op.kind === "share") {
+      setShared(false);
+      setShareUrl(null);
+    }
+  }, [queue]);
+
   const queueShare = useCallback(async () => {
     const proposalRef = refRef.current ?? idRef.current;
     if (!proposalRef) throw new Error("Save the proposal first.");
@@ -348,6 +371,8 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
   const accept = useCallback(async (option: AcceptOption): Promise<string | null> => {
     const proposalRef = refRef.current ?? idRef.current;
     if (!proposalRef) return "Save the proposal first.";
+    // mason-api accepts from admins only: refuse before sharing anything.
+    if (!isAdmin) return ACCEPT_ADMIN_ONLY;
     setDeciding(true);
     try {
       if (!queueModeRef.current && idRef.current) {
@@ -376,7 +401,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
     } finally {
       setDeciding(false);
     }
-  }, [enqueue, sync, router, shared]);
+  }, [enqueue, sync, router, shared, isAdmin]);
 
   const markLost = useCallback(async (reason: LostReason, note: string): Promise<string | null> => {
     const proposalRef = refRef.current ?? idRef.current;
@@ -539,7 +564,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
           </div>
         </div>
         <p className={styles.roomsLine} data-testid="rooms-line">Covers {roomsLabel}. Other rooms: quoted after inspection.</p>
-        <SyncBadge count={queue.count} online={online} syncing={queue.syncing} failed={queue.failed} onRetry={() => void queue.sync(true)} onDiscard={() => void queue.discardFailed()} />
+        <SyncBadge count={queue.count} online={online} syncing={queue.syncing} failed={queue.failed} stale={queue.stale} onRetry={() => void queue.sync(true)} onDiscard={() => void discard()} />
         {notice ? <p className={styles.notice} data-testid="sync-notice" role="status">{notice}</p> : null}
         <p className={styles.status} data-status={status.kind} role={status.kind === "error" ? "alert" : undefined}>
           {lost ? `Marked lost (${lost.pending ? "will be recorded when signal returns" : "recorded"}). This proposal is closed.`
@@ -595,7 +620,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
               essentialPaise={essentialShown}
               addonPaise={addonShown}
               shared={shared}
-              blockedReason={override && !isAdmin ? "The price was overridden, so an admin must record the acceptance." : null}
+              blockedReason={!isAdmin ? ACCEPT_ADMIN_ONLY : null}
               busy={deciding || sharing}
               onAccept={accept}
             />

@@ -2,23 +2,28 @@
    on the tablet (IndexedDB, see ./idb.ts) and sent in order when the connection returns. Pure logic over a
    small store interface, so it is unit-tested without a browser.
 
-   No duplicates: a sync runs one op at a time, removes each op as soon as the API confirms it, and records the
-   server id of a proposal created offline before anything else, so a retried op PATCHes instead of creating
-   again. Share and accept are idempotent on the API (same option), so replaying either after an interrupted
-   sync is harmless. Only one sync runs at a time per device (Web Locks across tabs, a flag within one). */
+   No duplicates: a sync sends one op at a time and removes it only once the API confirmed it AND it was not
+   changed meanwhile (a save edited while being sent keeps its newer draft and is sent again). The server id of
+   a proposal created offline is recorded before anything else, so a retried op PATCHes instead of creating
+   again. Share and accept are idempotent on the API (same option), so replaying either is harmless.
+   A refused op holds back only the later ops of the same proposal; other proposals still sync. */
 
 import type { BuilderDraft } from "../builder";
 import type { LostReason } from "../lost";
 
 export type AcceptOption = "essential" | "essential_addon";
+export type Totals = { essentialPaise: number | null; addonPaise: number | null };
 
 export type Op =
-  | { kind: "save"; ref: string; draft: BuilderDraft }
+  /** `expected`: the totals staff saw on the tablet; if the API prices differently, a queued share or accept
+      for this proposal waits for staff to check the new price with the family. */
+  | { kind: "save"; ref: string; draft: BuilderDraft; expected?: Totals | null }
   | { kind: "share"; ref: string }
   | { kind: "accept"; ref: string; option: AcceptOption }
   | { kind: "lost"; ref: string; reason: LostReason; note: string };
 
-export type QueuedOp = Op & { seq: number; queuedAt: number; error?: string };
+/** `version` goes up each time a queued save takes a newer draft. */
+export type QueuedOp = Op & { seq: number; queuedAt: number; version?: number; error?: string };
 
 export interface OfflineStore {
   /** All queued ops, oldest first. */
@@ -32,7 +37,7 @@ export interface OfflineStore {
 
 /** What one op did. `offline`: no connection (or a passing server problem): stop and try again later. */
 export type OpResult =
-  | { status: "done"; id?: string; data?: unknown }
+  | { status: "done"; id?: string; data?: unknown; totals?: Totals }
   | { status: "offline"; id?: string | null }
   | { status: "failed"; error: string; id?: string | null };
 
@@ -50,6 +55,8 @@ export function newLocalRef(random: () => string = () => crypto.randomUUID()): s
   return `${LOCAL_PREFIX}${random()}`;
 }
 
+export const PRICE_CHANGED = "The server priced this proposal differently from the tablet. Check the new totals with the family, then tap Try again to share.";
+
 /**
  * Adds an op. A save replaces the proposal's queued save when nothing for that proposal was queued after it
  * (only the latest draft matters), so a long offline session is one save, not hundreds.
@@ -59,7 +66,7 @@ export async function enqueue(store: OfflineStore, op: Op, now: () => number = D
     const forRef = (await store.ops()).filter((queued) => queued.ref === op.ref);
     const last = forRef.at(-1);
     if (last && last.kind === "save") {
-      await store.put({ ...last, draft: op.draft, queuedAt: now(), error: undefined });
+      await store.put({ ...last, draft: op.draft, expected: op.expected ?? null, queuedAt: now(), version: (last.version ?? 0) + 1, error: undefined });
       return;
     }
   }
@@ -67,22 +74,47 @@ export async function enqueue(store: OfflineStore, op: Op, now: () => number = D
 }
 
 export type SyncEvent = { op: QueuedOp; serverId: string; result: Extract<OpResult, { status: "done" }> };
-export type SyncOutcome = { state: "idle" | "offline" | "failed" | "busy"; done: number; remaining: number; error?: string };
+export type SyncOutcome = {
+  state: "idle" | "offline" | "failed";
+  done: number;
+  remaining: number;
+  error?: string;
+  /** The last attempt threw (rather than the server answering): with the browser online, that can mean the
+      page is out of date after a deploy. */
+  thrown?: boolean;
+};
 
-/** Sends queued ops in order. Stops at the first op that cannot be sent (offline) or is refused (failed: the
-    op keeps its error and waits for staff to retry or discard it). `retryFailed` clears a previous refusal. */
-export async function syncQueue(store: OfflineStore, executors: Executors, options: { onDone?: (event: SyncEvent) => void; retryFailed?: boolean } = {}): Promise<SyncOutcome> {
+const differs = (a: Totals | null | undefined, b: Totals | undefined) =>
+  Boolean(a && b && (a.essentialPaise !== b.essentialPaise || a.addonPaise !== b.addonPaise));
+
+/** Sends queued ops in order. Stops entirely when offline. A refused op keeps its error and holds back the
+    later ops of its proposal until staff retry or discard it; `retryFailed` clears earlier refusals. */
+export async function syncQueue(store: OfflineStore, executors: Executors, options: { onDone?: (event: SyncEvent) => void; retryFailed?: boolean; maxSteps?: number } = {}): Promise<SyncOutcome> {
   let done = 0;
-  const ops = await store.ops();
-  for (const [index, op] of ops.entries()) {
-    const remaining = ops.length - index;
-    if (op.error && !options.retryFailed) return { state: "failed", done, remaining, error: op.error };
+  let firstError: string | undefined;
+  const blocked = new Set<string>();
+  if (options.retryFailed) {
+    for (const op of await store.ops()) if (op.error) await store.put({ ...op, error: undefined });
+  }
+  for (let step = 0; step < (options.maxSteps ?? 500); step += 1) {
+    const ops = await store.ops();
+    const op = ops.find((queued) => !blocked.has(queued.ref));
+    if (!op) break;
+    if (op.error) {
+      blocked.add(op.ref);
+      firstError ??= op.error;
+      continue;
+    }
     const known = isLocalRef(op.ref) ? await store.serverId(op.ref) : op.ref;
     if (op.kind !== "save" && !known) {
-      await store.put({ ...op, error: "The proposal was not saved first." });
-      return { state: "failed", done, remaining, error: "The proposal was not saved first." };
+      const error = "The proposal was not saved first.";
+      await store.put({ ...op, error });
+      blocked.add(op.ref);
+      firstError ??= error;
+      continue;
     }
     let result: OpResult;
+    let thrown = false;
     try {
       result = op.kind === "save" ? await executors.save(known, op.draft)
         : op.kind === "share" ? await executors.share(known!)
@@ -90,23 +122,37 @@ export async function syncQueue(store: OfflineStore, executors: Executors, optio
         : await executors.lost(known!, op.reason, op.note);
     } catch {
       result = { status: "offline" };
+      thrown = true;
     }
     // A create that went through before a later step failed still has its id: keep it, so the retry PATCHes.
     const id = result.id ?? null;
     if (id && isLocalRef(op.ref) && id !== known) await store.setServerId(op.ref, id);
     if (result.status === "offline") {
-      if (op.error) await store.put({ ...op, error: undefined });
-      return { state: "offline", done, remaining };
+      return thrown ? { state: "offline", done, remaining: ops.length, thrown } : { state: "offline", done, remaining: ops.length };
     }
     if (result.status === "failed") {
       await store.put({ ...op, error: result.error });
-      return { state: "failed", done, remaining, error: result.error };
+      blocked.add(op.ref);
+      firstError ??= result.error;
+      continue;
     }
-    await store.remove(op.seq);
+    // Remove only what was sent: a save that took a newer draft meanwhile stays, and goes next.
+    const current = (await store.ops()).find((queued) => queued.seq === op.seq);
+    if (current && (current.version ?? 0) === (op.version ?? 0)) await store.remove(op.seq);
     done += 1;
     options.onDone?.({ op, serverId: id ?? known!, result });
+    // Offline price ≠ server price: hold the proposal's queued share/accept for staff to check.
+    if (op.kind === "save" && current && (current.version ?? 0) === (op.version ?? 0) && differs(op.expected, result.totals)) {
+      const next = (await store.ops()).find((queued) => queued.ref === op.ref);
+      if (next && (next.kind === "share" || next.kind === "accept")) {
+        await store.put({ ...next, error: PRICE_CHANGED });
+        blocked.add(op.ref);
+        firstError ??= PRICE_CHANGED;
+      }
+    }
   }
-  return { state: "idle", done, remaining: 0 };
+  const remaining = (await store.ops()).length;
+  return firstError ? { state: "failed", done, remaining, error: firstError } : { state: "idle", done, remaining };
 }
 
 /** In-memory store (tests, and the fallback when IndexedDB is unavailable, e.g. a private window). */

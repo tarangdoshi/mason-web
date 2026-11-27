@@ -91,34 +91,53 @@ export function offlineStore(): Promise<OfflineStore> {
   return chosen;
 }
 
+const isProposalsWorker = (registration: ServiceWorkerRegistration) =>
+  [registration.active, registration.waiting, registration.installing].some((worker) => worker?.scriptURL.endsWith("/proposals-sw.js"));
+
 /**
- * Logout (or a different staff member on this tablet): drop the queue, the open proposal and every service
- * worker cache, and tell the worker. Resolves within `timeoutMs` even if the browser is slow.
+ * Logout: drop the queue, the open proposal and every service worker cache, and unregister the worker.
+ * `keepWorker` (a different staff member on the same tablet): data and the customer page go, but the worker
+ * and its app shell stay, so the new staff member keeps offline support. Resolves within `timeoutMs`.
  */
-export async function clearOfflineData(timeoutMs = 2_000): Promise<void> {
+export async function clearOfflineData({ keepWorker = false, timeoutMs = 2_000 }: { keepWorker?: boolean; timeoutMs?: number } = {}): Promise<void> {
   const work = (async () => {
     opened?.then((db) => db.close()).catch(() => undefined);
     opened = null;
     chosen = null;
+    const doomed = (name: string) => name.startsWith(SW_CACHE_PREFIX) && !(keepWorker && name.startsWith(`${SW_CACHE_PREFIX}shell-`));
     await Promise.allSettled([
       typeof indexedDB === "undefined" ? Promise.resolve() : request(indexedDB.deleteDatabase(DB_NAME)).catch(() => undefined),
-      typeof caches === "undefined" ? Promise.resolve()
-        : caches.keys().then((names) => Promise.all(names.filter((name) => name.startsWith(SW_CACHE_PREFIX)).map((name) => caches.delete(name)))),
-      navigator.serviceWorker?.getRegistrations?.().then((registrations) => Promise.all(registrations
-        .filter((registration) => registration.active?.scriptURL.endsWith("/proposals-sw.js"))
-        .map((registration) => {
-          registration.active?.postMessage({ type: "clear" });
-          return registration.unregister();
-        })))
+      typeof caches === "undefined" ? Promise.resolve() : caches.keys().then((names) => Promise.all(names.filter(doomed).map((name) => caches.delete(name)))),
+      keepWorker ? Promise.resolve() : navigator.serviceWorker?.getRegistrations?.().then((registrations) => Promise.all(registrations.filter(isProposalsWorker).map((registration) => {
+        registration.active?.postMessage({ type: "clear" });
+        return registration.unregister();
+      })))
     ]);
   })();
   await Promise.race([work, new Promise((resolve) => setTimeout(resolve, timeoutMs))]);
 }
 
-/** Queued items, for the logout warning (0 when the store cannot be read). */
+/** Whether this browser holds any proposals offline data (checked on every sign-out, flag on or off, so data
+    from before the flag was turned off is still cleared). Never creates the database. */
+export async function hasOfflineData(): Promise<boolean> {
+  try {
+    const [registrations, names, databases] = await Promise.all([
+      navigator.serviceWorker?.getRegistrations?.() ?? Promise.resolve([] as readonly ServiceWorkerRegistration[]),
+      typeof caches === "undefined" ? Promise.resolve([] as string[]) : caches.keys(),
+      typeof indexedDB !== "undefined" && typeof indexedDB.databases === "function" ? indexedDB.databases() : Promise.resolve(null)
+    ]);
+    return registrations.some(isProposalsWorker) || names.some((name) => name.startsWith(SW_CACHE_PREFIX))
+      || databases === null || databases.some((db) => db.name === DB_NAME);
+  } catch {
+    return true;
+  }
+}
+
+/** Queued items, for the logout warning (0 when there is no database; never creates one). */
 export async function pendingCount(): Promise<number> {
   try {
     if (typeof indexedDB === "undefined") return 0;
+    if (typeof indexedDB.databases === "function" && !(await indexedDB.databases()).some((db) => db.name === DB_NAME)) return 0;
     return (await idbStore.ops()).length;
   } catch {
     return 0;

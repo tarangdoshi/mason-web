@@ -113,8 +113,8 @@ test("offline: build → price → Show family → PDF → share and accept queu
   expect(leaked).toEqual([]);
 });
 
-test("offline: the server re-prices on sync and staff are told when its totals differ", async ({ page, context }) => {
-  test.setTimeout(120_000);
+test("offline: the server re-prices on sync; a queued share waits until staff have checked the new price", async ({ page, context }) => {
+  test.setTimeout(150_000);
   await signIn(page, "agent");
   await openControlled(page);
   await context.setOffline(true);
@@ -122,18 +122,41 @@ test("offline: the server re-prices on sync and staff are told when its totals d
   await page.getByLabel("Zoho Lead ID").fill("1234567891");
   await page.getByRole("button", { name: "Save draft and price" }).click();
   await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
+  await page.getByTestId("share-start").click();
+  await page.getByTestId("share-confirm-yes").click();
+  await expect(page.getByTestId("share-link-pending")).toBeVisible({ timeout: 30_000 });
   await mock(page, "/__price-delta", { paise: 10_000 }); // ₹100 a unit more on the server: 19 units → ₹26,149 → ₹26,999
   await context.setOffline(false);
-  await expect(page.getByTestId("sync-badge")).toHaveCount(0, { timeout: 45_000 });
+  const badge = page.getByTestId("sync-badge");
+  await expect(badge).toContainText("priced this proposal differently", { timeout: 45_000 });
   await expect(page.getByTestId("total-essential")).toContainText("₹26,999");
   await expect(page.getByTestId("sync-notice")).toContainText("re-priced");
-  // Back online, edits price on the server again (the draft is now a server draft: PATCH, never a second create).
+  expect((await summary(page)).filter((line) => line.endsWith("/share"))).toEqual([]); // not shared at a price the family did not see
+  await badge.getByRole("button", { name: "Try again" }).click();
+  await expect(badge).toHaveCount(0, { timeout: 45_000 });
+  await expect(page.getByTestId("share-link")).toHaveValue(/\/p\/[A-Za-z0-9_-]{22}$/);
+  expect((await summary(page)).filter((line) => line.endsWith("/share"))).toHaveLength(1);
+  expect((await summary(page)).filter((line) => line === "POST /api/v1/internal/proposals")).toHaveLength(1);
+});
+
+test("offline: back online, edits price on the server again (a PATCH of the synced draft, never a second create)", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  await signIn(page, "agent");
+  await openControlled(page);
+  await context.setOffline(true);
+  await page.getByLabel("Customer display name").fill("Mr Example");
+  await page.getByLabel("Zoho Lead ID").fill("1234567898");
+  await page.getByRole("button", { name: "Save draft and price" }).click();
+  await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
+  await context.setOffline(false);
+  await expect(page.getByTestId("sync-badge")).toHaveCount(0, { timeout: 45_000 });
   await page.getByRole("button", { name: "More bathrooms" }).click();
   await expect.poll(async () => (await summary(page)).filter((line) => line === "PATCH /api/v1/internal/proposals/:id").length).toBe(1);
   expect((await summary(page)).filter((line) => line === "POST /api/v1/internal/proposals")).toHaveLength(1);
 });
 
-test("offline: without the price list on the tablet, no price is guessed", async ({ page, context }) => {
+test("offline: without the price list on the tablet, no price is guessed, but the draft is kept", async ({ page, context }) => {
+  test.setTimeout(120_000);
   await mock(page, "/__no-price-list");
   await signIn(page, "agent");
   await openControlled(page);
@@ -141,9 +164,15 @@ test("offline: without the price list on the tablet, no price is guessed", async
   await page.getByLabel("Customer display name").fill("Mr Example");
   await page.getByLabel("Zoho Lead ID").fill("1234567892");
   await page.getByRole("button", { name: "Save draft and price" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Offline pricing needs the price list" }).first()).toBeVisible();
+  await expect(page.getByTestId("price-retry")).toContainText("Offline pricing needs the price list");
+  await expect(page.getByTestId("price-retry")).toContainText("The draft is saved on this tablet.");
   await expect(page.getByTestId("total-essential")).toContainText("—");
   await expect(page.getByTestId("show-family")).toBeDisabled();
+  // The draft itself is kept and synced; the server prices it once the signal is back.
+  await expect(page.getByTestId("sync-badge")).toHaveText("Waiting for signal: 1 item");
+  await context.setOffline(false);
+  await expect(page.getByTestId("sync-badge")).toHaveCount(0, { timeout: 45_000 });
+  await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
 });
 
 test("accept online (admin): confirm, share + accept, then the payments case opens", async ({ page }) => {
@@ -166,7 +195,7 @@ test("accept online (admin): confirm, share + accept, then the payments case ope
   expect((await writes(page)).at(-1)?.body).toEqual({ option: "essential" });
 });
 
-test("accept: the API's refusal is shown (today mason-api lets only an admin accept)", async ({ page }) => {
+test("accept: an agent is told to ask an admin, and nothing is shared (mason-api accepts from admins only)", async ({ page }) => {
   await signIn(page, "agent");
   await page.goto("/crm/proposals/new");
   await page.getByLabel("Customer display name").fill("Mr Example");
@@ -175,9 +204,10 @@ test("accept: the API's refusal is shown (today mason-api lets only an admin acc
   await expect(page.getByTestId("total-essential")).toContainText("₹24,999");
   await page.getByTestId("show-family").click();
   await page.getByTestId("family-close").click();
-  await page.getByTestId("accept-essential").click();
-  await page.getByTestId("accept-confirm-yes").click();
-  await expect(page.getByTestId("accept-error")).toHaveText("Only an admin can accept a proposal.");
+  await expect(page.getByTestId("accept-blocked")).toHaveText("Only an admin can record the acceptance. Ask an admin to confirm it on this screen.");
+  await expect(page.getByTestId("accept-essential")).toBeDisabled();
+  await page.waitForTimeout(1_000);
+  expect((await summary(page)).filter((line) => /\/(share|accept)$/.test(line))).toEqual([]);
 });
 
 test("lost: reason picklist, note required for Other, confirmation, then closed", async ({ page }) => {

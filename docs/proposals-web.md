@@ -122,19 +122,28 @@ nothing registers the service worker unless one of those pages is open.
 * **Queued work** lives in IndexedDB (`mason-proposals-offline`), not the SW cache: saves, share, accept and lost,
   plus the open proposal while it has queued work (so an offline reload carries on). Saves for one proposal
   collapse into one. It syncs on the browser's `online` event, every 20 s while anything waits, and on load,
-  one op at a time, in order, one sync per device (Web Locks). Each op is removed as soon as the API confirms
-  it, and a draft first saved offline records its server id before anything else, so a retry PATCHes and never
-  creates a second draft. A refused op (e.g. a variant the price list does not have) stops the queue and shows
-  "Not synced" with Try again / Discard. The badge reads "Waiting for signal: N items" (offline) or
-  "Syncing: N items".
+  one op at a time, in order, one sync per device (Web Locks; an IndexedDB lease where they are missing). Each
+  op is removed once the API confirms it, unless it changed meanwhile: an edit made while its save was being
+  sent is kept and sent next. A draft first saved offline records its server id before anything else, so a retry
+  PATCHes and never creates a second draft. A refused op (e.g. a variant the price list does not have) holds back
+  only the later ops of that proposal and shows "Not synced" with Try again / Discard; discarding a share,
+  accept or lost undoes it on screen. If the server prices a draft differently from the tablet, a queued share
+  or accept for it waits ("check the new totals with the family, then Try again"), so nothing reaches the
+  customer at a price they were not shown. Attempts that keep failing while the browser is online (an
+  out-of-date page after a deploy) ask staff to reload. The badge reads "Waiting for signal: N items"
+  (offline) or "Syncing: N items".
 * **Pricing with no signal** uses `lib/proposals/pricing.ts`, a copy of the api engine. The server stays the
-  authority: the queued save is re-priced by the API on sync, and staff are told if its totals differ.
+  authority: the queued save is re-priced by the API on sync, and staff are told if its totals differ. With no
+  price list on the tablet (always, until gap 7), no total is shown offline, but the draft is still kept and
+  synced, and the server prices it when the signal returns.
 * **Show family and the PDF** with no signal build the document on the tablet (`lib/proposals/offline/bundle.ts`,
   the same builder as the server's). A queued share makes the PDF straight away; the customer link appears once
   the share has synced.
 * **Logout** deletes the IndexedDB database and every `mason-proposals-*` cache, and unregisters the worker; it
-  warns first if anything has not synced. A different staff member opening the screen on the same tablet
-  also clears the previous one's data.
+  warns first if anything has not synced. It runs whenever such data exists, flag on or off. A different
+  staff member opening the screen on the same tablet clears the previous one's data (the worker and app
+  shell stay). The default proposal date is computed on the tablet, so an offline copy from another day is
+  not stale.
 
 ### Offline pricing
 
@@ -147,11 +156,12 @@ write the outputs back, and make the local copy pass. The api lane is asked to a
 
 ### Customer accepts
 
-Shown after Show family (or once shared): "Essential" / "Essential + Add-on" → a confirmation step with the
-amount → share first if needed (the API accepts SHARED only) → `POST /:id/accept {option}` → the payments case
-`/crm/payments/<commercialCaseId>` opens so staff can create the Razorpay links. If the price was overridden,
-only an admin may accept (the server action checks too). With no signal, share and accept are queued and the
-"Open the payments case" link appears after sync.
+Shown after Show family (or once shared), in its own "Customer decision" panel: "Essential" / "Essential +
+Add-on" → a confirmation step with the amount → share first if needed (the API accepts SHARED only) →
+`POST /:id/accept {option}` → the payments case `/crm/payments/<commercialCaseId>` opens so staff can create
+the Razorpay links. **Admins only for now**: mason-api accepts from admins only, so agents see "Ask an admin"
+and nothing is shared on their behalf (the CTO's rule, admin-only when overridden, needs gap 9). With no
+signal, share and accept are queued and the "Open the payments case" link appears after sync.
 
 ### Lost
 
@@ -199,12 +209,17 @@ upload and the Zoho note; items 1 and 5 below are the web's expectations of thos
    409 once ACCEPTED. Until it exists the web shows "not available on the server yet" and records nothing.
 9. **Accept for agents**: the CTO's rule is "ADMIN-only if the price was overridden". mason-api refuses every
    non-admin today (403), and the web shows that refusal. Relax to ADMIN-only when `override` is set, if agreed.
-10. **Idempotent create**: an offline-created draft whose create succeeded but whose response was lost (the
+10. **Idempotent create** (also covers a create whose response is lost while online, not only offline): an offline-created draft whose create succeeded but whose response was lost (the
     signal dropped mid-request) would be created again on retry. Accepting an `Idempotency-Key` header on
     `POST /internal/proposals` (the web would send the queue's local id) closes that last gap.
 
 `proposalDate` (previous gap) is stored by the API on main; accepting `null` (the web sends it when the field
 is cleared) is part of the api-proposals lane's task.
+
+**Phase 3 web follow-ups** (not blocking the dark merge): prune old `/_next/static` entries from the shell
+cache after deploys (it only grows today; bump `VERSION` in `public/proposals-sw.js` to reset it); a second
+open builder tab can re-create the offline database after the first tab signs out; an IndexedDB-based create
+lock across tabs is moot once gap 10 lands.
 
 ## Before turning the flag on
 

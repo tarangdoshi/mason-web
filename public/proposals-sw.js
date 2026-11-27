@@ -5,7 +5,8 @@
    - shell: the builder page and the immutable Next.js build files it loads (/_next/static), icons, manifest.
    - data:  GET /crm/proposals/offline-bundle (proposal copy, component library, last good price list; no
             customer data) and the component photos.
-   - open:  the one customer page last opened (/p/<token>); replaced by the next, never more than one.
+   - open:  the one customer page last opened (/p/<token>); replaced by the next, never more than one. A copy
+            stays readable offline on that phone after its link is revoked, until the next /p/ page replaces it.
    Customer drafts and queued work live in IndexedDB (lib/proposals/offline/idb.ts), not here. */
 
 const VERSION = "v1";
@@ -58,7 +59,8 @@ async function networkFirst(request, cacheName, key) {
 }
 
 async function cacheFirst(request, cacheName, limit) {
-  const cached = await caches.match(request, { cacheName });
+  // ignoreVary: a photo fetched by precachePhotos (Accept */*) must still match the page's <img> request offline.
+  const cached = await caches.match(request, { cacheName, ignoreVary: true });
   if (cached) return cached;
   const response = await fetch(request);
   // Opaque (no-cors) responses are never stored: a later CORS fetch of the same photo (the PDF) would fail on them.

@@ -8,11 +8,22 @@ import styles from "./proposals.module.css";
 
 /* Staff decisions on the proposal: what is waiting for signal, "Customer accepts", and "Lost". */
 
-export function SyncBadge({ count, online, syncing, failed, onRetry, onDiscard }: {
-  count: number; online: boolean; syncing: boolean; failed: string | null; onRetry: () => void; onDiscard: () => void;
+export function SyncBadge({ count, online, syncing, failed, stale, onRetry, onDiscard }: {
+  count: number; online: boolean; syncing: boolean; failed: string | null; stale: boolean; onRetry: () => void; onDiscard: () => void;
 }) {
   if (count === 0) return null;
   const items = `${count} ${count === 1 ? "item" : "items"}`;
+  if (stale && !failed) {
+    return (
+      <div className={styles.syncBadge} data-state="failed" data-testid="sync-badge" role="alert">
+        <strong>Not synced: {items}</strong>
+        <span>This page is out of date. Reload it to sync; nothing waiting is lost.</span>
+        <div className={styles.decisionRow}>
+          <button type="button" className={styles.secondary} onClick={() => window.location.reload()}>Reload</button>
+        </div>
+      </div>
+    );
+  }
   if (failed) {
     return (
       <div className={styles.syncBadge} data-state="failed" data-testid="sync-badge" role="alert">
