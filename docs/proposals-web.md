@@ -175,6 +175,29 @@ Photos are requested with an explicit format: a `<picture>` with a WebP source a
 (Safari before 14 has no WebP; a shared CDN cache can also serve the wrong `auto=format` variant). The PDF
 always uses the JPEG. `AbortSignal.timeout` falls back to an AbortController where it is missing (Safari < 16).
 
+## Go-live hardening
+
+* **Signed calls** (`lib/proposals/web-signing.ts`): the customer page's server-side view fetch carries
+  `x-mason-web-ts` + `x-mason-web-signature` (HMAC-SHA256 of `${ts}\n${METHOD}\n${path}` with
+  `PROPOSALS_WEB_SIGNING_SECRET`, the same value as on aegis-living-api; at least 32 characters or it counts as
+  unset). mason-api then limits per share token instead of per Vercel IP. A unit test pins the format to a
+  vector generated from mason-api's own `signWebRequest`. Only the server signs: the browser's viewer events stay
+  unsigned and the API limits them per real customer IP. With the secret unset, calls go unsigned and a warning
+  is logged once.
+* **Per-client-IP limit before signing** (`middleware.ts`, `lib/proposals/rate-limit.ts`): `/p/…` only, and only
+  while the flag is on. 30 page loads per IP per minute (`PROPOSALS_PAGE_RATE_LIMIT`), then a plain 429 with
+  `Retry-After`. The IP comes from Vercel's `x-real-ip` / `x-forwarded-for` (set by Vercel's edge; elsewhere only
+  with `PROPOSALS_TRUST_PROXY_HEADERS=true`) and is hashed before use. Store: Vercel's Redis/KV integration over
+  REST (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) so the limit holds across instances; without it, a window per
+  instance. A store error lets the request through (the API's own per-token limits and 1,200/min ceiling stay
+  behind it).
+* **Zoho note on share**: the share response's `zohoNote` shows as a neutral chip — "Zoho note pending",
+  "Zoho note added" or "Zoho note not added yet" — never as an error (the share itself succeeded).
+
+Env: `PROPOSALS_WEB_SIGNING_SECRET` is already set (sensitive) on aegis-living-web and aegis-living-api. A
+cross-instance limit needs the Redis/KV integration connected to aegis-living-web (a Production change: founder's
+yes first).
+
 ## Gaps for the api lane (please pick up in docs/proposals.md)
 
 The api-proposals lane (branch `feat/proposal-builder-phase2-api`) is building token issue/revoke, private PDF
@@ -225,7 +248,7 @@ lock across tabs is moot once gap 10 lands.
 
 Publish the `proposalTemplate` v1 and the `componentLibrary` documents in Studio (the customer page 404s until
 the template is published; the CMO still has 9 benefit lines to write), set `SANITY_API_READ_TOKEN` in Vercel
-for staff preview, and resolve gap 3. For offline use: gaps 7 (price list) and 8 (Lost); 9 if agents are to
+for staff preview, and resolve gap 3 (done on the api side: signed calls; see "Go-live hardening"). For offline use: gaps 7 (price list) and 8 (Lost); 9 if agents are to
 record acceptances.
 
 ## Tests
@@ -257,3 +280,10 @@ record acceptances.
   customer data in any worker cache; server re-pricing on sync with a notice; no price list → no price; online
   accept (share + accept → payments case); the API's accept refusal; Lost with confirmation; Lost endpoint
   missing; logout clears the queue and every cache.
+
+* `lib/proposals-golive.test.ts`: signature vs mason-api's own vector, no secret in client code, trusted client
+  IP, the per-IP window (refusal, reset, other IPs, hashed keys), fail-open, the Upstash pipeline, middleware
+  (429 + Retry-After, `/p/` only, inactive with the flag off), the Zoho note chip.
+* `e2e/proposals/golive.spec.ts`: the customer page's view call verified as signed by the mock (as mason-api
+  verifies it) while browser events are unsigned and nothing about signing reaches the page; a "pending" Zoho
+  note shows as a neutral chip with no error.
