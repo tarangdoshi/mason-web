@@ -28,7 +28,7 @@ import { clearOfflineData, kv, offlineStore } from "../../../../../lib/proposals
 import { isLocalRef, newLocalRef, type AcceptOption, type SyncEvent } from "../../../../../lib/proposals/offline/queue";
 import type { PricingResult } from "../../../../../lib/proposals/pricing";
 import type { LostReason } from "../../../../../lib/proposals/lost";
-import { acceptProposal, markProposalLost, overrideProposal, saveAndPriceProposal, shareProposal, type PriceResult, type DocumentResult, type AcceptResult } from "../actions";
+import { acceptProposal, markProposalLost, overrideProposal, saveAndPriceProposal, shareProposal, type PriceResult, type DocumentResult, type AcceptResult, type ZohoNote } from "../actions";
 import { AcceptPanel, LostPanel, SyncBadge } from "./decision-panels";
 import CustomerActions from "./customer-actions";
 import { useOfflineQueue } from "./use-offline-queue";
@@ -80,6 +80,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
   const [deciding, setDeciding] = useState(false);
   const [familyShown, setFamilyShown] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [zohoNote, setZohoNote] = useState<ZohoNote | null>(null);
   const [local, setLocal] = useState<PricingResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [online, setOnline] = useState(true);
@@ -124,6 +125,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
       }
     } else if (event.op.kind === "share") {
       setShareUrl((data as Extract<DocumentResult, { ok: true }>).shareUrl);
+      setZohoNote((data as Extract<DocumentResult, { ok: true }>).zohoNote ?? null);
     } else if (event.op.kind === "accept") {
       setAccepted({ option: event.op.option, commercialCaseId: (data as Extract<AcceptResult, { ok: true }>).commercialCaseId });
     } else if (event.op.kind === "lost") {
@@ -383,6 +385,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
             if (!sharedResult.ok) return sharedResult.error;
             setShared(true);
             setShareUrl(sharedResult.shareUrl);
+            setZohoNote(sharedResult.zohoNote ?? null);
           }
           const result = await acceptProposal(idRef.current, option);
           if (!result.ok) return result.error;
@@ -603,6 +606,7 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
           offlineDoc={offlineDoc}
           onQueueShare={queueShare}
           shareUrl={shareUrl}
+          zohoNote={zohoNote}
           onSharing={setSharing}
           onShared={() => setShared(true)}
           onFamilyShown={() => setFamilyShown(true)}

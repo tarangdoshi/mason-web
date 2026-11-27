@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import ProposalDocument, { ProposalFontSample } from "../../../../../components/proposals/ProposalDocument";
 import { pdfFilename, type ProposalDoc } from "../../../../../lib/proposals/document";
 import { inlinePhotos, prepareFonts, renderProposalPdf, warmPdf } from "../../../../../lib/proposals/pdf";
-import { loadProposalDocument, shareProposal } from "../actions";
+import { loadProposalDocument, shareProposal, type ZohoNote } from "../actions";
 import FamilyView from "./family-view";
 import styles from "./family.module.css";
 
@@ -41,6 +41,7 @@ export default function CustomerActions({
   offlineDoc,
   onQueueShare,
   shareUrl = null,
+  zohoNote = null,
   onSharing,
   onShared,
   onFamilyShown
@@ -55,6 +56,8 @@ export default function CustomerActions({
   onQueueShare?: () => Promise<void>;
   /** The customer link once a queued share has synced. */
   shareUrl?: string | null;
+  /** The Zoho Note outcome of a share that synced from the queue. */
+  zohoNote?: ZohoNote | null;
   onFamilyShown?: () => void;
   /** true while a share is in progress (the screen locks so nothing changes mid-share), false if it failed. */
   onSharing: (active: boolean) => void;
@@ -67,6 +70,8 @@ export default function CustomerActions({
   const [error, setError] = useState<string | null>(null);
   const [share, setShare] = useState<ShareState>({ stage: "idle" });
   const [copied, setCopied] = useState(false);
+  const [note, setNote] = useState<ZohoNote | null>(null);
+  const shownNote = note ?? zohoNote;
   const [pdfDoc, setPdfDoc] = useState<ProposalDoc | null>(null);
   const pdfRoot = useRef<HTMLDivElement | null>(null);
   const pdfWaiter = useRef<{ resolve: (file: File) => void; reject: (error: unknown) => void } | null>(null);
@@ -228,6 +233,7 @@ export default function CustomerActions({
       return;
     }
     onShared();
+    setNote(result.zohoNote ?? null);
     if (!fonts.current && fontSample.current) fonts.current = prepareFonts(fontSample.current).catch(() => "");
     const sharedDoc = await inlinePhotos(result.doc);
     setDoc(sharedDoc);
@@ -319,6 +325,7 @@ export default function CustomerActions({
               </button>
             ) : null}
           </div>
+          <ZohoNoteChip note={shownNote} />
           {share.url ? (
             <input className={styles.linkField} readOnly value={share.url} aria-label="Customer link" data-testid="share-link" onFocus={(event) => event.currentTarget.select()} />
           ) : (
@@ -346,4 +353,12 @@ export default function CustomerActions({
         : null}
     </div>
   );
+}
+
+/** Neutral status of the Zoho Note the API adds on share. Never an error: the share itself succeeded. */
+function ZohoNoteChip({ note }: { note: ZohoNote | null }) {
+  if (note === "pending") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="pending">Zoho note pending</span>;
+  if (note === "added") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="added">Zoho note added</span>;
+  if (note === "failed") return <span className={styles.noteChip} data-testid="zoho-note-chip" data-note="failed">Zoho note not added yet</span>;
+  return null;
 }

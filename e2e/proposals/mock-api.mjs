@@ -3,7 +3,7 @@
 // (lib/proposals/pricing.ts, itself checked against the API engine's own outputs). Prices are made up:
 // every component ₹1,000 a unit, manpower & shipping ₹5,250, totals rounded up to …999.
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { priceProposal, DEFAULT_PRICING_CONFIG } from "../../lib/proposals/pricing.ts";
 import { PROPOSAL_COMPONENT_KEYS } from "../../lib/proposals/components.ts";
 
@@ -34,6 +34,17 @@ let priceListAvailable = true; // POST /__no-price-list → the price-list read 
 let priceDelta = 0; // POST /__price-delta {paise} → the server list differs from the tablet's (re-priced on sync)
 let failNextPatch = false; // POST /__fail-next-patch → the next PATCH answers 500 (a passing server error)
 let lostSupport = true; // POST /__no-lost → POST /:id/lost answers a bare 404 (endpoint not built yet)
+let zohoNote = "added"; // POST /__zoho-note {value} → what POST /:id/share reports for the Zoho Note
+// As mason-api src/proposals/web-identity.ts: HMAC-SHA256(secret, `${ts}\n${METHOD}\n${path}`), ±300 s.
+const signingSecret = (process.env.PROPOSALS_WEB_SIGNING_SECRET ?? "").trim();
+function signed(req, path) {
+  const ts = req.headers["x-mason-web-ts"];
+  const signature = req.headers["x-mason-web-signature"];
+  if (signingSecret.length < 32 || typeof ts !== "string" || typeof signature !== "string" || !/^[0-9a-f]{64}$/.test(signature)) return false;
+  if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) return false;
+  const expected = createHmac("sha256", signingSecret).update(`${ts}\n${req.method}\n${path}`).digest();
+  return timingSafeEqual(expected, Buffer.from(signature, "hex"));
+}
 
 class PricingRefusal extends Error {}
 function price(items) {
@@ -82,20 +93,21 @@ createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   if (url.pathname === "/__log") return send(res, 200, { data: log });
   if (url.pathname === "/__reset") {
-    log.length = 0; proposals.clear(); failNextPrice = false; dateSupport = false; priceListAvailable = true; priceDelta = 0; failNextPatch = false; lostSupport = true;
+    log.length = 0; proposals.clear(); failNextPrice = false; dateSupport = false; priceListAvailable = true; priceDelta = 0; failNextPatch = false; lostSupport = true; zohoNote = "added";
     return send(res, 200, {});
   }
   if (url.pathname === "/__no-price-list") { priceListAvailable = false; return send(res, 200, {}); }
   if (url.pathname === "/__price-delta") { priceDelta = Number(body?.paise ?? 0); return send(res, 200, {}); }
   if (url.pathname === "/__fail-next-patch") { failNextPatch = true; return send(res, 200, {}); }
   if (url.pathname === "/__no-lost") { lostSupport = false; return send(res, 200, {}); }
+  if (url.pathname === "/__zoho-note") { zohoNote = String(body?.value ?? "added"); return send(res, 200, {}); }
   if (url.pathname === "/__fail-next-price") { failNextPrice = true; return send(res, 200, {}); }
   if (url.pathname === "/__date-support") { dateSupport = true; return send(res, 200, {}); }
   const pub = url.pathname.match(/^\/api\/v1\/public\/proposals\/([^/]+)(\/events)?$/);
   if (pub) {
     const [, token, events] = pub;
     const found = publicViews[token] ?? [...proposals.values()].find((item) => item.shareToken === token && item.status === "SHARED");
-    log.push({ method: req.method, path: events ? "/api/v1/public/proposals/:token/events" : "/api/v1/public/proposals/:token", token, body, cookie: req.headers.cookie ?? null, contentType: req.headers["content-type"] ?? null });
+    log.push({ method: req.method, path: events ? "/api/v1/public/proposals/:token/events" : "/api/v1/public/proposals/:token", token, body, cookie: req.headers.cookie ?? null, contentType: req.headers["content-type"] ?? null, signed: signed(req, url.pathname), signatureSent: req.headers["x-mason-web-signature"] !== undefined });
     if (!found) return send(res, 404, { error: "Proposal not found." });
     if (events) return send(res, 202, { data: { recorded: true } });
     if (publicViews[token]) return send(res, 200, { data: found });
@@ -125,7 +137,7 @@ createServer(async (req, res) => {
     if (proposal.status === "LOST") return send(res, 409, { error: "A lost proposal cannot be shared.", code: "PROPOSAL_LOST" });
     if (proposal.essentialTotalPaise === null) return send(res, 409, { error: "Price the proposal before sharing it." });
     if (proposal.status === "DRAFT") proposal.status = "SHARED";
-    return send(res, 200, { data: proposal });
+    return send(res, 200, { data: { ...proposal, zohoNote } });
   }
   if (action === "accept") {
     // As mason-api today: ADMIN only, SHARED only, idempotent for the same option.
