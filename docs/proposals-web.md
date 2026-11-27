@@ -1,4 +1,4 @@
-# Proposal Builder v1 — web, Phases 1 and 2
+# Proposal Builder v1 — web, Phases 1, 2 and 3
 
 Status: **dark**. Pairs with the mason-api design note `docs/proposals.md` (api lane, branch
 `feat/proposal-builder-v1`). Nothing here is visible unless `NEXT_PUBLIC_PROPOSALS_ENABLED=true`
@@ -100,6 +100,71 @@ the customer page, Show family and the PDF can never disagree.
   the back/forward cache stops reading time; returning resumes it. The wake lock is released even if the view
   closes while it is being requested.
 
+## Phase 3 — offline, Customer accepts, Lost
+
+Everything below is dark: it lives on flag-gated pages (404 when `NEXT_PUBLIC_PROPOSALS_ENABLED` is off), and
+nothing registers the service worker unless one of those pages is open.
+
+### Offline (installable staff screen)
+
+* **Install**: `/crm/proposals/new` links `public/proposals.webmanifest` (scope `/crm/proposals/`, standalone,
+  icons rendered from the brand mark). On an iPad: Share → Add to Home Screen.
+* **Service worker** `public/proposals-sw.js`, registered twice: scope `/crm/proposals/` (staff) and `/p/`
+  (customer page). Production builds only; `NEXT_PUBLIC_PROPOSALS_SW_DEV=true` enables it on a dev server
+  (Playwright only). Served `no-cache` so a fix reaches tablets on the next visit. Caches:
+  * `mason-proposals-shell-v1`: the builder page (stored without its query string; the lead id is read again
+    in the browser), the hashed `/_next/static` files, the manifest and icons.
+  * `mason-proposals-data-v1`: `GET /crm/proposals/offline-bundle` (the template and component library as staff
+    preview sees them, the last good price list with the pricing rule, and the signed-in staff id; no customer
+    data) and the component photos (fetched once when the bundle loads, as JPEG and WebP).
+  * `mason-proposals-open-v1`: the one customer page last opened, replaced by the next.
+  POSTs (server actions) are never cached.
+* **Queued work** lives in IndexedDB (`mason-proposals-offline`), not the SW cache: saves, share, accept and lost,
+  plus the open proposal while it has queued work (so an offline reload carries on). Saves for one proposal
+  collapse into one. It syncs on the browser's `online` event, every 20 s while anything waits, and on load,
+  one op at a time, in order, one sync per device (Web Locks). Each op is removed as soon as the API confirms
+  it, and a draft first saved offline records its server id before anything else, so a retry PATCHes and never
+  creates a second draft. A refused op (e.g. a variant the price list does not have) stops the queue and shows
+  "Not synced" with Try again / Discard. The badge reads "Waiting for signal: N items" (offline) or
+  "Syncing: N items".
+* **Pricing with no signal** uses `lib/proposals/pricing.ts`, a copy of the api engine. The server stays the
+  authority: the queued save is re-priced by the API on sync, and staff are told if its totals differ.
+* **Show family and the PDF** with no signal build the document on the tablet (`lib/proposals/offline/bundle.ts`,
+  the same builder as the server's). A queued share makes the PDF straight away; the customer link appears once
+  the share has synced.
+* **Logout** deletes the IndexedDB database and every `mason-proposals-*` cache, and unregisters the worker; it
+  warns first if anything has not synced. A different staff member opening the screen on the same tablet
+  also clears the previous one's data.
+
+### Offline pricing
+
+The local engine must give the same totals as mason-api. `lib/proposals/fixtures/pricing-cases.json` holds 16
+cases (synthetic prices, including the 5 error cases) with the **api engine's own outputs**, generated from
+`mason-api src/proposals/pricing.ts` at `f868496`; `lib/proposals-phase3.test.ts` checks the local engine
+reproduces every one. When the api engine changes: run the api's `priceProposal` over the fixture's inputs,
+write the outputs back, and make the local copy pass. The api lane is asked to add the same fixture to its tests
+(gap 7), so a change on either side fails a test.
+
+### Customer accepts
+
+Shown after Show family (or once shared): "Essential" / "Essential + Add-on" → a confirmation step with the
+amount → share first if needed (the API accepts SHARED only) → `POST /:id/accept {option}` → the payments case
+`/crm/payments/<commercialCaseId>` opens so staff can create the Razorpay links. If the price was overridden,
+only an admin may accept (the server action checks too). With no signal, share and accept are queued and the
+"Open the payments case" link appears after sync.
+
+### Lost
+
+"Mark as lost" → reason (Price, Timing, Family decision, Not needed, Other; `lib/proposals/lost.ts`, CMO to
+refine the wording) and a note (required for Other; no phone numbers or emails) → confirmation → closed.
+Queued when offline.
+
+### Photos on old Safari
+
+Photos are requested with an explicit format: a `<picture>` with a WebP source and a JPEG `<img>` fallback
+(Safari before 14 has no WebP; a shared CDN cache can also serve the wrong `auto=format` variant). The PDF
+always uses the JPEG. `AbortSignal.timeout` falls back to an AbortController where it is missing (Safari < 16).
+
 ## Gaps for the api lane (please pick up in docs/proposals.md)
 
 The api-proposals lane (branch `feat/proposal-builder-phase2-api`) is building token issue/revoke, private PDF
@@ -120,6 +185,24 @@ upload and the Zoho note; items 1 and 5 below are the web's expectations of thos
 6. **Live totals need a saved draft** (`POST /:id/price`), so every pricing round is two writes. A stateless
    `POST /internal/proposals/quote` would avoid draft churn; fine as-is.
 
+**Phase 3 requests** (the web is built against these and stays dark until they exist):
+
+7. **Price list for offline pricing**: `GET /api/v1/internal/proposals/price-list` (any staff) →
+   `{ data: { version, entries: [{ component, variant, unitPaise }], config: { manpower: { kind: "fixed",
+   amountPaise }, roundUpStepPaise } } }`: the last good list the store serves (no sheet contents beyond prices),
+   plus the pricing rule. Without it the bundle has no price list and the screen refuses to price offline
+   ("Offline pricing needs the price list") rather than guess. Please also add a test that runs `priceProposal`
+   over `lib/proposals/fixtures/pricing-cases.json` (copy it in), so both engines are held to the same cases.
+8. **Lost**: `POST /api/v1/internal/proposals/:id/lost { reason: "price" | "timing" | "family_decision" |
+   "not_needed" | "other", note: string | null }` (note required for "other", max 500), from DRAFT or SHARED,
+   ADMIN or creator; writes the `LOST` event with `meta.reason`/`meta.note`; idempotent for the same reason;
+   409 once ACCEPTED. Until it exists the web shows "not available on the server yet" and records nothing.
+9. **Accept for agents**: the CTO's rule is "ADMIN-only if the price was overridden". mason-api refuses every
+   non-admin today (403), and the web shows that refusal. Relax to ADMIN-only when `override` is set, if agreed.
+10. **Idempotent create**: an offline-created draft whose create succeeded but whose response was lost (the
+    signal dropped mid-request) would be created again on retry. Accepting an `Idempotency-Key` header on
+    `POST /internal/proposals` (the web would send the queue's local id) closes that last gap.
+
 `proposalDate` (previous gap) is stored by the API on main; accepting `null` (the web sends it when the field
 is cleared) is part of the api-proposals lane's task.
 
@@ -127,7 +210,8 @@ is cleared) is part of the api-proposals lane's task.
 
 Publish the `proposalTemplate` v1 and the `componentLibrary` documents in Studio (the customer page 404s until
 the template is published; the CMO still has 9 benefit lines to write), set `SANITY_API_READ_TOKEN` in Vercel
-for staff preview, and resolve gap 3.
+for staff preview, and resolve gap 3. For offline use: gaps 7 (price list) and 8 (Lost); 9 if agents are to
+record acceptances.
 
 ## Tests
 
@@ -149,3 +233,12 @@ for staff preview, and resolve gap 3.
   reference screenshot of the approved 20 Nov page 1 (`e2e/proposals/__screenshots__/`), rasterised from the
   approved PDF with the customer-name line painted out (#FF00FF) and masked the same way in the test. Measured
   3.3% of pixels differ, all text anti-aliasing (PDF rasteriser vs Chromium), with every text row within 1–2 px of the reference; the limit is 4% (a moved block costs far more). Never regenerate the reference from our own render (it is the approved design); if fonts or the OS change, re-measure first.
+* `lib/proposals-phase3.test.ts`: local pricing vs the shared fixture (api engine outputs), offline price and
+  document, the queue (saves collapse, order, exactly-once, signal lost mid-sync, created draft never created
+  twice, refusal stops until retry/discard), Lost rules, photo formats, service worker and bundle-route guards.
+* `e2e/proposals/offline.spec.ts`: with the service worker on a dev server — go offline, reload (the page comes
+  from the worker), build and price a proposal, Show family, PDF, share and accept queued, back online → create,
+  price, share and accept each sent exactly once, nothing again after another online event and a reload, and no
+  customer data in any worker cache; server re-pricing on sync with a notice; no price list → no price; online
+  accept (share + accept → payments case); the API's accept refusal; Lost with confirmation; Lost endpoint
+  missing; logout clears the queue and every cache.

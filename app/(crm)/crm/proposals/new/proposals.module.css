@@ -389,7 +389,8 @@
     grid-template-columns: minmax(0, 1fr) 340px;
     grid-template-areas:
       "customer totals"
-      "components totals";
+      "components totals"
+      "decision totals";
     align-items: start;
   }
 
@@ -405,6 +406,10 @@
     grid-area: totals;
     position: sticky;
     top: 96px;
+  }
+
+  .decisionPanel {
+    grid-area: decision;
   }
 }
 
@@ -534,4 +539,15 @@ a.primary {
   align-items: center;
   justify-content: center;
   text-decoration: none;
+}
+.decisionPanel {
+  display: grid;
+  gap: 12px;
+}
+.decisionPanel h3 {
+  margin: 0;
+}
+.decisionHint {
+  margin: 0;
+  color: #5d4f48;
 }

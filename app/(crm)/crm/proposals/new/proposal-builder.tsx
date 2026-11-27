@@ -99,6 +99,8 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
 
   // Queue events: the API confirmed something sent from the tablet.
   const onSynced = useCallback((event: SyncEvent) => {
+    // The API answered, so the connection is back (a request that failed once may have flagged it as down).
+    setOnline(navigator.onLine);
     if (event.op.ref !== refRef.current) return;
     idRef.current = event.serverId;
     setProposalId(event.serverId);
@@ -182,7 +184,6 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
   }, [staffId]);
   useEffect(() => {
     if (!online) return;
@@ -567,9 +568,6 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
         )}
         {override && <p className={styles.overrideNote} data-testid="override-applied">Admin override applied: {override.reason}</p>}
         {isAdmin && !locked && !queueMode && <AdminOverride proposalId={proposalId} priced={status.kind === "priced" && totals !== null} hasAddon={totals?.addonPaise != null} onApplied={setOverride} />}
-        {accepted?.commercialCaseId ? (
-          <a className={styles.primary} href={`/crm/payments/${encodeURIComponent(accepted.commercialCaseId)}`} data-testid="open-payments-case">Open the payments case</a>
-        ) : null}
         <CustomerActions
           proposalId={proposalId ?? ref}
           ready={priced && lost === null}
@@ -583,20 +581,29 @@ export default function ProposalBuilder({ isAdmin, initialZohoLeadId, today, sta
           onShared={() => setShared(true)}
           onFamilyShown={() => setFamilyShown(true)}
         />
-        {(familyShown || shared) && priced && !lost ? (
-          <AcceptPanel
-            accepted={accepted}
-            hasAddon={totals?.addonPaise != null}
-            essentialPaise={essentialShown}
-            addonPaise={addonShown}
-            shared={shared}
-            blockedReason={override && !isAdmin ? "The price was overridden, so an admin must record the acceptance." : null}
-            busy={deciding || sharing}
-            onAccept={accept}
-          />
-        ) : null}
-        {ref !== null && !accepted ? <LostPanel lost={lost} busy={deciding || sharing} onLost={markLost} /> : null}
       </aside>
+      {ref !== null ? (
+        <section className={`${styles.panel} ${styles.decisionPanel}`} aria-labelledby="proposal-decision" data-testid="decision-panel">
+          <h3 id="proposal-decision">Customer decision</h3>
+          {accepted?.commercialCaseId ? (
+            <a className={styles.primary} href={`/crm/payments/${encodeURIComponent(accepted.commercialCaseId)}`} data-testid="open-payments-case">Open the payments case</a>
+          ) : null}
+          {(familyShown || shared) && priced && !lost ? (
+            <AcceptPanel
+              accepted={accepted}
+              hasAddon={totals?.addonPaise != null}
+              essentialPaise={essentialShown}
+              addonPaise={addonShown}
+              shared={shared}
+              blockedReason={override && !isAdmin ? "The price was overridden, so an admin must record the acceptance." : null}
+              busy={deciding || sharing}
+              onAccept={accept}
+            />
+          ) : null}
+          {ref !== null && !accepted ? <LostPanel lost={lost} busy={deciding || sharing} onLost={markLost} /> : null}
+          {!accepted && !lost && !(familyShown || shared) ? <p className={styles.decisionHint}>Show the family the proposal to record their decision.</p> : null}
+        </section>
+      ) : null}
     </div>
   );
 }
