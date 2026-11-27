@@ -5,6 +5,8 @@
    proposal load); after that the
    libraries are in memory and the fonts are embedded from the captured CSS, so generation needs no network. */
 
+import { photoSources, timeoutSignal } from "./photos";
+
 type Modules = [typeof import("html-to-image"), typeof import("jspdf")];
 
 let modules: Promise<Modules> | null = null;
@@ -107,7 +109,8 @@ export async function inlinePhotos<T extends { essential: { photoUrl: string | n
     if (url.startsWith("data:")) return Promise.resolve(url);
     if (!cache.has(url)) {
       // A hanging photo must not stall Show family, the PDF or sharing: give up after 8 s and keep the URL.
-      cache.set(url, fetch(url, { mode: "cors", credentials: "omit", signal: AbortSignal.timeout(8_000) })
+      // JPEG: decodable by every browser's canvas, so the PDF never depends on WebP/AVIF support.
+      cache.set(url, fetch(photoSources(url).jpeg, { mode: "cors", credentials: "omit", signal: timeoutSignal(8_000) })
         .then((response) => (response.ok ? response.blob() : Promise.reject(new Error(String(response.status)))))
         .then(dataUrl)
         .catch(() => url));
@@ -123,6 +126,20 @@ export const A4_PX = { width: 794, height: 1123 } as const;
 const A4_PT = { width: 595.28, height: 841.89 } as const;
 
 const SVG_PREFIX = "data:image/svg+xml;charset=utf-8,";
+const BLANK_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+/** Fetches every component photo once while online, so the service worker holds them for offline use (the JPEG
+    the PDF uses and the WebP the page shows). Failures are ignored. */
+export async function precachePhotos(urls: (string | null | undefined)[]): Promise<void> {
+  const wanted = new Set<string>();
+  for (const url of urls) {
+    if (!url || url.startsWith("data:")) continue;
+    const sources = photoSources(url);
+    wanted.add(sources.jpeg);
+    if (sources.webp) wanted.add(sources.webp);
+  }
+  await Promise.allSettled([...wanted].map((url) => fetch(url, { mode: "cors", credentials: "omit", signal: timeoutSignal(15_000) })));
+}
 
 /**
  * html-to-image writes every font size as floor(size) - 0.1px (a guard against text overflow). The document
@@ -172,7 +189,9 @@ export async function renderProposalPdf(pages: HTMLElement[], fontEmbedCSS?: str
   pdf.setProperties({ title: "Mason Company proposal", author: "Mason Company", creator: "Mason Company" });
   for (const [index, page] of pages.entries()) {
     const { height, pt } = sizes[index];
-    const svg = await htmlToImage.toSvg(page, { width: A4_PX.width, height, backgroundColor: "#fcf9f4", fontEmbedCSS, cacheBust: false });
+    // imagePlaceholder: a photo that cannot be fetched (offline, never cached) is left blank instead of stalling
+    // the render (html-to-image otherwise waits forever on the empty image).
+    const svg = await htmlToImage.toSvg(page, { width: A4_PX.width, height, backgroundColor: "#fcf9f4", fontEmbedCSS, cacheBust: false, imagePlaceholder: BLANK_PIXEL });
     const image = await rasterise(restoreFontSizes(svg), A4_PX.width, height, 2);
     if (index > 0) pdf.addPage(pt, "portrait");
     pdf.addImage(image, "JPEG", 0, 0, pt[0], pt[1], undefined, "FAST");

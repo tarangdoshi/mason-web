@@ -1,0 +1,1006 @@
+{
+  "source": "mason-api src/proposals/pricing.ts @ f868496 (origin/main, 24 Nov 2026). Synthetic prices only.",
+  "regenerate": "docs/proposals-web.md#offline-pricing",
+  "priceList": {
+    "version": "fixture00001",
+    "entries": [
+      {
+        "component": "folding-bar",
+        "variant": null,
+        "unitPaise": 100000
+      },
+      {
+        "component": "anti-slip-coating",
+        "variant": null,
+        "unitPaise": 112345
+      },
+      {
+        "component": "anti-slip-mat-shower",
+        "variant": null,
+        "unitPaise": 124690
+      },
+      {
+        "component": "anti-slip-mat-post-shower",
+        "variant": null,
+        "unitPaise": 137035
+      },
+      {
+        "component": "raised-toilet-seat",
+        "variant": null,
+        "unitPaise": 149380
+      },
+      {
+        "component": "shower-stool",
+        "variant": null,
+        "unitPaise": 161725
+      },
+      {
+        "component": "two-way-lock",
+        "variant": null,
+        "unitPaise": 174070
+      },
+      {
+        "component": "corner-safety",
+        "variant": null,
+        "unitPaise": 186415
+      },
+      {
+        "component": "drainage-solution",
+        "variant": null,
+        "unitPaise": 198760
+      },
+      {
+        "component": "slippers-one",
+        "variant": null,
+        "unitPaise": 211105
+      },
+      {
+        "component": "total-support-solution",
+        "variant": null,
+        "unitPaise": 223450
+      },
+      {
+        "component": "emergency-key-box",
+        "variant": null,
+        "unitPaise": 235795
+      },
+      {
+        "component": "vertical-grab-bars",
+        "variant": "Short",
+        "unitPaise": 150000
+      },
+      {
+        "component": "vertical-grab-bars",
+        "variant": "Long",
+        "unitPaise": 180050
+      },
+      {
+        "component": "angled-grab-bar",
+        "variant": null,
+        "unitPaise": 210000
+      },
+      {
+        "component": "angled-grab-bar",
+        "variant": "Left hand",
+        "unitPaise": 220000
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "one essential item",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 637345,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 699900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "essential and add-on",
+      "items": [
+        {
+          "component": "folding-bar",
+          "state": "recommended",
+          "qty": 2,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "two-way-lock",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null
+        },
+        {
+          "component": "emergency-key-box",
+          "state": "recommended",
+          "qty": 3,
+          "tier": "addon",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 725000,
+        "addonRawPaise": 1606455,
+        "essentialTotalPaise": 799900,
+        "addonTotalPaise": 1699900,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "folding-bar",
+              "name": "Flip-up Toilet support bar",
+              "variant": null,
+              "qty": 2,
+              "tier": "essential",
+              "unitPaise": 100000,
+              "complimentary": false,
+              "linePaise": 200000
+            },
+            {
+              "component": "two-way-lock",
+              "name": "Two-way lock",
+              "variant": null,
+              "qty": 1,
+              "tier": "addon",
+              "unitPaise": 174070,
+              "complimentary": false,
+              "linePaise": 174070
+            },
+            {
+              "component": "emergency-key-box",
+              "name": "Emergency Key box",
+              "variant": null,
+              "qty": 3,
+              "tier": "addon",
+              "unitPaise": 235795,
+              "complimentary": false,
+              "linePaise": 707385
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "complimentary essential and complimentary add-on count in Essential",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "slippers-one",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null,
+          "complimentary": true
+        },
+        {
+          "component": "drainage-solution",
+          "state": "recommended",
+          "qty": 4,
+          "tier": "addon",
+          "variant": null,
+          "complimentary": true
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 1643490,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 1699900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            },
+            {
+              "component": "slippers-one",
+              "name": "EVA non-slip Bathroom slippers",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 211105,
+              "complimentary": true,
+              "linePaise": 211105
+            },
+            {
+              "component": "drainage-solution",
+              "name": "Drainage clearance",
+              "variant": null,
+              "qty": 4,
+              "tier": "addon",
+              "unitPaise": 198760,
+              "complimentary": true,
+              "linePaise": 795040
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "only complimentary add-ons: no Add-on option",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "drainage-solution",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null,
+          "complimentary": true
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 836105,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 899900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            },
+            {
+              "component": "drainage-solution",
+              "name": "Drainage clearance",
+              "variant": null,
+              "qty": 1,
+              "tier": "addon",
+              "unitPaise": 198760,
+              "complimentary": true,
+              "linePaise": 198760
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "present and declined are not priced",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "raised-toilet-seat",
+          "state": "present",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "shower-stool",
+          "state": "declined",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 637345,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 699900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "named variants, case and punctuation insensitive",
+      "items": [
+        {
+          "component": "vertical-grab-bars",
+          "state": "recommended",
+          "qty": 2,
+          "tier": "essential",
+          "variant": "short"
+        },
+        {
+          "component": "vertical-grab-bars",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": " LONG! "
+        },
+        {
+          "component": "angled-grab-bar",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": "left-hand"
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 1225050,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 1299900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "vertical-grab-bars",
+              "name": "Vertical grab bars",
+              "variant": "Short",
+              "qty": 2,
+              "tier": "essential",
+              "unitPaise": 150000,
+              "complimentary": false,
+              "linePaise": 300000
+            },
+            {
+              "component": "vertical-grab-bars",
+              "name": "Vertical grab bars",
+              "variant": "Long",
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 180050,
+              "complimentary": false,
+              "linePaise": 180050
+            },
+            {
+              "component": "angled-grab-bar",
+              "name": "L-shaped Shower grab bar",
+              "variant": "Left hand",
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 220000,
+              "complimentary": false,
+              "linePaise": 220000
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "no variant uses the plain row",
+      "items": [
+        {
+          "component": "angled-grab-bar",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 735000,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 799900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "angled-grab-bar",
+              "name": "L-shaped Shower grab bar",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 210000,
+              "complimentary": false,
+              "linePaise": 210000
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "variant required when only named rows exist",
+      "items": [
+        {
+          "component": "vertical-grab-bars",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "error": "VARIANT_REQUIRED"
+    },
+    {
+      "name": "unknown variant",
+      "items": [
+        {
+          "component": "folding-bar",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": "Gold"
+        }
+      ],
+      "config": null,
+      "error": "UNKNOWN_PRICE"
+    },
+    {
+      "name": "zero quantity is invalid",
+      "items": [
+        {
+          "component": "folding-bar",
+          "state": "recommended",
+          "qty": 0,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "error": "INVALID_ITEM"
+    },
+    {
+      "name": "invalid quantity on a declined item is still refused",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "folding-bar",
+          "state": "declined",
+          "qty": 1.5,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "error": "INVALID_ITEM"
+    },
+    {
+      "name": "every component",
+      "items": [
+        {
+          "component": "vertical-grab-bars",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": "Long"
+        },
+        {
+          "component": "angled-grab-bar",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "folding-bar",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "anti-slip-mat-shower",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "anti-slip-mat-post-shower",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "raised-toilet-seat",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "shower-stool",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null
+        },
+        {
+          "component": "two-way-lock",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null
+        },
+        {
+          "component": "corner-safety",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "drainage-solution",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "slippers-one",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "total-support-solution",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "emergency-key-box",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null
+        }
+      ],
+      "config": null,
+      "expected": {
+        "essentialRawPaise": 2358230,
+        "addonRawPaise": 2929820,
+        "essentialTotalPaise": 2399900,
+        "addonTotalPaise": 2999900,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "vertical-grab-bars",
+              "name": "Vertical grab bars",
+              "variant": "Long",
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 180050,
+              "complimentary": false,
+              "linePaise": 180050
+            },
+            {
+              "component": "angled-grab-bar",
+              "name": "L-shaped Shower grab bar",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 210000,
+              "complimentary": false,
+              "linePaise": 210000
+            },
+            {
+              "component": "folding-bar",
+              "name": "Flip-up Toilet support bar",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 100000,
+              "complimentary": false,
+              "linePaise": 100000
+            },
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            },
+            {
+              "component": "anti-slip-mat-shower",
+              "name": "Shower anti-slip mat",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 124690,
+              "complimentary": false,
+              "linePaise": 124690
+            },
+            {
+              "component": "anti-slip-mat-post-shower",
+              "name": "Post-shower anti-slip mat",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 137035,
+              "complimentary": false,
+              "linePaise": 137035
+            },
+            {
+              "component": "raised-toilet-seat",
+              "name": "Raised Toilet Seat",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 149380,
+              "complimentary": false,
+              "linePaise": 149380
+            },
+            {
+              "component": "shower-stool",
+              "name": "Adjustable Shower seating stool",
+              "variant": null,
+              "qty": 1,
+              "tier": "addon",
+              "unitPaise": 161725,
+              "complimentary": false,
+              "linePaise": 161725
+            },
+            {
+              "component": "two-way-lock",
+              "name": "Two-way lock",
+              "variant": null,
+              "qty": 1,
+              "tier": "addon",
+              "unitPaise": 174070,
+              "complimentary": false,
+              "linePaise": 174070
+            },
+            {
+              "component": "corner-safety",
+              "name": "Soft Corner Guards",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 186415,
+              "complimentary": false,
+              "linePaise": 186415
+            },
+            {
+              "component": "drainage-solution",
+              "name": "Drainage clearance",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 198760,
+              "complimentary": false,
+              "linePaise": 198760
+            },
+            {
+              "component": "slippers-one",
+              "name": "EVA non-slip Bathroom slippers",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 211105,
+              "complimentary": false,
+              "linePaise": 211105
+            },
+            {
+              "component": "total-support-solution",
+              "name": "Reinforced fixture support",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 223450,
+              "complimentary": false,
+              "linePaise": 223450
+            },
+            {
+              "component": "emergency-key-box",
+              "name": "Emergency Key box",
+              "variant": null,
+              "qty": 1,
+              "tier": "addon",
+              "unitPaise": 235795,
+              "complimentary": false,
+              "linePaise": 235795
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "custom manpower and step",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        },
+        {
+          "component": "two-way-lock",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "addon",
+          "variant": null
+        }
+      ],
+      "config": {
+        "manpower": {
+          "kind": "fixed",
+          "amountPaise": 400000
+        },
+        "roundUpStepPaise": 50000
+      },
+      "expected": {
+        "essentialRawPaise": 512345,
+        "addonRawPaise": 686415,
+        "essentialTotalPaise": 549900,
+        "addonTotalPaise": 699900,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 400000
+          },
+          "manpowerPaise": 400000,
+          "roundUpStepPaise": 50000,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            },
+            {
+              "component": "two-way-lock",
+              "name": "Two-way lock",
+              "variant": null,
+              "qty": 1,
+              "tier": "addon",
+              "unitPaise": 174070,
+              "complimentary": false,
+              "linePaise": 174070
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "step 0 leaves totals unrounded",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": {
+        "manpower": {
+          "kind": "fixed",
+          "amountPaise": 525000
+        },
+        "roundUpStepPaise": 0
+      },
+      "expected": {
+        "essentialRawPaise": 637345,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 637345,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 525000
+          },
+          "manpowerPaise": 525000,
+          "roundUpStepPaise": 0,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "already on a …999 boundary stays",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": {
+        "manpower": {
+          "kind": "fixed",
+          "amountPaise": 799900
+        },
+        "roundUpStepPaise": 100000
+      },
+      "expected": {
+        "essentialRawPaise": 912245,
+        "addonRawPaise": null,
+        "essentialTotalPaise": 999900,
+        "addonTotalPaise": null,
+        "snapshot": {
+          "version": "fixture00001",
+          "manpower": {
+            "kind": "fixed",
+            "amountPaise": 799900
+          },
+          "manpowerPaise": 799900,
+          "roundUpStepPaise": 100000,
+          "lines": [
+            {
+              "component": "anti-slip-coating",
+              "name": "Nanotechnology anti-slip surface treatment",
+              "variant": null,
+              "qty": 1,
+              "tier": "essential",
+              "unitPaise": 112345,
+              "complimentary": false,
+              "linePaise": 112345
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "bad step",
+      "items": [
+        {
+          "component": "anti-slip-coating",
+          "state": "recommended",
+          "qty": 1,
+          "tier": "essential",
+          "variant": null
+        }
+      ],
+      "config": {
+        "manpower": {
+          "kind": "fixed",
+          "amountPaise": 525000
+        },
+        "roundUpStepPaise": 100
+      },
+      "error": "INVALID_CONFIG"
+    }
+  ]
+}

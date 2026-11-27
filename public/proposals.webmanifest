@@ -1,0 +1,16 @@
+{
+  "name": "Mason Proposals",
+  "short_name": "Proposals",
+  "description": "Mason Company proposal builder for home assessments.",
+  "id": "/crm/proposals/new",
+  "start_url": "/crm/proposals/new",
+  "scope": "/crm/proposals/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FCF9F4",
+  "theme_color": "#84422C",
+  "icons": [
+    { "src": "/proposals-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/proposals-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

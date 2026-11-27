@@ -24,6 +24,7 @@ const nextServer = (port: number, enabled: boolean) => ({
     NEXT_PUBLIC_PROPOSALS_ENABLED: enabled ? "true" : "false",
     PROPOSALS_CONTENT_SOURCE: "seed",
     PROPOSALS_SHARE_ORIGIN: `http://127.0.0.1:${port}`,
+    NEXT_PUBLIC_PROPOSALS_SW_DEV: "true", // the service worker on a dev server, for the offline test
     NEXT_TELEMETRY_DISABLED: "1"
   }
 });
@@ -49,7 +50,7 @@ export default defineConfig({
     { name: "a4-golden", use: { browserName: "chromium", viewport: { width: 1280, height: 1400 }, deviceScaleFactor: 1 }, grep: /@golden/ }
   ],
   webServer: [
-    { command: `node e2e/proposals/mock-api.mjs`, cwd: ROOT, url: `${api}/__log`, env: { MOCK_API_PORT: String(MOCK_PORT) }, reuseExistingServer: false, timeout: 20_000 },
+    { command: `node --import tsx e2e/proposals/mock-api.mjs`, cwd: ROOT, url: `${api}/__log`, env: { MOCK_API_PORT: String(MOCK_PORT) }, reuseExistingServer: false, timeout: 20_000 },
     nextServer(ON_PORT, true),
     nextServer(OFF_PORT, false)
   ]

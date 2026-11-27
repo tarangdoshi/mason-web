@@ -35,7 +35,7 @@ test("the staff route, nav link and Studio menu are all gated by the flag", () =
 });
 
 test("the first save is explicit (no half-typed lead ID) and the seed never overwrites existing documents", () => {
-  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(proposalId === null \|\| problem \|\| inFlight\.current \|\| locked\) return;/);
+  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /if \(ref === null \|\| problem \|\| inFlight\.current \|\| locked\) return;/);
   const seed = read("scripts/seed-proposals.ts");
   assert.match(seed, /filter\(\(doc\) => !existing\.has/);
   assert.doesNotMatch(seed, /\.patch\(/);
@@ -54,7 +54,10 @@ test("a failed price is never retried silently, and live totals debounce at abou
 test("override is ADMIN-only on the server action, not just hidden in the UI", () => {
   const actions = read("app/(crm)/crm/proposals/actions.ts");
   assert.match(actions, /if \(auth\.user\.role !== "ADMIN"\) return \{ ok: false, error: "Only an admin can override a proposal price\." \};/);
-  assert.match(read("app/(crm)/crm/proposals/new/proposal-builder.tsx"), /\{isAdmin && !shared && <AdminOverride /);
+  const builder = read("app/(crm)/crm/proposals/new/proposal-builder.tsx");
+  // Hidden once shared (locked covers shared, accepted, lost) and while work waits for signal (override needs the server).
+  assert.match(builder, /\{isAdmin && !locked && !queueMode && <AdminOverride /);
+  assert.match(builder, /const locked = shared \|\| sharing \|\| accepted !== null \|\| lost !== null \|\| deciding;/);
 });
 
 const draft = (patch: Partial<BuilderDraft> = {}): BuilderDraft => ({
