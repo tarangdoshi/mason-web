@@ -138,7 +138,10 @@ self.addEventListener("fetch", (event) => {
           await caches.delete(OPEN);
           const cache = await caches.open(OPEN);
           await cache.put(url.pathname, response.clone());
+          return response;
         }
+        // Too many requests for now: a returning customer still sees the copy they opened before.
+        if (response.status === 429) return (await caches.match(url.pathname, { cacheName: OPEN })) || response;
         return response;
       } catch {
         return (await caches.match(url.pathname, { cacheName: OPEN })) || offlinePage();

@@ -12,6 +12,8 @@ const MOCK_PORT = 4410;
 const ON_PORT = 3410;
 const OFF_PORT = 3411;
 const api = `http://127.0.0.1:${MOCK_PORT}`;
+// Synthetic, test-only (not a real secret): the mock verifies the customer page's signed calls with it.
+const E2E_SIGNING_SECRET = "e2e-only-proposals-web-signing-secret-0000";
 const nextServer = (port: number, enabled: boolean) => ({
   command: `pnpm exec next dev -p ${port}`,
   cwd: ROOT,
@@ -25,6 +27,7 @@ const nextServer = (port: number, enabled: boolean) => ({
     PROPOSALS_CONTENT_SOURCE: "seed",
     PROPOSALS_SHARE_ORIGIN: `http://127.0.0.1:${port}`,
     NEXT_PUBLIC_PROPOSALS_SW_DEV: "true", // the service worker on a dev server, for the offline test
+    PROPOSALS_WEB_SIGNING_SECRET: E2E_SIGNING_SECRET,
     NEXT_TELEMETRY_DISABLED: "1"
   }
 });
@@ -50,7 +53,7 @@ export default defineConfig({
     { name: "a4-golden", use: { browserName: "chromium", viewport: { width: 1280, height: 1400 }, deviceScaleFactor: 1 }, grep: /@golden/ }
   ],
   webServer: [
-    { command: `node --import tsx e2e/proposals/mock-api.mjs`, cwd: ROOT, url: `${api}/__log`, env: { MOCK_API_PORT: String(MOCK_PORT) }, reuseExistingServer: false, timeout: 20_000 },
+    { command: `node --import tsx e2e/proposals/mock-api.mjs`, cwd: ROOT, url: `${api}/__log`, env: { MOCK_API_PORT: String(MOCK_PORT), PROPOSALS_WEB_SIGNING_SECRET: E2E_SIGNING_SECRET }, reuseExistingServer: false, timeout: 20_000 },
     nextServer(ON_PORT, true),
     nextServer(OFF_PORT, false)
   ]

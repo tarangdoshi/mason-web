@@ -113,8 +113,12 @@ export async function overrideProposal(id: string, input: OverrideInput, hasAddo
   }
 }
 
+/** mason-api's Zoho Note outcome on share ("pending": another request is adding it right now). */
+export type ZohoNote = "added" | "failed" | "skipped" | "unchanged" | "pending";
+const ZOHO_NOTES = new Set<string>(["added", "failed", "skipped", "unchanged", "pending"]);
+
 export type DocumentResult =
-  | { ok: true; doc: ProposalDoc; shareToken: string | null; shareUrl: string | null }
+  | { ok: true; doc: ProposalDoc; shareToken: string | null; shareUrl: string | null; zohoNote?: ZohoNote | null }
   | { ok: false; error: string; retryable?: boolean };
 
 /** Customer links always use the public site, never the host the CRM happens to be open on (preview, vercel.app). */
@@ -155,10 +159,11 @@ export async function shareProposal(id: string): Promise<DocumentResult> {
   if ("error" in auth) return { ok: false, error: auth.error ?? "Unavailable." };
   if (!UUID.test(id)) return { ok: false, error: "Price the proposal first." };
   try {
-    await apiFetch(`/api/v1/internal/proposals/${id}/share`, { method: "POST", token: auth.token });
+    const shared = await apiFetch<{ data?: { zohoNote?: string } }>(`/api/v1/internal/proposals/${id}/share`, { method: "POST", token: auth.token });
+    const note = shared?.data?.zohoNote;
     const result = await proposalDocument(auth.token, id);
     if (result.ok && !result.shareToken) return { ok: false, error: "The proposal was not shared. Try again." };
-    return result;
+    return result.ok ? { ...result, zohoNote: note && ZOHO_NOTES.has(note) ? (note as ZohoNote) : null } : result;
   } catch (error) {
     return { ok: false, error: error instanceof ApiError ? message(error) : "The proposal could not be shared.", retryable: retryable(error) };
   }
